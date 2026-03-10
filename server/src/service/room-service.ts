@@ -2,8 +2,8 @@ import { IRoomIdGenerator } from "../models/interface";
 import { Room } from "../core/room";
 
 export class RoomService {
-  private rooms: Map<string, Room> = new Map();
-   private idGenerator: IRoomIdGenerator;
+  private rooms: Map<number, Room> = new Map();
+  private idGenerator: IRoomIdGenerator;
 
   constructor(idGenerator: IRoomIdGenerator) {
     this.idGenerator = idGenerator;
@@ -13,12 +13,9 @@ export class RoomService {
   // =========================================================
 
   public createRoom(): Room {
-    let roomId: string;
+    let roomId: number;
 
-    do {
-      roomId = this.idGenerator.generate();
-    } while (this.rooms.has(roomId));
-
+    roomId = this.idGenerator.generate();
     const room = new Room(roomId);
 
     this.rooms.set(roomId, room);
@@ -30,7 +27,7 @@ export class RoomService {
   // Get
   // =========================================================
 
-  public getRoom(roomId: string): Room | undefined {
+  public getRoom(roomId: number): Room | undefined {
     return this.rooms.get(roomId);
   }
 
@@ -42,17 +39,17 @@ export class RoomService {
   // Join Helpers
   // =========================================================
 
-  public quickJoin(): Room | null {
+  public quickJoin(): Room | undefined {
     for (const room of this.rooms.values()) {
       if (!room.isFull()) {
         return room;
       }
     }
 
-    return null;
+    return undefined;
   }
 
-  public findRoomByPlayer(playerId: string): Room | undefined {
+  public findRoomByPlayer(playerId: number): Room | undefined {
     for (const room of this.rooms.values()) {
       if (room.hasPlayer(playerId)) {
         return room;
@@ -66,7 +63,7 @@ export class RoomService {
   // Delete
   // =========================================================
 
-  public deleteRoom(roomId: string): void {
+  public deleteRoom(roomId: number): void {
     this.rooms.delete(roomId);
   }
 }

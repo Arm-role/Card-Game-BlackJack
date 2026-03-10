@@ -1,18 +1,70 @@
 import { UserSession } from "../core/user-session";
 import { RoomService } from "../service/room-service";
+import { MessageDispatcher } from "../core/dispatcher";
 import { AuthService } from "../service/auth-service";
 import { Room } from "../core/room";
 
 export class GameServer {
-  private sessionsBySessionId: Map<string, UserSession> = new Map();
-  private sessionsByAccountId: Map<string, UserSession> = new Map();
+  private sessionsByUserId: Map<number, UserSession> = new Map();
+  private dispatcher: MessageDispatcher;
   private authService: AuthService;
   private roomService: RoomService;
 
-  constructor(authService : AuthService, roomService : RoomService)
-  {
+  constructor(authService: AuthService, roomService: RoomService) {
     this.authService = authService;
     this.roomService = roomService;
+
+    this.dispatcher = new MessageDispatcher();
+    this.registerHandlers();
+  }
+
+  private registerHandlers() {
+
+    this.dispatcher.register<{ type: "register"; data: any }>(
+      "register",
+      async (session, msg) => {
+        await this.handleRegister(session, msg.data);
+      }
+    );
+
+    this.dispatcher.register<{ type: "login"; data: any }>(
+      "login",
+      async (session, msg) => {
+        await this.handleLogin(session, msg.data);
+      }
+    );
+
+    this.dispatcher.register<{ type: "join_room"; data: any }>(
+      "join_room",
+      async (session, msg) => {
+        await this.handleJoinRoom(session, msg.data);
+      }
+    );
+
+    this.dispatcher.register("create_room", async (session) => {
+      await this.handleCreateRoom(session);
+    });
+
+    this.dispatcher.register("quick_join_room", async (session) => {
+      await this.handleQuickJoin(session);
+    });
+
+    this.dispatcher.register("leave_room", async (session) => {
+      await this.handleLeaveRoom(session);
+    });
+
+    this.dispatcher.register("request_room_snapshot", (session) => {
+      this.handleSnapshotRequest(session);
+    });
+
+  }
+
+  // =========================================================
+  // Main Message Entry
+  // =========================================================
+
+  public async handleMessage(session: UserSession, rawData: any) {
+    await this.dispatcher.dispatch(session, rawData);
   }
 
   // =========================
@@ -20,20 +72,20 @@ export class GameServer {
   // =========================
 
   public addSession(session: UserSession): void {
-    this.sessionsBySessionId.set(session.getSessionId(), session);
+    this.sessionsByUserId.set(session.getUserId(), session);
   }
 
-  public removeSession(sessionId: string): void {
-    const session = this.sessionsBySessionId.get(sessionId);
-    if (!session) return;
+  public removeSession(userId: number): void {
+    const user = this.sessionsByUserId.get(userId);
+    if (!user) return;
 
-    this.handleDisconnect(session);
+    this.handleDisconnect(user);
   }
 
-  private handleDisconnect(session: UserSession): void {
-    if (!session.isAuthenticated()) return;
+  private handleDisconnect(user: UserSession): void {
+    if (!user.isAuthenticated()) return;
 
-    const playerId = session.getAccountId()!;
+    const playerId = user.getUserId()!;
     const room = this.roomService.findRoomByPlayer(playerId);
 
     if (!room) return;
@@ -46,53 +98,7 @@ export class GameServer {
       this.broadcastRoomUpdate(room);
     }
 
-    console.log(`Session disconnected: ${session.getSessionId()}`);
-  }
-  // =========================================================
-  // Main Message Entry
-  // =========================================================
-
-  public async handleMessage(session: UserSession, message: any) {
-    if (!message?.type) {
-      session.send({ type: "error", message: "Invalid message format" });
-      return;
-    }
-
-    console.log(message.type);
-
-    switch (message.type) {
-      case "register":
-        await this.handleRegister(session, message.data);
-        break;
-
-      case "login":
-        await this.handleLogin(session, message.data);
-        break;
-
-      case "create_room":
-        await this.handleCreateRoom(session);
-        break;
-
-      case "join_room":
-        await this.handleJoinRoom(session, message.data);
-        break;
-
-      case "quick_join_room":
-        await this.handleQuickJoin(session);
-        break;
-
-      case "leave_room":
-        await this.handleLeaveRoom(session);
-        break;
-
-      case "request_room_snapshot":
-        this.handleSnapshotRequest(session);
-        break;
-
-      default:
-        session.send({ type: "error", message: "Unknown message type" });
-        break;
-    }
+    console.log(`User disconnected: ${user.getUserId()}`);
   }
 
   // =========================================================
@@ -100,8 +106,13 @@ export class GameServer {
   // =========================================================
 
   private async handleRegister(session: UserSession, data: any) {
+
     if (!data?.username || !data?.password) {
-      session.send({ type: "register_result", success: false });
+      session.send({
+        type: "register_result",
+        success: false,
+        reason: "INVALID_INPUT"
+      });
       return;
     }
 
@@ -111,22 +122,32 @@ export class GameServer {
     );
 
     if (!account) {
-      session.send({ type: "register_result", success: false });
+      session.send({
+        type: "register_result",
+        success: false,
+        reason: "USERNAME_EXISTS"
+      });
       return;
     }
 
-    session.bindAccount(account.id, account.username);
-    this.sessionsByAccountId.set(account.id, session)
+    session.bindUser(account.id, account.username);
+    this.sessionsByUserId.set(account.id, session);
+
     session.send({
       type: "register_result",
       success: true,
-      username: account.username,
+      username: account.username
     });
   }
 
   private async handleLogin(session: UserSession, data: any) {
+
     if (!data?.username || !data?.password) {
-      session.send({ type: "login_result", success: false });
+      session.send({
+        type: "login_result",
+        success: false,
+        reason: "INVALID_INPUT"
+      });
       return;
     }
 
@@ -136,17 +157,21 @@ export class GameServer {
     );
 
     if (!account) {
-      session.send({ type: "login_result", success: false });
+      session.send({
+        type: "login_result",
+        success: false,
+        reason: "INVALID_CREDENTIALS"
+      });
       return;
     }
 
-    session.bindAccount(account.id, account.username);
-    this.sessionsByAccountId.set(account.id, session)
+    session.bindUser(account.id, account.username);
+    this.sessionsByUserId.set(account.id, session);
 
     session.send({
       type: "login_result",
       success: true,
-      username: account.username,
+      username: account.username
     });
   }
 
@@ -156,7 +181,12 @@ export class GameServer {
 
   private async handleCreateRoom(session: UserSession) {
     if (!session.isAuthenticated()) {
-      session.send({ type: "room_result", action: "create", success: false });
+      session.send({
+        type: "room_result",
+        action: "create",
+        success: false,
+        reason: "NOT_AUTHENTICATED"
+      });
       return;
     }
 
@@ -167,8 +197,8 @@ export class GameServer {
     }
 
     room.addPlayer(
-      session.getAccountId()!,
-      session.getDisplayName()!
+      session.getUserId()!,
+      session.getUsername()!
     );
 
     session.send({
@@ -182,19 +212,40 @@ export class GameServer {
 
   private async handleJoinRoom(session: UserSession, data: any) {
     if (!session.isAuthenticated()) {
-      session.send({ type: "room_result", action: "join", success: false });
+      session.send({
+        type: "room_result",
+        action: "join",
+        success: false,
+        reason: "NOT_AUTHENTICATED"
+      });
       return;
     }
 
     const room = this.roomService.getRoom(data?.roomId);
-    if (!room || room.isFull()) {
-      session.send({ type: "room_result", action: "join", success: false });
+
+    if (!room) {
+      session.send({
+        type: "room_result",
+        action: "join",
+        success: false,
+        reason: "ROOM_NOT_FOUND"
+      });
+      return;
+    }
+
+    if (room.isFull()) {
+      session.send({
+        type: "room_result",
+        action: "join",
+        success: false,
+        reason: "ROOM_FULL"
+      });
       return;
     }
 
     room.addPlayer(
-      session.getAccountId()!,
-      session.getDisplayName()!
+      session.getUserId()!,
+      session.getUsername()!
     );
 
     session.send({
@@ -212,6 +263,7 @@ export class GameServer {
         type: "room_result",
         action: "quick_join",
         success: false,
+        reason: "ROOM_NOT_FOUND"
       });
       return;
     }
@@ -222,13 +274,14 @@ export class GameServer {
         type: "room_result",
         action: "quick_join",
         success: false,
+        reason: "NO_AVAILABLE_ROOM"
       });
       return;
     }
 
     room.addPlayer(
-      session.getAccountId()!,
-      session.getDisplayName()!
+      session.getUserId()!,
+      session.getUsername()!
     );
 
     session.send({
@@ -243,7 +296,7 @@ export class GameServer {
   private async handleLeaveRoom(session: UserSession) {
     if (!session.isAuthenticated()) return;
 
-    const playerId = session.getAccountId()!;
+    const playerId = session.getUserId()!;
     const room = this.roomService.findRoomByPlayer(playerId);
 
     if (!room) return;
@@ -266,7 +319,7 @@ export class GameServer {
   private handleSnapshotRequest(session: UserSession) {
     if (!session.isAuthenticated()) return;
 
-    const playerId = session.getAccountId()!;
+    const playerId = session.getUserId()!;
     const room = this.roomService.findRoomByPlayer(playerId);
 
     if (!room) return;
@@ -291,7 +344,7 @@ export class GameServer {
     console.log(room.getPlayerIds().length);
 
     for (const playerId of room.getPlayerIds()) {
-      const session = this.sessionsByAccountId.get(playerId);
+      const session = this.sessionsByUserId.get(playerId);
       console.log(playerId + " session : " + !session);
 
       if (!session) continue;

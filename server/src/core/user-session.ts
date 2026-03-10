@@ -1,44 +1,41 @@
 import { v4 as uuid } from "uuid";
 import { WebSocket } from "ws";
-import { MessageDispatcher } from "./message-dispatcher";
 
 export class UserSession {
-    private sessionId: string;
-    private accountId?: string;
-    private username?: string;
-    private displayName?: string;
+	private sessionId: string;
+	private userId: number;
+	private username?: string;
 
-    private ws: WebSocket;
-    private dispatcher = new MessageDispatcher();
+	private ws: WebSocket;
 
-    constructor(ws: WebSocket) {
-        this.sessionId = uuid();
-        this.ws = ws;
-    }
+	constructor(ws: WebSocket) {
+		this.sessionId = uuid();
+		this.ws = ws;
+	}
 
-    public bindAccount(accountId: string, username: string) {
-        this.accountId = accountId;
-        this.username = username;
-        this.displayName = username;
-    }
+	public bindUser(accountId: number, username: string) {
+		this.userId = accountId;
+		this.username = username;
+	}
 
-    public isAuthenticated(): boolean {
-        return this.accountId !== undefined;
-    }
+	public isAuthenticated(): boolean {
+		return this.userId !== undefined;
+	}
 
-    public send(message: any) {
-        this.ws.send(JSON.stringify(message));
-    }
+	public send(message: any) {
+		this.ws.send(JSON.stringify(message));
+	}
 
-    public getSessionId() {
-        return this.sessionId;
-    }
+	public getSessionId() {
+		return this.sessionId;
+	}
 
-    public getAccountId() {
-        return this.accountId;
-    }
+	public getUserId() {
+		return this.userId;
+	}
 
-    public getDisplayName() {
-        return this.displayName;
-    }
+	public getUsername() {
+		return this.username;
+	}
+
 }

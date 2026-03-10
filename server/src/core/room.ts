@@ -3,29 +3,29 @@ import { Board } from "./board";
 const MAX_PLAYERS = 4;
 
 class PlayerData {
-  id: string;
+  id: number;
   username: string;
   chip: number;
 }
 
 export class Room {
-  private players = new Map<string, PlayerData>();
+  private players = new Map<number, PlayerData>();
   private board = new Board();
 
-  private roomId: string;
+  private roomId: number;
 
-  constructor(roomId: string) {
+  constructor(roomId: number) {
     this.roomId = roomId;
   }
 
-  public addPlayer(id: string, username: string): boolean {
+  public addPlayer(id: number, username: string): boolean {
     if (this.players.size >= MAX_PLAYERS) return false;
 
     this.players.set(id, { id, username, chip: 1000000 });
     return true;
   }
 
-  public removePlayer(id: string) {
+  public removePlayer(id: number) {
     this.players.delete(id);
   }
 
@@ -33,7 +33,7 @@ export class Room {
     return this.players;
   }
 
-  public getRoomId(): string {
+  public getRoomId(): number {
     return this.roomId;
   }
 
@@ -41,7 +41,7 @@ export class Room {
     return MAX_PLAYERS;
   }
 
-  public getPlayerIds(): string[] {
+  public getPlayerIds(): number[] {
     return [...this.players.keys()];
   }
 
@@ -49,7 +49,7 @@ export class Room {
 
   }
 
-  public hasPlayer(id: string) {
+  public hasPlayer(id: number) {
     return this.players.has(id);
   }
 
