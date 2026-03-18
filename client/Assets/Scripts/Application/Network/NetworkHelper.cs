@@ -96,6 +96,20 @@ public class NetworkHelper
     OnSend?.Invoke(request);
   }
 
+  public static void RequestSwapResponse(bool accept)
+  {
+    var request = new SwapResponseRequest
+    {
+      type = "request_swap_response",
+      data = new SwapSeatResponsData()
+      {
+        accept = accept
+      }
+    };
+
+    OnSend?.Invoke(request);
+  }
+
   public static void RequestStartGame()
   {
     var request = new StartGameRequest()

@@ -17,7 +17,6 @@ public class GameLobbyView : MonoBehaviour
 
   private LobbyService _Serviec;
 
-  private int _selectedSeat = -1;
   private int _maxPlayers;
 
   public void Initialze(LobbyService lobbySystem)
@@ -27,7 +26,6 @@ public class GameLobbyView : MonoBehaviour
     _LeaveButton.onClick.AddListener(OnLeaveClicked);
 
     _Serviec.OnRoomUpdated += HandleRoomUpdated;
-    //_Serviec.OnPlayerJoinRoomUpdated += HandleAddPlayer;
     _Serviec.OnSeatUpdated += _view.SetSeats;
     _view.OnSeatClicked += OnSeatClicked;
   }
@@ -41,12 +39,6 @@ public class GameLobbyView : MonoBehaviour
   {
     RefreshUI(room);
   }
-
-  //private void HandleAddPlayer(PlayerJoinRoomData data)
-  //{
-  //  _RoomListText.text = $"Players: {_spawnedPlayers.Count}/{_maxPlayers}";
-  //  _LeaveButton.interactable = true;
-  //}
 
   private void RefreshUI(RoomData room)
   {

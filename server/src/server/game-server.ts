@@ -44,7 +44,14 @@ export class GameServer {
     this.dispatcher.register<{ type: "request_swap_seat", data: any }>(
       "request_swap_seat",
       async (session, msg) => {
-        this.handleSwapSeatRequest(session, msg);
+        this.handleSwapSeatRequest(session, msg.data);
+      }
+    );
+
+    this.dispatcher.register<{ type: "request_swap_response"; data: any }>(
+      "request_swap_response",
+      (session, msg) => {
+        this.handleSwapResponse(session, msg.data);
       }
     );
 
@@ -263,6 +270,7 @@ export class GameServer {
       type: "room_result",
       action: "join",
       success: true,
+      seat: room.getSeatByPlayerId(session.getUserId())
     });
 
     this.broadcastRoomUpdate(room);
@@ -299,6 +307,7 @@ export class GameServer {
       type: "room_result",
       action: "quick_join",
       success: true,
+      seat: room.getSeatByPlayerId(session.getUserId())
     });
 
     this.broadcastRoomUpdate(room);
@@ -365,7 +374,7 @@ export class GameServer {
       return;
     }
 
-    const { fromSeat, toSeat } = data.data || {};
+    const { fromSeat, toSeat } = data;
 
     if (fromSeat === undefined || toSeat === undefined) {
       session.send({
@@ -377,17 +386,77 @@ export class GameServer {
       return;
     }
 
-    const success = room.swapSeat(playerId, fromSeat, toSeat);
+    const from = room.getSeat(fromSeat);
+    const to = room.getSeat(toSeat);
 
-    if (!success) {
+    if (!from || !to) {
       session.send({
         type: "room_result",
         action: "swap_seat",
         success: false,
-        reason: "SWAP_FAILED"
+        reason: "INVALID_ROOM_SEAT"
       });
       return;
     }
+
+    if (!to.playerId) {
+      const success = room.swapSeat(playerId, fromSeat, toSeat);
+
+      if (!success) {
+        session.send({
+          type: "room_result",
+          action: "swap_seat",
+          success: false,
+          reason: "SWAP_FAILED"
+        });
+        return;
+      }
+
+      this.broadcastRoomUpdate(room);
+      return;
+    }
+
+    const targetPlayerId = to.playerId;
+
+    room.addSwapRequest(targetPlayerId, {
+      fromPlayerId: playerId,
+      toPlayerId: targetPlayerId,
+      fromSeat,
+      toSeat
+    });
+
+    const targetSession = this.sessionsByUserId.get(targetPlayerId);
+    if (targetSession) {
+      targetSession.send({
+        type: "room_update",
+        action: "swap_request",
+        success: true,
+        seatSwap: {
+          fromPlayerId: playerId,
+          fromSeat,
+          toSeat
+        }
+      });
+    }
+
+    this.broadcastRoomUpdate(room);
+  }
+
+  private handleSwapResponse(session: UserSession, data: any) {
+
+    const playerId = session.getUserId()!;
+    const room = this.roomService.findRoomByPlayer(playerId);
+    if (!room) return;
+
+    const request = room.getSwapRequest(playerId);
+    if (!request) return;
+
+    if (data.accept) {
+      var success = room.swapSeat(request.fromPlayerId, request.fromSeat, request.toSeat);
+      console.log(session);
+    }
+
+    room.removeSwapRequest(playerId);
 
     this.broadcastRoomUpdate(room);
   }
@@ -491,7 +560,7 @@ export class GameServer {
     const message = {
       type: "room_update",
       action: "snapshot",
-      payload: room.getSnapshot()
+      room: room.getSnapshot()
     };
 
     for (const playerId of room.getPlayerIds()) {

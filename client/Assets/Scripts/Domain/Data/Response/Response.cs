@@ -33,23 +33,15 @@ public class RoomResultMessage
 }
 
 
-
-
-
 [Serializable]
 public class RoomUpdateMessage
 {
   public string type;
   public string action;
-  public RoomData payload;
-  public PlayerJoinRoomData player;
-}
 
-[Serializable]
-public class PlayerJoinRoomData
-{
-  public int roomId;
-  public SeatData seat;
+  public RoomData room;
+  public SeatSwapData seatSwap;
+  public PlayerJoinRoomData player;
 }
 
 
@@ -61,6 +53,23 @@ public class RoomData
   public string state;
   public List<SeatData> seats;
 }
+
+[Serializable]
+public class SeatSwapData
+{
+  public int fromPlayerId;
+  public int fromSeat;
+  public int toSeat;
+}
+
+
+[Serializable]
+public class PlayerJoinRoomData
+{
+  public int roomId;
+  public SeatData seat;
+}
+
 
 [Serializable]
 public class SeatData

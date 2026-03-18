@@ -1,8 +1,16 @@
+using System;
 using UnityEngine;
 
 public class GameState : MonoBehaviour
 {
   public static GameState Instance { get; private set; }
+
+  public int seatIndex;
+  public SeatRole role;
+
+  public int playerId;
+  public string username;
+  public int chip;
 
   public SeatData MySeatData { get; private set; }
   public RoomData CurrentRoom { get; private set; }
@@ -19,15 +27,29 @@ public class GameState : MonoBehaviour
     DontDestroyOnLoad(gameObject);
   }
 
-  public void Initialze(IWSClient client)
+  public void Initialze(IWSClient client, IGameInput gameInput)
   {
     client.Dispatcher.Register<RoomUpdateMessage>("room_update", OnRoomUpdate);
     client.Dispatcher.Register<RoomResultMessage>("room_result", OnRoomResult);
+
+    gameInput.OnInputTastA += TestClickA;
+    gameInput.OnInputTastB += TestClickB;
   }
 
   private void SetMyPlayer(SeatData seat)
   {
     MySeatData = seat;
+    Debug.Log(seat.seatIndex);
+    Debug.Log(seat.role);
+    Debug.Log(seat.playerId);
+    Debug.Log(seat.username);
+    Debug.Log(seat.chip);
+
+    seatIndex = seat.seatIndex;
+    role = seat.role;
+    playerId = seat.playerId;
+    username = seat.username;
+    chip = seat.chip;
   }
 
   public int GetMySeatIndex()
@@ -53,6 +75,8 @@ public class GameState : MonoBehaviour
     switch (message.action)
     {
       case "create":
+      case "join":
+      case "quick_join":
         SetMyPlayer(message.seat);
         break;
 
@@ -71,7 +95,15 @@ public class GameState : MonoBehaviour
     switch (message.action)
     {
       case "snapshot":
-        CurrentRoom = message.payload;
+        CurrentRoom = message.room;
+        break;
+
+      case "swap_request":
+        var payload = message.seatSwap;
+        Debug.Log(payload.fromPlayerId);
+        Debug.Log(payload.fromSeat);
+        Debug.Log(payload.toSeat);
+        isSwapRequest = true;
         break;
 
         //case "player_joined":
@@ -84,5 +116,20 @@ public class GameState : MonoBehaviour
   {
     MySeatData = null;
     CurrentRoom = null;
+  }
+
+  bool isSwapRequest = false;
+  private void TestClickA()
+  {
+    if (!isSwapRequest) return;
+    NetworkHelper.RequestSwapResponse(true);
+    isSwapRequest = false;
+  }
+
+  private void TestClickB()
+  {
+    if (!isSwapRequest) return;
+    NetworkHelper.RequestSwapResponse(false);
+    isSwapRequest = false;
   }
 }

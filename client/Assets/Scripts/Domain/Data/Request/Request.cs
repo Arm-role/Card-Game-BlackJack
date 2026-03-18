@@ -17,7 +17,7 @@ public class RegisterRequest
 [Serializable]
 public class LoginRequest
 {
-  public string type ;
+  public string type;
   public AuthData data;
 }
 
@@ -58,6 +58,19 @@ public class SwapSeatData
 {
   public int fromSeat;
   public int toSeat;
+}
+
+[Serializable]
+public class SwapResponseRequest
+{
+  public string type;
+  public SwapSeatResponsData data;
+}
+
+[Serializable]
+public class SwapSeatResponsData
+{
+  public bool accept;
 }
 
 [Serializable]

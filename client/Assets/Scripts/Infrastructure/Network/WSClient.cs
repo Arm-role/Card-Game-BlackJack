@@ -1,15 +1,26 @@
 using NativeWebSocket;
+using System;
 using System.Text;
 using UnityEngine;
+using System.Threading.Tasks;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class WSClient : MonoBehaviour, IWSClient
 {
-  private WebSocket websocket;
   public static WSClient Instance { get; private set; }
 
   private const string SERVER_URL = "ws://localhost:2567";
 
+  private WebSocket websocket;
+  private bool _isConnecting = false;
+  private bool _isQuitting = false;
+
   public INetworkDispatcher Dispatcher { get; private set; }
+
+  #region Unity Lifecycle
 
   private void Awake()
   {
@@ -22,6 +33,7 @@ public class WSClient : MonoBehaviour, IWSClient
     else
     {
       Destroy(gameObject);
+      return;
     }
   }
 
@@ -30,25 +42,76 @@ public class WSClient : MonoBehaviour, IWSClient
     NetworkHelper.OnSend += Send;
     await Connect();
   }
-  private void OnDestroy()
+
+  private async void OnApplicationQuit()
   {
-    NetworkHelper.OnSend -= Send;
+    _isQuitting = true;
+    await Disconnect();
   }
 
-  private async System.Threading.Tasks.Task Connect()
+  private async void OnDestroy()
   {
+    NetworkHelper.OnSend -= Send;
+
+    if (Instance == this)
+      Instance = null;
+
+    if (!_isQuitting)
+      await Disconnect();
+  }
+
+#if UNITY_EDITOR
+  private void OnEnable()
+  {
+    EditorApplication.playModeStateChanged += OnPlayModeChanged;
+  }
+
+  private void OnDisable()
+  {
+    EditorApplication.playModeStateChanged -= OnPlayModeChanged;
+  }
+
+  private async void OnPlayModeChanged(PlayModeStateChange state)
+  {
+    if (state == PlayModeStateChange.ExitingPlayMode)
+    {
+      await Disconnect();
+    }
+  }
+#endif
+
+  private void Update()
+  {
+#if !UNITY_WEBGL || UNITY_EDITOR
+    websocket?.DispatchMessageQueue();
+#endif
+  }
+
+  #endregion
+
+  #region Connection
+
+  public async Task Connect()
+  {
+    if (_isConnecting || websocket != null)
+      return;
+
+    _isConnecting = true;
+
     websocket = new WebSocket(SERVER_URL);
 
     websocket.OnOpen += () =>
     {
       Debug.Log("WS Connected");
-      Dispatcher.OnConnected();
+      Dispatcher?.OnConnected();
     };
 
     websocket.OnMessage += (bytes) =>
     {
+      if (_isQuitting) return;
+
       var json = Encoding.UTF8.GetString(bytes);
-      Dispatcher.Dispatch(json);
+      Dispatcher?.Dispatch(json);
     };
 
     websocket.OnError += (e) =>
@@ -59,35 +122,61 @@ public class WSClient : MonoBehaviour, IWSClient
     websocket.OnClose += (e) =>
     {
       Debug.LogWarning("WS Closed");
+      websocket = null;
     };
 
-    await websocket.Connect();
+    try
+    {
+      await websocket.Connect();
+    }
+    catch (Exception e)
+    {
+      Debug.LogError("WS Connect failed: " + e.Message);
+      websocket = null;
+    }
+
+    _isConnecting = false;
   }
+
+  public async Task Disconnect()
+  {
+    if (websocket == null)
+      return;
+
+    try
+    {
+      await websocket.Close();
+    }
+    catch (Exception e)
+    {
+      Debug.LogWarning("WS Close failed: " + e.Message);
+    }
+
+    websocket = null;
+  }
+
+  #endregion
+
+  #region Send
 
   public async void Send(object obj)
   {
-    if (websocket.State != WebSocketState.Open)
+    if (websocket == null || websocket.State != WebSocketState.Open)
       return;
 
-    string json;
+    string json = obj is string str ? str : JsonUtility.ToJson(obj);
 
-    if (obj is string str)
-    {
-      json = str;
-    }
-    else
-    {
-      json = JsonUtility.ToJson(obj);
-    }
+    Debug.Log($"[WS SEND] {json}");
 
-    Debug.Log(json);
-    await websocket.SendText(json);
+    try
+    {
+      await websocket.SendText(json);
+    }
+    catch (Exception e)
+    {
+      Debug.LogError("WS Send failed: " + e.Message);
+    }
   }
 
-  void Update()
-  {
-#if !UNITY_WEBGL || UNITY_EDITOR
-    websocket?.DispatchMessageQueue();
-#endif
-  }
+  #endregion
 }

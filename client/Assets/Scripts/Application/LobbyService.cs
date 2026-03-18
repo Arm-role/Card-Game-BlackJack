@@ -34,12 +34,8 @@ public class LobbyService
     switch (message.action)
     {
       case "snapshot":
-        SyncFromServer(message.payload);
+        SyncFromServer(message.room);
         break;
-
-      //case "player_joined":
-      //  PlayerJoinRoom(message.player);
-      //  break;
     }
   }
 
@@ -50,11 +46,6 @@ public class LobbyService
     _domain.SetFromSnapshot(room);
     OnRoomUpdated?.Invoke(room);
   }
-  //private void PlayerJoinRoom(PlayerJoinRoomData player)
-  //{
-  //  _domain.AssignPlayer(player.seat);
-  //  OnPlayerJoinRoomUpdated?.Invoke(player);
-  //}
 
   //-----------Request----------//
   public void RequestSwapSeat(int selectedSeat, int index)

@@ -1,0 +1,55 @@
+{
+    "version": 1,
+    "name": "PlayerInputActions",
+    "maps": [
+        {
+            "name": "Gameplay",
+            "id": "45fcf09e-9e30-4c2f-be34-0fbf4963e921",
+            "actions": [
+                {
+                    "name": "TestA",
+                    "type": "Button",
+                    "id": "2c6f87bc-9d7e-485e-8d78-bd3caa058c54",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "TestB",
+                    "type": "Button",
+                    "id": "f28b81f8-a54e-43db-9cf6-6f4031c34678",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "84228ae0-4c99-4ed7-8a89-6c7243168079",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TestA",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3aeccba9-e3df-4602-97c8-4a2a15df5b8c",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TestB",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
