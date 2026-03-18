@@ -20,43 +20,53 @@ export class GameServer {
 
   private registerHandlers() {
 
-    this.dispatcher.register<{ type: "register"; data: any }>(
-      "register",
+    this.dispatcher.register<{ type: "request_register"; data: any }>(
+      "request_register",
       async (session, msg) => {
         await this.handleRegister(session, msg.data);
       }
     );
 
-    this.dispatcher.register<{ type: "login"; data: any }>(
-      "login",
+    this.dispatcher.register<{ type: "request_login"; data: any }>(
+      "request_login",
       async (session, msg) => {
         await this.handleLogin(session, msg.data);
       }
     );
 
-    this.dispatcher.register<{ type: "join_room"; data: any }>(
-      "join_room",
+    this.dispatcher.register<{ type: "request_join_room"; data: any }>(
+      "request_join_room",
       async (session, msg) => {
         await this.handleJoinRoom(session, msg.data);
       }
     );
 
-    this.dispatcher.register("create_room", async (session) => {
+    this.dispatcher.register<{ type: "request_swap_seat", data: any }>(
+      "request_swap_seat",
+      async (session, msg) => {
+        this.handleSwapSeatRequest(session, msg);
+      }
+    );
+
+    this.dispatcher.register("request_start_game", (session) => {
+      this.handleStartGameRequest(session);
+    });
+
+    this.dispatcher.register("request_create_room", async (session) => {
       await this.handleCreateRoom(session);
     });
 
-    this.dispatcher.register("quick_join_room", async (session) => {
+    this.dispatcher.register("request_quick_join_room", async (session) => {
       await this.handleQuickJoin(session);
     });
 
-    this.dispatcher.register("leave_room", async (session) => {
+    this.dispatcher.register("request_leave_room", async (session) => {
       await this.handleLeaveRoom(session);
     });
 
     this.dispatcher.register("request_room_snapshot", (session) => {
       this.handleSnapshotRequest(session);
     });
-
   }
 
   // =========================================================
@@ -205,6 +215,7 @@ export class GameServer {
       type: "room_result",
       action: "create",
       success: true,
+      seat: room.getSeatByPlayerId(session.getUserId())
     });
 
     this.broadcastRoomUpdate(room);
@@ -292,7 +303,6 @@ export class GameServer {
 
     this.broadcastRoomUpdate(room);
   }
-
   private async handleLeaveRoom(session: UserSession) {
     if (!session.isAuthenticated()) return;
 
@@ -330,22 +340,163 @@ export class GameServer {
     });
   }
 
+  private handleSwapSeatRequest(session: UserSession, data: any) {
+
+    if (!session.isAuthenticated()) {
+      session.send({
+        type: "room_result",
+        action: "swap_seat",
+        success: false,
+        reason: "NOT_AUTHENTICATED"
+      });
+      return;
+    }
+
+    const playerId = session.getUserId()!;
+    const room = this.roomService.findRoomByPlayer(playerId);
+
+    if (!room) {
+      session.send({
+        type: "room_result",
+        action: "swap_seat",
+        success: false,
+        reason: "ROOM_NOT_FOUND"
+      });
+      return;
+    }
+
+    const { fromSeat, toSeat } = data.data || {};
+
+    if (fromSeat === undefined || toSeat === undefined) {
+      session.send({
+        type: "room_result",
+        action: "swap_seat",
+        success: false,
+        reason: "INVALID_INPUT"
+      });
+      return;
+    }
+
+    const success = room.swapSeat(playerId, fromSeat, toSeat);
+
+    if (!success) {
+      session.send({
+        type: "room_result",
+        action: "swap_seat",
+        success: false,
+        reason: "SWAP_FAILED"
+      });
+      return;
+    }
+
+    this.broadcastRoomUpdate(room);
+  }
+
+  private handleStartGameRequest(session: UserSession) {
+
+    if (!session.isAuthenticated()) {
+      session.send({
+        type: "game_result",
+        action: "start",
+        success: false,
+        reason: "NOT_AUTHENTICATED"
+      });
+      return;
+    }
+
+    const playerId = session.getUserId()!;
+    const room = this.roomService.findRoomByPlayer(playerId);
+
+    if (!room) {
+      session.send({
+        type: "game_result",
+        action: "start",
+        success: false,
+        reason: "ROOM_NOT_FOUND"
+      });
+      return;
+    }
+
+    // check เงื่อนไข
+    if (!room.canStartGame()) {
+      session.send({
+        type: "game_result",
+        action: "start",
+        success: false,
+        reason: "NOT_ENOUGH_PLAYERS"
+      });
+      return;
+    }
+
+    // ensure dealer (bot ถ้าไม่มี)
+    room.ensureDealer();
+
+    // เริ่มเกม (คุณไป implement ต่อ)
+    room.startGame();
+
+    const message = {
+      type: "game_update",
+      action: "start",
+      payload: {
+        roomId: room.getRoomId()
+      }
+    };
+
+    for (const id of room.getPlayerIds()) {
+      const s = this.sessionsByUserId.get(id);
+      if (!s) continue;
+
+      s.send(message);
+    }
+  }
+
   // =========================================================
   // Broadcasting
   // =========================================================
 
+  //  private playerJoinRoom(playerId: number, room: Room) {
+
+  //   const seat = room.getSeatByPlayerId(playerId);
+
+  //   if (!seat) return;
+
+  //   const message = {
+  //     type: "room_update",
+  //     action: "player_joined",
+  //     payload: {
+  //       roomId: room.getRoomId(),
+  //       seat: {
+  //         seatIndex: seat.seatIndex,
+  //         role: seat.role,
+  //         playerId: seat.playerId ?? 0,
+  //         username: seat.username ?? "",
+  //         chip: seat.chip ?? 0
+  //       }
+  //     }
+  //   };
+
+  //   for (const id of room.getPlayerIds()) {
+
+  //     if (id === playerId) continue;
+
+  //     const session = this.sessionsByUserId.get(id);
+  //     if (!session) continue;
+
+  //     session.send(message);
+  //   }
+  // }
+
   private broadcastRoomUpdate(room: Room) {
+
     const message = {
       type: "room_update",
-      payload: room.getSnapshot(),
+      action: "snapshot",
+      payload: room.getSnapshot()
     };
 
-    console.log(message);
-    console.log(room.getPlayerIds().length);
-
     for (const playerId of room.getPlayerIds()) {
+
       const session = this.sessionsByUserId.get(playerId);
-      console.log(playerId + " session : " + !session);
 
       if (!session) continue;
 
