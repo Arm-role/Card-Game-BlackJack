@@ -25,6 +25,13 @@ public class LoginRequest
 public class CreateRoomRequest
 {
   public string type;
+  public CreatRoomDataRequest data;
+}
+
+[Serializable]
+public class CreatRoomDataRequest
+{
+  public bool isShowCard;
 }
 
 [Serializable]

@@ -53,6 +53,10 @@ export class Room {
   // Player
   // =========================
 
+  public setMode(isShowCard: boolean) {
+    this.board.showCard(isShowCard)
+  }
+
   public addPlayer(id: number, username: string): boolean {
     const seat = this.seats.find(s => s.role === "player" && !s.playerId);
     if (!seat) return false;

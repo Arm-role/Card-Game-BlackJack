@@ -12,8 +12,6 @@ public class LobbySceneInstaller : SceneInstaller
 
     var spawner = container.Get<ISpawnerHandle>();
 
-    GameState.Instance.Initialze(WSClient.Instance, GameInput.Instance);
-
     var lobbyDomain = new LobbyDomain();
     var lobbySystem = new LobbyService(lobbyDomain, WSClient.Instance);
     gameLobbyView.Initialze(lobbySystem);

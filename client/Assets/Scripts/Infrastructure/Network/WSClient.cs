@@ -1,7 +1,7 @@
-using NativeWebSocket;
 using System;
 using System.Text;
 using UnityEngine;
+using NativeWebSocket;
 using System.Threading.Tasks;
 
 #if UNITY_EDITOR

@@ -14,7 +14,7 @@ public class LobbyService
   }
 
   public event Action<RoomData> OnRoomUpdated;
-  public event Action<PlayerJoinRoomData> OnPlayerJoinRoomUpdated;
+  public event Action<SeatSwapData> OnSwapRequest;
 
   public LobbyService(LobbyDomain domain, IWSClient client)
   {
@@ -36,6 +36,10 @@ public class LobbyService
       case "snapshot":
         SyncFromServer(message.room);
         break;
+
+      case "swap_request":
+        OnSwapRequest?.Invoke(message.seatSwap);
+        break;
     }
   }
 
@@ -48,6 +52,12 @@ public class LobbyService
   }
 
   //-----------Request----------//
+  public void RequestRoomData()
+  {
+    if (GameState.Instance.CurrentRoom != null)
+      SyncFromServer(GameState.Instance.CurrentRoom);
+  }
+
   public void RequestSwapSeat(int selectedSeat, int index)
   {
     NetworkHelper.RequestSwapSeat(selectedSeat, index);
@@ -60,7 +70,6 @@ public class LobbyService
   }
   public void LeaveRoom()
   {
-    if (_domain.CanStartGame())
-      NetworkHelper.RequestLeaveRoom();
+    NetworkHelper.RequestLeaveRoom();
   }
 }

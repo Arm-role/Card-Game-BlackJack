@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class GameMainMenuLogic
@@ -52,7 +53,7 @@ public class GameMainMenuLogic
     }
   }
 
-  public void OnCreateRoom()
+  public void OnCreateRoomShowCard()
   {
     if (!IsValidRoom())
     {
@@ -60,7 +61,13 @@ public class GameMainMenuLogic
       return;
     }
 
-    NetworkHelper.RequestCreateRoom();
+    NetworkHelper.RequestCreateRoom(true);
+  }
+
+
+  public void OnCreateRoomHideCard()
+  {
+    NetworkHelper.RequestCreateRoom(false);
   }
 
   public void OnJoinRoom()
@@ -83,4 +90,5 @@ public class GameMainMenuLogic
   {
     return _roomId >= 0 && _roomId <= 999999;
   }
+
 }

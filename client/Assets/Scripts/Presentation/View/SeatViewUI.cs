@@ -18,7 +18,7 @@ public class SeatViewUI : MonoBehaviour
   }
   public void Setup(SeatData data)
   {
-    Debug.Log($"User: {data.username} chip: {data.chip} Seat:{data.seatIndex}");
+    //Debug.Log($"User: {data.username} chip: {data.chip} Seat:{data.seatIndex}");
 
     _seatIndex = data.seatIndex;
 

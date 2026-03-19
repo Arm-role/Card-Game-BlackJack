@@ -3,11 +3,11 @@
 export class Board {
   private players: string[] = [];
   private currentTurnIndex = 0;
-  // private listener: BlackJackBoardListener;
+  private isShowCard: boolean;
 
-  // constructor(listener: BlackJackBoardListener) {
-  //   this.listener = listener;
-  // }
+  public showCard(showCard: boolean) {
+    this.isShowCard = showCard;
+  }
 
   public startGame(players: string[]) {
     this.players = players;

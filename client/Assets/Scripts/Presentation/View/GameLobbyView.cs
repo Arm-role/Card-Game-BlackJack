@@ -7,6 +7,7 @@ public class GameLobbyView : MonoBehaviour
 {
   [Header("Setup")]
   [SerializeField] private UserViewUI _view;
+  [SerializeField] private SeatSwapViewUI _swapView;
 
   [Header("Room")]
   [SerializeField] private TextMeshProUGUI _RoomListText;
@@ -27,7 +28,10 @@ public class GameLobbyView : MonoBehaviour
 
     _Serviec.OnRoomUpdated += HandleRoomUpdated;
     _Serviec.OnSeatUpdated += _view.SetSeats;
+    _Serviec.OnSwapRequest += _swapView.Setup;
     _view.OnSeatClicked += OnSeatClicked;
+
+    _Serviec.RequestRoomData();
   }
 
   private void OnLeaveClicked()

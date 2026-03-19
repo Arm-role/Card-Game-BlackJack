@@ -1,17 +1,9 @@
-using System;
 using UnityEngine;
 
 public class GameState : MonoBehaviour
 {
   public static GameState Instance { get; private set; }
-
-  public int seatIndex;
-  public SeatRole role;
-
-  public int playerId;
-  public string username;
-  public int chip;
-
+  public string? AccountUsername { get; private set; }
   public SeatData MySeatData { get; private set; }
   public RoomData CurrentRoom { get; private set; }
 
@@ -29,27 +21,26 @@ public class GameState : MonoBehaviour
 
   public void Initialze(IWSClient client, IGameInput gameInput)
   {
-    client.Dispatcher.Register<RoomUpdateMessage>("room_update", OnRoomUpdate);
+    client.Dispatcher.Register<RegisterResultMessage>("register_result", OnRegisterResult);
+    client.Dispatcher.Register<LoginResultMessage>("login_result", OnLoginResult);
     client.Dispatcher.Register<RoomResultMessage>("room_result", OnRoomResult);
+    client.Dispatcher.Register<RoomUpdateMessage>("room_update", OnRoomUpdate);
+  }
 
-    gameInput.OnInputTastA += TestClickA;
-    gameInput.OnInputTastB += TestClickB;
+  private void OnRegisterResult(RegisterResultMessage message)
+  {
+    if (!message.success) return;
+    AccountUsername = message.username;
+  }
+  private void OnLoginResult(LoginResultMessage message)
+  {
+    if (!message.success) return;
+    AccountUsername = message.username;
   }
 
   private void SetMyPlayer(SeatData seat)
   {
     MySeatData = seat;
-    Debug.Log(seat.seatIndex);
-    Debug.Log(seat.role);
-    Debug.Log(seat.playerId);
-    Debug.Log(seat.username);
-    Debug.Log(seat.chip);
-
-    seatIndex = seat.seatIndex;
-    role = seat.role;
-    playerId = seat.playerId;
-    username = seat.username;
-    chip = seat.chip;
   }
 
   public int GetMySeatIndex()
@@ -97,18 +88,6 @@ public class GameState : MonoBehaviour
       case "snapshot":
         CurrentRoom = message.room;
         break;
-
-      case "swap_request":
-        var payload = message.seatSwap;
-        Debug.Log(payload.fromPlayerId);
-        Debug.Log(payload.fromSeat);
-        Debug.Log(payload.toSeat);
-        isSwapRequest = true;
-        break;
-
-        //case "player_joined":
-        //  PlayerJoinRoom(message.player);
-        //  break;
     }
   }
 
@@ -116,20 +95,5 @@ public class GameState : MonoBehaviour
   {
     MySeatData = null;
     CurrentRoom = null;
-  }
-
-  bool isSwapRequest = false;
-  private void TestClickA()
-  {
-    if (!isSwapRequest) return;
-    NetworkHelper.RequestSwapResponse(true);
-    isSwapRequest = false;
-  }
-
-  private void TestClickB()
-  {
-    if (!isSwapRequest) return;
-    NetworkHelper.RequestSwapResponse(false);
-    isSwapRequest = false;
   }
 }

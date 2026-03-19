@@ -15,12 +15,15 @@ public class GameMainMenuView : MonoBehaviour
 
   [Header("Room")]
   [SerializeField] private TMP_InputField _RoomIDField;
-  [SerializeField] private Button _CreateRoom;
+  [SerializeField] private Button _CreateRoomShowCard;
+  [SerializeField] private Button _CreateRoomHideCard;
   [SerializeField] private Button _JoinRoom;
   [SerializeField] private Button _QuickJoinRoom;
 
   [Header("UI")]
   [SerializeField] private Button _RegisterUIButton;
+  [SerializeField] private Button _LoginUIButton;
+  [SerializeField] private Button _CreateUIButton;
   [SerializeField] private Button _JoinUIButton;
 
   private GameMainMenuLogic _Logic;
@@ -35,15 +38,27 @@ public class GameMainMenuView : MonoBehaviour
     _Register.onClick.AddListener(OnRegister);
 
     _RoomIDField.onValueChanged.AddListener(OnRoomIDChange);
-    _CreateRoom.onClick.AddListener(OnCreateRoom);
+
+    _CreateRoomShowCard.onClick.AddListener(OnCreateRoomShowCard);
+    _CreateRoomHideCard.onClick.AddListener(OnCreateRoomHideCard);
     _JoinRoom.onClick.AddListener(OnJoinRoom);
     _QuickJoinRoom.onClick.AddListener(OnQuickJoinRoom);
 
     _RegisterUIButton.onClick.AddListener(OnGotoRegisterUI);
+    _LoginUIButton.onClick.AddListener(OnGotoLoginUI);
+    _CreateUIButton.onClick.AddListener(OnGotoCreateUI);
     _JoinUIButton.onClick.AddListener(OnGotoJoinUI);
 
-    _UISwip.ActiveUIOnly("Login");
+    if (GameState.Instance.AccountUsername != null)
+    {
+      _UISwip.ActiveUIOnly("Mode");
+    }
+    else
+    {
+      _UISwip.ActiveUIOnly("Login");
+    }
   }
+
 
   public void Initialze(IWSClient wSClient)
   {
@@ -74,8 +89,16 @@ public class GameMainMenuView : MonoBehaviour
   {
     Debug.Log(message);
 
-    if (message.success)
-      GameSceneManager.LoadScene("Lobby");
+    if (!message.success) return;
+
+    switch (message.action)
+    {
+      case "create":
+      case "join":
+      case "quick_join":
+        GameSceneManager.LoadScene("Lobby");
+        break;
+    }
   }
 
 
@@ -106,11 +129,15 @@ public class GameMainMenuView : MonoBehaviour
     _Logic.OnRoomIDChange(input);
   }
 
-  private void OnCreateRoom()
+  private void OnCreateRoomShowCard()
   {
-    _Logic.OnCreateRoom();
+    _Logic.OnCreateRoomShowCard();
   }
 
+  private void OnCreateRoomHideCard()
+  {
+    _Logic.OnCreateRoomHideCard();
+  }
   private void OnJoinRoom()
   {
     _Logic.OnJoinRoom();
@@ -121,12 +148,23 @@ public class GameMainMenuView : MonoBehaviour
     _Logic.OnQuickJoinRoom();
   }
 
-  private void OnGotoJoinUI()
-  {
-    _UISwip.ActiveUIOnly("Join");
-  }
+
   private void OnGotoRegisterUI()
   {
     _UISwip.ActiveUIOnly("Register");
   }
+  private void OnGotoLoginUI()
+  {
+    _UISwip.ActiveUIOnly("Login");
+  }
+
+  private void OnGotoCreateUI()
+  {
+    _UISwip.ActiveUIOnly("Create");
+  }
+  private void OnGotoJoinUI()
+  {
+    _UISwip.ActiveUIOnly("Join");
+  }
+
 }

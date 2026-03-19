@@ -34,6 +34,12 @@ export class GameServer {
       }
     );
 
+    this.dispatcher.register<{ type: "request_create_room"; data: any }>(
+      "request_create_room",
+      async (session, msg) => {
+        await this.handleCreateRoom(session, msg.data);
+      });
+
     this.dispatcher.register<{ type: "request_join_room"; data: any }>(
       "request_join_room",
       async (session, msg) => {
@@ -59,9 +65,7 @@ export class GameServer {
       this.handleStartGameRequest(session);
     });
 
-    this.dispatcher.register("request_create_room", async (session) => {
-      await this.handleCreateRoom(session);
-    });
+
 
     this.dispatcher.register("request_quick_join_room", async (session) => {
       await this.handleQuickJoin(session);
@@ -97,6 +101,7 @@ export class GameServer {
     if (!user) return;
 
     this.handleDisconnect(user);
+    this.sessionsByUserId.delete(userId);
   }
 
   private handleDisconnect(user: UserSession): void {
@@ -196,7 +201,7 @@ export class GameServer {
   // Room
   // =========================================================
 
-  private async handleCreateRoom(session: UserSession) {
+  private async handleCreateRoom(session: UserSession, data: any) {
     if (!session.isAuthenticated()) {
       session.send({
         type: "room_result",
@@ -425,6 +430,8 @@ export class GameServer {
       toSeat
     });
 
+    const playerName = session.getUsername()!;
+
     const targetSession = this.sessionsByUserId.get(targetPlayerId);
     if (targetSession) {
       targetSession.send({
@@ -433,6 +440,7 @@ export class GameServer {
         success: true,
         seatSwap: {
           fromPlayerId: playerId,
+          fromPlayerName: playerName,
           fromSeat,
           toSeat
         }

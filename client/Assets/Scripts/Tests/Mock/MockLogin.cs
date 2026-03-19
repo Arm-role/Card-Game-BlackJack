@@ -82,7 +82,7 @@ public class MockLogin : MonoBehaviour
 
   private void OnCreateRoom()
   {
-    _Logic.OnCreateRoom();
+    _Logic.OnCreateRoomShowCard();
   }
   private void OnQuickJoinRoom()
   {

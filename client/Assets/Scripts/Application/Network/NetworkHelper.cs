@@ -34,11 +34,15 @@ public class NetworkHelper
     OnSend?.Invoke(request);
   }
 
-  public static void RequestCreateRoom()
+  public static void RequestCreateRoom(bool isShowCard)
   {
     var request = new CreateRoomRequest
     {
       type = "request_create_room",
+      data = new CreatRoomDataRequest()
+      {
+        isShowCard = isShowCard
+      }
     };
 
     OnSend?.Invoke(request);

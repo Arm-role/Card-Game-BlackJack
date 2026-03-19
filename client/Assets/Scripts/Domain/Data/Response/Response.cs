@@ -20,6 +20,7 @@ public class RegisterResultMessage
 {
   public string type;
   public bool success;
+  public string username;
 }
 
 [Serializable]
@@ -58,6 +59,7 @@ public class RoomData
 public class SeatSwapData
 {
   public int fromPlayerId;
+  public string fromPlayerName;
   public int fromSeat;
   public int toSeat;
 }
