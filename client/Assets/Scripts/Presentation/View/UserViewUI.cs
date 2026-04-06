@@ -10,18 +10,20 @@ public class UserViewUI : MonoBehaviour
 
   public event Action<int> OnSeatClicked;
 
-  public void SetSeats(IReadOnlyList<SeatData> seatDataList)
+  public void SetSeats(IReadOnlyDictionary<int, SeatData> seats)
   {
     ClearSeats();
 
-    for (int i = 0; i < seatDataList.Count; i++)
+    foreach (var kv in seats)
     {
-      var seat = _Seats[i];
-      seat.Setup(seatDataList[i]);
+      int seatIndex = kv.Key;
+      var seatData = kv.Value;
+      var seatUI = _Seats[seatData.seatIndex];
 
-      seat.OnClickSeat += HandleSeatClicked;
+      seatUI.Setup(seatData);
+      seatUI.OnClickSeat += HandleSeatClicked;
 
-      _seats.Add(seat);
+      _seats.Add(seatUI);
     }
   }
 

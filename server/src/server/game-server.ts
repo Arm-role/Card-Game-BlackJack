@@ -579,5 +579,6 @@ export class GameServer {
 
       session.send(message);
     }
+    console.log(room.getSnapshot())
   }
 }

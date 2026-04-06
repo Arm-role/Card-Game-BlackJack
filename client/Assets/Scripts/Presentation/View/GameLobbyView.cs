@@ -10,15 +10,12 @@ public class GameLobbyView : MonoBehaviour
   [SerializeField] private SeatSwapViewUI _swapView;
 
   [Header("Room")]
-  [SerializeField] private TextMeshProUGUI _RoomListText;
+  [SerializeField] private TextMeshProUGUI _RoomPlayersText;
+  [SerializeField] private TextMeshProUGUI _RoomUsersText;
   [SerializeField] private TextMeshProUGUI _RoomIDText;
   [SerializeField] private Button _LeaveButton;
 
-  private readonly List<PlayerLobbyView> _spawnedPlayers = new();
-
   private LobbyService _Serviec;
-
-  private int _maxPlayers;
 
   public void Initialze(LobbyService lobbySystem)
   {
@@ -27,7 +24,7 @@ public class GameLobbyView : MonoBehaviour
     _LeaveButton.onClick.AddListener(OnLeaveClicked);
 
     _Serviec.OnRoomUpdated += HandleRoomUpdated;
-    _Serviec.OnSeatUpdated += _view.SetSeats;
+    _Serviec.OnSeatUpdated += HandleSeatUpdated;
     _Serviec.OnSwapRequest += _swapView.Setup;
     _view.OnSeatClicked += OnSeatClicked;
 
@@ -41,7 +38,16 @@ public class GameLobbyView : MonoBehaviour
 
   private void HandleRoomUpdated(RoomData room)
   {
+    foreach (var seat in room.seats)
+    {
+      Debug.Log($"{seat.seatIndex} {seat.role}");
+    }
     RefreshUI(room);
+  }
+
+  private void HandleSeatUpdated(IReadOnlyDictionary<int, SeatData> seats)
+  {
+    _view.SetSeats(seats);
   }
 
   private void RefreshUI(RoomData room)
@@ -49,18 +55,19 @@ public class GameLobbyView : MonoBehaviour
     if (room == null)
     {
       _RoomIDText.text = "-";
-      _RoomListText.text = "Not in room";
+      _RoomPlayersText.text = "Not in room";
       _LeaveButton.interactable = false;
       return;
     }
 
-    _maxPlayers = room.max_player_count;
-
     _RoomIDText.text = $"Room: {room.roomId}";
-    _RoomListText.text = $"Players: {room.seats.Count}/{_maxPlayers}";
-    _LeaveButton.interactable = true;
 
+    _RoomPlayersText.text = $"Players: {room.player_count}/{room.max_player_count}";
+    _RoomUsersText.text = $"Users in room: {room.user_count}";
+
+    _LeaveButton.interactable = true;
   }
+
   private void OnSeatClicked(int targetSeat)
   {
     int mySeat = GameState.Instance.GetMySeatIndex();

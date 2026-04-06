@@ -7,7 +7,7 @@ public class LobbyService
   private readonly LobbyDomain _domain;
   private readonly IWSClient _client;
 
-  public event Action<IReadOnlyList<SeatData>> OnSeatUpdated
+  public event Action<IReadOnlyDictionary<int, SeatData>> OnSeatUpdated
   {
     add => _domain.OnSeatUpdated += value;
     remove => _domain.OnSeatUpdated -= value;
@@ -47,6 +47,12 @@ public class LobbyService
 
   private void SyncFromServer(RoomData room)
   {
+    if (room == null)
+    {
+      Debug.LogError("RoomData is null");
+      return;
+    }
+
     _domain.SetFromSnapshot(room);
     OnRoomUpdated?.Invoke(room);
   }

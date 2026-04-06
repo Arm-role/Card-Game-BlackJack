@@ -10,6 +10,9 @@ public class LobbySceneInstaller : SceneInstaller
   {
     var container = new DIContainerBase(global);
 
+    if (!GameState.Instance.IsInitialze)
+      GameState.Instance.Initialze(WSClient.Instance, GameInput.Instance);
+
     var spawner = container.Get<ISpawnerHandle>();
 
     var lobbyDomain = new LobbyDomain();

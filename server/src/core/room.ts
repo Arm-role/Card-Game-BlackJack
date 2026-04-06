@@ -85,9 +85,15 @@ export class Room {
   }
 
   public getPlayerIds(): number[] {
-    return this.seats
-      .filter(s => s.playerId && s.playerId !== -1)
-      .map(s => s.playerId!);
+    return this.seats.filter(s => s.playerId && s.playerId !== -1).map(s => s.playerId!);
+  }
+
+  private getPlayerCount(): number {
+    return this.seats.filter(s => s.role === "player" && s.playerId && s.playerId !== -1).length;
+  }
+
+  private getUserCount(): number {
+    return this.seats.filter(s => s.playerId && s.playerId !== -1).length;
   }
 
   public isFull(): boolean {
@@ -154,7 +160,11 @@ export class Room {
   // =========================
 
   public canStartGame(): boolean {
-    return this.seats.filter(s => s.role === "player" && s.playerId).length >= 2;
+    const playerCount = this.seats.filter(
+      s => s.role === "player" && s.playerId && s.playerId !== -1
+    ).length;
+
+    return playerCount >= 2;
   }
 
   public ensureDealer() {
@@ -184,6 +194,8 @@ export class Room {
     return {
       roomId: this.roomId,
       max_player_count: MAX_PLAYERS,
+      player_count: this.getPlayerCount(),
+      user_count: this.getUserCount(),
       state: this.state,
       seats: this.seats.map(s => ({
         seatIndex: s.seatIndex,

@@ -7,6 +7,8 @@ public class GameState : MonoBehaviour
   public SeatData MySeatData { get; private set; }
   public RoomData CurrentRoom { get; private set; }
 
+  public bool IsInitialze = false;
+
   private void Awake()
   {
     if (Instance != null)
@@ -25,6 +27,8 @@ public class GameState : MonoBehaviour
     client.Dispatcher.Register<LoginResultMessage>("login_result", OnLoginResult);
     client.Dispatcher.Register<RoomResultMessage>("room_result", OnRoomResult);
     client.Dispatcher.Register<RoomUpdateMessage>("room_update", OnRoomUpdate);
+
+    IsInitialze = true;
   }
 
   private void OnRegisterResult(RegisterResultMessage message)
@@ -81,7 +85,7 @@ public class GameState : MonoBehaviour
 
   private void OnRoomUpdate(RoomUpdateMessage message)
   {
-    Debug.Log(message.action);
+    Debug.LogWarning(message.action);
 
     switch (message.action)
     {

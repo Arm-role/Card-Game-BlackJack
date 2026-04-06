@@ -18,9 +18,9 @@ public class SeatViewUI : MonoBehaviour
   }
   public void Setup(SeatData data)
   {
-    //Debug.Log($"User: {data.username} chip: {data.chip} Seat:{data.seatIndex}");
-
     _seatIndex = data.seatIndex;
+
+    Debug.Log(data.role);
 
     if (data.IsEmpty)
     {
@@ -28,7 +28,7 @@ public class SeatViewUI : MonoBehaviour
     }
     else
     {
-      _NameText.text = data.role == SeatRole.Dealer
+      _NameText.text = data.IsDealer
         ? $"[Dealer] {data.username}"
         : data.username;
     }

@@ -51,6 +51,8 @@ public class RoomData
 {
   public int roomId;
   public int max_player_count;
+  public int player_count;
+  public int user_count;
   public string state;
   public List<SeatData> seats;
 }
@@ -77,19 +79,15 @@ public class PlayerJoinRoomData
 public class SeatData
 {
   public int seatIndex;
-  public SeatRole role; 
+  public string role; 
 
   public int playerId;
   public string username;
   public int chip;
 
+  public bool IsDealer => role == "dealer";
+  public bool IsPlayer => role == "player";
   public bool IsEmpty => playerId == 0;
-}
-
-public enum SeatRole
-{
-  Dealer,
-  Player
 }
 
 [Serializable]
