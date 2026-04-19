@@ -1,0 +1,20 @@
+{
+    "name": "7_Mock",
+    "rootNamespace": "",
+    "references": [
+        "GUID:58460f4dc366a524a8b610e3567c314b",
+        "GUID:153665cb2af78474d91e25b23edf3862",
+        "GUID:b6a4f91b5cbdc604b9d7c6a7c065ec43",
+        "GUID:366b0c64473fa2943942489ee6decf9a",
+        "GUID:dc68a058dbc7fcc408f3cae1031c5fe5"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

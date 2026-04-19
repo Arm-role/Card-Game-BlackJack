@@ -1,203 +1,220 @@
-import { Board } from "./board";
-
-const MAX_PLAYERS = 4;
-
-type SeatRole = "dealer" | "player";
-
-type Seat = {
-  seatIndex: number;
-  role: SeatRole;
-  playerId?: number;
-  username?: string;
-  chip?: number;
-};
-
-type SwapRequest = {
-  fromPlayerId: number;
-  toPlayerId: number;
-  fromSeat: number;
-  toSeat: number;
-};
+import { PlayerActionResult, RoomEvent, RoomState } from "../shared/types";
+import { BlackjackGame } from "./BlackjackGame";
+import { Deck } from "./Deck";
+import { GameSession } from "./game-session";
+import { SeatManager, MAX_PLAYERS } from "./SeatManager";
+import { SwapManager, SwapRequest } from "./SwapManager";
 
 export class Room {
-  private seats: Seat[] = [];
-  private pendingSwaps = new Map<number, {
-    fromPlayerId: number;
-    toPlayerId: number;
-    fromSeat: number;
-    toSeat: number;
-  }>();
+  private seatManager = new SeatManager();
+  private swapManager = new SwapManager();
+  private gameSession: GameSession | null = null;
+  private game: BlackjackGame | undefined = undefined;
+  private playersReadyForAction: Set<number> = new Set();
+  private currentTurnIndex = 0;
+  private turnOrder: number[] = [];
 
-  private board = new Board();
-  private state: "WAITING" | "PLAYING" = "WAITING";
+  private roomState: RoomState = "WAITING";
 
-  constructor(private roomId: number) {
-    this.initSeats();
+  constructor(private roomId: number, private deck?: Deck) { }
+
+  public getRoomId() {
+    return this.roomId;
   }
 
-  // =========================
-  // Init
-  // =========================
 
-  private initSeats() {
-    this.seats = [
-      { seatIndex: 0, role: "dealer" },
-      ...Array.from({ length: MAX_PLAYERS }, (_, i) => ({
-        seatIndex: i + 1,
-        role: "player" as SeatRole
-      }))
-    ];
-  }
-
-  // =========================
-  // Player
-  // =========================
-
-  public setMode(isShowCard: boolean) {
-    this.board.showCard(isShowCard)
-  }
+  // =======================================================
+  // 1. Player & Seat Management (หุ้มด้วยกฎของ Room)
+  // =======================================================
 
   public addPlayer(id: number, username: string): boolean {
-    const seat = this.seats.find(s => s.role === "player" && !s.playerId);
-    if (!seat) return false;
-
-    seat.playerId = id;
-    seat.username = username;
-    seat.chip = 1000000;
-
-    return true;
+    if (this.gameSession?.isPlaying()) return false;
+    return this.seatManager.addPlayer(id, username);
   }
 
   public removePlayer(playerId: number) {
-    this.seats.forEach(s => {
-      if (s.playerId === playerId) {
-        s.playerId = undefined;
-        s.username = undefined;
-        s.chip = undefined;
-      }
-    });
+    this.seatManager.removePlayer(playerId);
+    this.swapManager.clearRequestsOfPlayer(playerId);
 
-    this.clearSwapRequestsOfPlayer(playerId);
-  }
+    if (this.gameSession) {
+      this.gameSession.onPlayerLeave(playerId);
+    }
+    // 🔥 ลบออกจาก turn
+    this.turnOrder = this.turnOrder.filter(id => id !== playerId);
 
-  public hasPlayer(playerId: number): boolean {
-    return this.seats.some(s => s.playerId === playerId);
-  }
-
-  public getPlayerIds(): number[] {
-    return this.seats.filter(s => s.playerId && s.playerId !== -1).map(s => s.playerId!);
-  }
-
-  private getPlayerCount(): number {
-    return this.seats.filter(s => s.role === "player" && s.playerId && s.playerId !== -1).length;
-  }
-
-  private getUserCount(): number {
-    return this.seats.filter(s => s.playerId && s.playerId !== -1).length;
-  }
-
-  public isFull(): boolean {
-    return this.seats.filter(s => s.role === "player" && s.playerId).length >= MAX_PLAYERS;
-  }
-
-  // =========================
-  // Seat System
-  // =========================
-
-  public getSeat(index: number) {
-    return this.seats[index];
-  }
-
-  public getSeatByPlayerId(playerId: number) {
-    return this.seats.find(s => s.playerId === playerId);
+    // ถ้าเป็น turn ของมัน → ข้าม
+    if (this.getCurrentPlayerId() === playerId) {
+      this.nextTurn();
+    }
   }
 
   public swapSeat(playerId: number, fromSeat: number, toSeat: number): boolean {
-    const from = this.getSeat(fromSeat);
-    const to = this.getSeat(toSeat);
+    // กฎเหล็ก: ห้ามสลับที่นั่งเด็ดขาด ถ้าเกมแจกไพ่เริ่มไปแล้ว
+    if (this.gameSession?.isPlaying()) return false;
 
-    if (!from || !to) return false;
-    if (from.playerId !== playerId) return false;
-
-    [from.playerId, to.playerId] = [to.playerId, from.playerId];
-    [from.username, to.username] = [to.username, from.username];
-    [from.chip, to.chip] = [to.chip, from.chip];
-
-    return true;
+    return this.seatManager.swapSeat(playerId, fromSeat, toSeat);
   }
 
-  // =========================
-  // Swap Request
-  // =========================
+  // =======================================================
+  // 2. Swap Requests Management
+  // =======================================================
 
   public addSwapRequest(targetId: number, req: SwapRequest): boolean {
-    if (this.pendingSwaps.has(targetId)) return false;
-
-    this.pendingSwaps.set(targetId, req);
-    return true;
+    if (this.gameSession?.isPlaying()) return false;// ห้ามขอสลับตอนเล่น
+    return this.swapManager.addRequest(targetId, req);
   }
 
   public getSwapRequest(playerId: number) {
-    return this.pendingSwaps.get(playerId);
+    return this.swapManager.getRequest(playerId);
+  }
+
+  public resolveSwapRequest(playerId: number, accept: boolean): boolean {
+    if (this.gameSession?.isPlaying()) {
+      this.swapManager.removeRequest(playerId);
+      return false;
+    }
+
+    const request = this.swapManager.getRequest(playerId);
+    if (!request) return false;
+
+    let success = false;
+    if (accept) {
+      success = this.seatManager.swapSeat(request.fromPlayerId, request.fromSeat, request.toSeat);
+    }
+
+    this.swapManager.removeRequest(playerId);
+    return success;
   }
 
   public removeSwapRequest(playerId: number) {
-    this.pendingSwaps.delete(playerId);
+    this.swapManager.removeRequest(playerId);
   }
 
-  public clearSwapRequestsOfPlayer(playerId: number) {
-    this.pendingSwaps.delete(playerId);
-
-    for (const [key, req] of this.pendingSwaps) {
-      if (req.fromPlayerId === playerId) {
-        this.pendingSwaps.delete(key);
-      }
-    }
-  }
-
-  // =========================
-  // Game
-  // =========================
+  // =======================================================
+  // 3. Game Flow Control
+  // =======================================================
 
   public canStartGame(): boolean {
-    const playerCount = this.seats.filter(
-      s => s.role === "player" && s.playerId && s.playerId !== -1
-    ).length;
-
-    return playerCount >= 2;
+    // ต้องมีผู้เล่นอย่างน้อย 1-2 คน (ขึ้นอยู่กับดีไซน์ ถ้าเล่นกับบอท 1 คนก็พอ)
+    return this.seatManager.getPlayerCount() >= 1;
   }
 
-  public ensureDealer() {
-    const dealer = this.seats[0];
+   public startGame() {
+    if (this.gameSession?.isPlaying()) return false;
 
-    if (!dealer.playerId) {
-      dealer.playerId = -1;
-      dealer.username = "BOT";
-      dealer.chip = 999999;
-    }
+    const players = this.seatManager.getPlayerIds();
+
+    this.seatManager.ensureDealer();
+
+    this.gameSession = new GameSession(
+      players,
+      new Deck()
+    );
+
+    return this.gameSession.start();
   }
 
-  public hasDealer(): boolean {
-    const dealer = this.seats[0];
-    return !!dealer.playerId;
+  public playerHit(playerId: number) {
+    if (!this.gameSession) return null;
+    return this.gameSession.handleEvent("PLAYER_HIT", { playerId });
   }
 
-  public startGame() {
-    this.state = "PLAYING";
+  public playerStand(playerId: number) {
+    if (!this.gameSession) return null;
+    return this.gameSession.handleEvent("PLAYER_STAND", { playerId });
   }
 
-  // =========================
-  // Snapshot
-  // =========================
+  public playerReady(playerId: number) {
+    if (!this.gameSession) return null;
+    return this.gameSession.handleEvent("PLAYER_READY", { playerId });
+  }
+
+  // เช็คว่าทุกคนพร้อมหรือยัง (หรือเช็คเฉพาะคนที่มีสิทธิ์เล่น)
+  public isReadyToAct(): boolean {
+    const activePlayers = this.seatManager.getPlayerIds();
+    return activePlayers.every(id => this.playersReadyForAction.has(id));
+  }
+
+  public isPlayerReady(playerId: number): boolean {
+    return this.playersReadyForAction.has(playerId);
+  }
+
+  // ใช้ตอนเริ่มเกม หรือจังหวะที่ต้องรอทุกคน
+  public areAllPlayersReady(): boolean {
+    return this.seatManager.getPlayerIds().every(id => this.playersReadyForAction.has(id));
+  }
+
+  // ใช้ล้างสถานะเมื่อมีการส่ง Message ชุดใหม่ที่ต้องรอ Animation
+  public resetReadyState() {
+    this.playersReadyForAction.clear();
+  }
+
+  public getCurrentPlayerId(): number | null {
+    if (this.turnOrder.length === 0) return null;
+
+    return this.turnOrder[this.currentTurnIndex] ?? null;
+  }
+
+  public isPlayerTurn(playerId: number): boolean {
+    return this.gameSession?.isPlayerTurn(playerId);
+  }
+
+  public nextTurn() {
+    if (this.turnOrder.length === 0) return;
+
+    let attempts = 0;
+
+    do {
+      this.currentTurnIndex++;
+      if (this.currentTurnIndex >= this.turnOrder.length) {
+        this.currentTurnIndex = 0;
+      }
+
+      attempts++;
+
+      const playerId = this.getCurrentPlayerId();
+      if (playerId && this.isPlayerActive(playerId)) {
+        return;
+      }
+
+    } while (attempts < this.turnOrder.length);
+
+    this.forceEndGame();
+  }
+
+  public shouldMoveNextTurn(playerId: number): boolean {
+    const status = this.game?.getStatus(playerId);
+
+    return (
+      status === "BUST" ||
+      status === "STAND" ||
+      status === "BLACKJACK"
+    );
+  }
+
+  private isPlayerActive(playerId: number): boolean {
+    const status = this.game?.getStatus(playerId);
+    return status === "PLAYING";
+  }
+
+  // =======================================================
+  // 4. Data Getters & Snapshots (ดึงข้อมูลให้ GameServer)
+  // =======================================================
+
+  public getSeat(index: number) { return this.seatManager.getSeat(index); }
+  public getSeatByPlayerId(playerId: number) { return this.seatManager.getSeatByPlayerId(playerId); }
+  public getPlayerIds() { return this.seatManager.getPlayerIds(); }
+  public hasPlayer(playerId: number) { return this.seatManager.hasPlayer(playerId); }
+  public isFull() { return this.seatManager.isFull(); }
 
   public getSnapshot() {
     return {
       roomId: this.roomId,
       max_player_count: MAX_PLAYERS,
-      player_count: this.getPlayerCount(),
-      user_count: this.getUserCount(),
-      state: this.state,
-      seats: this.seats.map(s => ({
+      player_count: this.seatManager.getPlayerCount(),
+      user_count: this.seatManager.getUserCount(),
+      state: this.roomState,
+      seats: this.seatManager.getAllSeats().map(s => ({
         seatIndex: s.seatIndex,
         role: s.role,
         playerId: s.playerId ?? 0,
@@ -206,12 +223,30 @@ export class Room {
       }))
     };
   }
+  public getGameState() {
+    if (!this.game) return null;
 
-  // =========================
-  // Getter
-  // =========================
+    const playerStates = this.seatManager.getPlayerIds().map(id => ({
+      playerId: id,
+      hand: this.game!.getHand(id)?.cards,
+      score: this.game!.getHand(id)?.getScore(),
+      status: this.game!.getStatus(id),
+      result: this.game!.getResult(id)
+    }));
 
-  public getRoomId() {
-    return this.roomId;
+    return {
+      state: this.roomState,
+      dealer: {
+        hand: this.game.getDealerHand().cards,
+        score: this.game.getDealerHand().getScore()
+      },
+      players: playerStates
+    };
+  }
+  public getPlayerScore(id: number) {
+    return this.game!.getHand(id)?.getScore();
+  }
+  private forceEndGame() {
+    this.roomState = "WAITING";
   }
 }

@@ -78,6 +78,25 @@ export class GameServer {
     this.dispatcher.register("request_room_snapshot", (session) => {
       this.handleSnapshotRequest(session);
     });
+
+
+    this.dispatcher.register<{ type: "request_hit"; data: any }>(
+      "request_hit",
+      async (session, msg) => {
+        this.handlePlayerHit(session);
+      }
+    );
+
+    this.dispatcher.register<{ type: "request_stand"; data: any }>(
+      "request_stand",
+      async (session, msg) => {
+        this.handlePlayerStand(session);
+      }
+    );
+
+    this.dispatcher.register("request_player_ready", (session) => {
+      this.handlePlayerReady(session);
+    });
   }
 
   // =========================================================
@@ -504,10 +523,6 @@ export class GameServer {
       });
       return;
     }
-
-    // ensure dealer (bot ถ้าไม่มี)
-    room.ensureDealer();
-
     // เริ่มเกม (คุณไป implement ต่อ)
     room.startGame();
 
@@ -525,60 +540,182 @@ export class GameServer {
 
       s.send(message);
     }
+
+    this.broadcastGameState(room);
+  }
+
+  // ---------------------------------------------------------
+  // สร้างฟังก์ชัน Handler ด้านล่างของไฟล์
+  // ---------------------------------------------------------
+
+    private handlePlayerReady(session: UserSession) {
+    if (!session.isAuthenticated()) return;
+    const playerId = session.getUserId()!;
+    const room = this.roomService.findRoomByPlayer(playerId);
+
+    if (!room) return;
+
+    room.setPlayerReady(playerId);
+
+    // ถ้าทุกคนพร้อมแล้ว อาจจะส่ง Message บอก Client อีกรอบว่า "เริ่มเล่นได้!"
+    if (room.isReadyToAct()) {
+      this.broadcastToRoom(room, {
+        type: "game_update",
+        action: "ready_to_act" // ปลดล็อคปุ่มที่ Client
+      });
+    }
+  }
+
+  private handlePlayerHit(session: UserSession) {
+    const playerId = session.getUserId()!;
+    const room = this.roomService.findRoomByPlayer(playerId);
+
+    if (!room || !room.isPlayerTurn(playerId)) {
+      session.send({
+        type: "error",
+        reason: "ROOM_UNDEFINED"
+      });
+      return;
+    }
+
+    if (!room.isReadyToAct()) {
+      session.send({
+        type: "error",
+        reason: "ANIMATION_IN_PROGRESS"
+      });
+      return;
+    }
+
+    const result = room.applyPlayerAction(playerId, "HIT");
+
+    if (!result) {
+      session.send({
+        type: "error",
+        reason: "ACTION_UNDIFINED"
+      });
+      return;
+    }
+
+    // 🎯 broadcast action
+    this.broadcastToRoom(room, {
+      type: "game_event",
+      action: "player_hit",
+      payload: result.card
+    });
+
+    // 🎯 turn change
+    if (result.turnChanged) {
+      this.broadcastToRoom(room, {
+        type: "game_update",
+        action: "turn_changed",
+        payload: {
+          currentPlayer: result.nextPlayerId
+        }
+      });
+    }
+
+    // 🎯 game end
+    if (result.gameEnded) {
+      this.broadcastGameState(room);
+    }
+
+    room.resetReadyState();
+  }
+
+  private handlePlayerStand(session: UserSession) {
+    if (!session.isAuthenticated()) return;
+    const playerId = session.getUserId()!;
+    const room = this.roomService.findRoomByPlayer(playerId);
+
+    if (!room || !room.isPlayerTurn(playerId)) {
+      session.send({
+        type: "error",
+        reason: "ROOM_UNDEFINED"
+      });
+      return;
+    }
+
+    if (!room.isReadyToAct()) {
+      session.send({
+        type: "error",
+        reason: "ANIMATION_IN_PROGRESS"
+      });
+      return;
+    }
+
+    // สั่งให้ Room ยิงคำสั่ง Stand ไปที่ Game Logic
+    const result = room.applyPlayerAction(playerId, "STAND");
+
+    if (!result) {
+      session.send({
+        type: "error",
+        reason: "ACTION_UNDIFINED"
+      });
+      return;
+    }
+
+
+    // 🎯 broadcast action
+    this.broadcastToRoom(room, {
+      type: "game_event",
+      aaction: "player_stand",
+      payload: {
+        player_id: playerId,
+        status: "STAND"
+      }
+    });
+
+    // 🎯 turn change
+    if (result.turnChanged) {
+      this.broadcastToRoom(room, {
+        type: "game_update",
+        action: "turn_changed",
+        payload: {
+          currentPlayer: result.nextPlayerId
+        }
+      });
+    }
+
+    // 🎯 game end
+    if (result.gameEnded) {
+      this.broadcastGameState(room);
+    }
+
+    room.resetReadyState();
   }
 
   // =========================================================
   // Broadcasting
   // =========================================================
 
-  //  private playerJoinRoom(playerId: number, room: Room) {
+  private broadcastGameState(room: Room) {
+    const gameState = room.getGameState();
+    if (!gameState) return;
 
-  //   const seat = room.getSeatByPlayerId(playerId);
+    const message = {
+      type: "game_update",
+      action: "state_changed",
+      payload: gameState
+    };
 
-  //   if (!seat) return;
+    this.broadcastToRoom(room, message);
+  }
 
-  //   const message = {
-  //     type: "room_update",
-  //     action: "player_joined",
-  //     payload: {
-  //       roomId: room.getRoomId(),
-  //       seat: {
-  //         seatIndex: seat.seatIndex,
-  //         role: seat.role,
-  //         playerId: seat.playerId ?? 0,
-  //         username: seat.username ?? "",
-  //         chip: seat.chip ?? 0
-  //       }
-  //     }
-  //   };
-
-  //   for (const id of room.getPlayerIds()) {
-
-  //     if (id === playerId) continue;
-
-  //     const session = this.sessionsByUserId.get(id);
-  //     if (!session) continue;
-
-  //     session.send(message);
-  //   }
-  // }
 
   private broadcastRoomUpdate(room: Room) {
-
     const message = {
       type: "room_update",
       action: "snapshot",
       room: room.getSnapshot()
     };
 
-    for (const playerId of room.getPlayerIds()) {
+    this.broadcastToRoom(room, message);
+  }
 
-      const session = this.sessionsByUserId.get(playerId);
-
-      if (!session) continue;
-
-      session.send(message);
+  private broadcastToRoom(room: Room, message: any) {
+    for (const id of room.getPlayerIds()) {
+      const s = this.sessionsByUserId.get(id);
+      if (s) s.send(message);
     }
-    console.log(room.getSnapshot())
   }
 }

@@ -85,3 +85,15 @@ public class StartGameRequest
 {
   public string type;
 }
+
+[Serializable]
+public class HitRequest
+{
+  public string type = "request_hit";
+}
+
+[Serializable]
+public class StandRequest
+{
+  public string type = "request_stand";
+}

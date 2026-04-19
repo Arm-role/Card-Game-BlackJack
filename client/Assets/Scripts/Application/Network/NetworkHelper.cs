@@ -116,10 +116,30 @@ public class NetworkHelper
 
   public static void RequestStartGame()
   {
-    var request = new StartGameRequest()
-    {
-      type = "request_start_game"
-    };
+    //var request = new StartGameRequest()
+    //{
+    //  type = "request_start_game"
+    //};
+
+    string msg = "{\"type\":\"request_start_game\"}";
+    OnSend?.Invoke(msg);
+  }
+
+  public static void RequestPlayerReady()
+  {
+    string msg = "{\"type\":\"request_player_ready\"}";
+    OnSend?.Invoke(msg);
+  }
+
+  public static void RequestHit()
+  {
+    var request = new HitRequest();
+    OnSend?.Invoke(request);
+  }
+
+  public static void RequestStand()
+  {
+    var request = new StandRequest();
     OnSend?.Invoke(request);
   }
 
