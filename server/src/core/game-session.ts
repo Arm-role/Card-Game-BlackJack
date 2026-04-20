@@ -9,7 +9,7 @@ export class GameSession {
   private readyPlayers: Set<number> = new Set();
   private turnOrder: number[] = [];
   private currentTurnIndex = 0;
-  private actionLocked = false;
+  private actionTakenThisTurn = new Set<number>();
 
   constructor(playerIds: number[], deck?: IDeck) {
     this.players = [...playerIds];
@@ -19,11 +19,11 @@ export class GameSession {
   private dispatch(event: GameEvent, payload?: any): any {
     console.log(`[GameSession] state=${this.state} event=${event}`);
     switch (this.state) {
-      case "WAITING":     return this.handleWaiting(event);
-      case "DEALING":     return this.handleDealing(event, payload);
+      case "WAITING": return this.handleWaiting(event);
+      case "DEALING": return this.handleDealing(event, payload);
       case "PLAYER_TURN": return this.handlePlayerTurn(event, payload);
       case "DEALER_TURN": return this.handleDealerTurn(event);
-      case "RESOLVING":   return this.handleResolving(event);
+      case "RESOLVING": return this.handleResolving(event);
     }
   }
 
@@ -70,6 +70,8 @@ export class GameSession {
 
   private buildNextTurnResult(partial: { card?: Card; status: PlayerStatus }): ActionResult {
     this.nextTurn();
+    this.actionTakenThisTurn.clear();
+
     if (this.isDealerTurn()) {
       this.state = "DEALER_TURN";
       this.game.playDealerTurn();
@@ -173,13 +175,13 @@ export class GameSession {
   public applyAction(playerId: number, action: PlayerAction): ActionResult | undefined {
     if (this.state !== "PLAYER_TURN") return undefined;
     if (!this.isPlayerTurn(playerId)) return undefined;
-    if (this.actionLocked) return undefined;
-    this.actionLocked = true;
-    return this.dispatch(action, { playerId });
-  }
 
-  public unlockAction() {
-    this.actionLocked = false;
+    if (this.actionTakenThisTurn.has(playerId)) return undefined;
+    this.actionTakenThisTurn.add(playerId);
+
+    const result = this.dispatch(action, { playerId });
+
+    return result;
   }
 
   public isPlaying(): boolean {

@@ -11,7 +11,7 @@ export class Room {
   private readyPlayers: Set<number> = new Set();
   private roomState: RoomState = "WAITING";
 
-  constructor(private roomId: number) {}
+  constructor(private roomId: number) { }
 
   public getRoomId() { return this.roomId; }
 
@@ -89,23 +89,17 @@ export class Room {
     return this.gameSession.markPlayerReady(playerId);
   }
 
-  // Gate has two layers:
-  //   1. GameSession must be in PLAYER_TURN state (FSM gate — open for whole turn)
-  //   2. readyPlayers must be non-empty (per-action gate — reset after each action)
-  public isReadyToAct(): boolean {
-    if (!(this.gameSession?.isReadyToAct() ?? false)) return false;
-    return this.readyPlayers.size > 0;
+  // public isReadyToAct(): boolean {
+  //   if (!(this.gameSession?.isReadyToAct() ?? false)) return false;
+  //   return this.readyPlayers.size > 0;
+  // }
+
+    public isReadyToAct(): boolean {
+    return this.gameSession?.isReadyToAct() ?? false; 
   }
 
-  // Called by server immediately after accepting an action.
-  // Closes the per-action gate so the next hit/stand must wait for a new ready signal.
   public resetReadyState() {
     this.readyPlayers.clear();
-  }
-
-  // Unlocks the synchronous action lock inside GameSession so the next player can act.
-  public unlockAction() {
-    this.gameSession?.unlockAction();
   }
 
   // ─── Actions ────────────────────────────────────────────────────────────────

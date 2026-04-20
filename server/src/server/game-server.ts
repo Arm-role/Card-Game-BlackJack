@@ -25,19 +25,19 @@ export class GameServer {
 
   private registerHandlers() {
     type Msg = { type: string; data: any };
-    this.dispatcher.register<Msg>("request_register",       (s, m) => this.handleRegister(s, m.data));
-    this.dispatcher.register<Msg>("request_login",          (s, m) => this.handleLogin(s, m.data));
-    this.dispatcher.register<Msg>("request_create_room",    (s, m) => this.handleCreateRoom(s, m.data));
-    this.dispatcher.register<Msg>("request_join_room",      (s, m) => this.handleJoinRoom(s, m.data));
-    this.dispatcher.register<Msg>("request_swap_seat",      (s, m) => this.handleSwapSeatRequest(s, m.data));
-    this.dispatcher.register<Msg>("request_swap_response",  (s, m) => this.handleSwapResponse(s, m.data));
-    this.dispatcher.register<Msg>("request_quick_join_room",(s)    => this.handleQuickJoin(s));
-    this.dispatcher.register<Msg>("request_leave_room",     (s)    => this.handleLeaveRoom(s));
-    this.dispatcher.register<Msg>("request_room_snapshot",  (s)    => this.handleSnapshotRequest(s));
-    this.dispatcher.register<Msg>("request_start_game",     (s)    => this.handleStartGameRequest(s));
-    this.dispatcher.register<Msg>("request_player_ready",   (s)    => this.handlePlayerReady(s));
-    this.dispatcher.register<Msg>("request_hit",            (s)    => this.handlePlayerHit(s));
-    this.dispatcher.register<Msg>("request_stand",          (s)    => this.handlePlayerStand(s));
+    this.dispatcher.register<Msg>("request_register", (s, m) => this.handleRegister(s, m.data));
+    this.dispatcher.register<Msg>("request_login", (s, m) => this.handleLogin(s, m.data));
+    this.dispatcher.register<Msg>("request_create_room", (s, m) => this.handleCreateRoom(s, m.data));
+    this.dispatcher.register<Msg>("request_join_room", (s, m) => this.handleJoinRoom(s, m.data));
+    this.dispatcher.register<Msg>("request_swap_seat", (s, m) => this.handleSwapSeatRequest(s, m.data));
+    this.dispatcher.register<Msg>("request_swap_response", (s, m) => this.handleSwapResponse(s, m.data));
+    this.dispatcher.register<Msg>("request_quick_join_room", (s) => this.handleQuickJoin(s));
+    this.dispatcher.register<Msg>("request_leave_room", (s) => this.handleLeaveRoom(s));
+    this.dispatcher.register<Msg>("request_room_snapshot", (s) => this.handleSnapshotRequest(s));
+    this.dispatcher.register<Msg>("request_start_game", (s) => this.handleStartGameRequest(s));
+    this.dispatcher.register<Msg>("request_player_ready", (s) => this.handlePlayerReady(s));
+    this.dispatcher.register<Msg>("request_hit", (s) => this.handlePlayerHit(s));
+    this.dispatcher.register<Msg>("request_stand", (s) => this.handlePlayerStand(s));
   }
 
   public async handleMessage(session: UserSession, rawData: any) {
@@ -270,6 +270,7 @@ export class GameServer {
     if (!room) return;
 
     const allReady = room.setPlayerReady(playerId);
+    
     if (allReady) {
       this.broadcastToRoom(room, { type: "game_update", action: "ready_to_act" });
       this.broadcastToRoom(room, {
@@ -303,9 +304,9 @@ export class GameServer {
       return;
     }
 
-    // Close per-action gate immediately — before any broadcast —
-    // so concurrent hits that arrive while we broadcast see the gate shut.
-    room.resetReadyState();
+    // // Close per-action gate immediately — before any broadcast —
+    // // so concurrent hits that arrive while we broadcast see the gate shut.
+    // room.resetReadyState();
 
     this.broadcastToRoom(room, { type: "game_event", action: "player_hit", payload: result.card });
 
@@ -321,8 +322,6 @@ export class GameServer {
       this.broadcastGameState(room);
     }
 
-    // Unlock so the NEXT player (after fresh ready signals) can act.
-    room.unlockAction();
   }
 
   private handlePlayerStand(session: UserSession) {
@@ -346,7 +345,7 @@ export class GameServer {
     }
 
     // Close per-action gate before broadcast.
-    room.resetReadyState();
+    // room.resetReadyState();
 
     this.broadcastToRoom(room, {
       type: "game_event",
@@ -366,8 +365,6 @@ export class GameServer {
       this.broadcastGameState(room);
     }
 
-    // Unlock so the next player can act.
-    room.unlockAction();
   }
 
   // =====================================================
