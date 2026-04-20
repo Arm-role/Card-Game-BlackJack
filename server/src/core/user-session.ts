@@ -1,20 +1,21 @@
-import { v4 as uuidv4 } from 'uuid';
-import { WebSocket } from "ws";
+import { v4 as uuidv4 } from "uuid";
+
+// Minimal WebSocket interface so UserSession is testable without a real WS
+export interface ISocket {
+  send(data: string): void;
+}
 
 export class UserSession {
   private sessionId: string;
   private userId?: number;
   private username?: string;
 
-  private ws: WebSocket;
-
-  constructor(ws: WebSocket) {
-    this.sessionId = uuidv4(); // ✅ fixed
-    this.ws = ws;
+  constructor(private ws: ISocket) {
+    this.sessionId = uuidv4();
   }
 
   public bindUser(accountId: number, username: string) {
-    this.userId = accountId;
+    this.userId   = accountId;
     this.username = username;
   }
 
@@ -22,23 +23,18 @@ export class UserSession {
     return this.userId !== undefined;
   }
 
-  public send(message: any) {
-    this.ws.send(JSON.stringify(message));
-  }
-
-  public getSessionId() {
-    return this.sessionId;
-  }
-
-  public getUserId(): number {
-    if (this.userId === undefined) {
-      throw new Error("User is not authenticated");
-    }
+  /** Returns undefined if not authenticated — callers must check isAuthenticated() first */
+  public getUserId(): number | undefined {
     return this.userId;
   }
 
-  public getUsername() {
+  public getUsername(): string | undefined {
     return this.username;
   }
 
+  public getSessionId() { return this.sessionId; }
+
+  public send(message: any) {
+    this.ws.send(JSON.stringify(message));
+  }
 }

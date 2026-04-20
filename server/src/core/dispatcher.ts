@@ -1,39 +1,57 @@
 import { UserSession } from "./user-session";
 
-type Handler<T> = (session: UserSession, message: T) => Promise<void> | void;
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+/** A registered message handler.
+ *  T is the full raw message shape (must include `type` string).
+ *  Using `UserSession` directly keeps the dispatcher decoupled from any
+ *  concrete WebSocket or auth layer.
+ */
+export type Handler<T = any> = (
+  session: UserSession,
+  msg: T,
+) => void | Promise<void>;
+
+// ─── MessageDispatcher ────────────────────────────────────────────────────────
+//
+// Single-responsibility: maps `msg.type` → handler.
+// No game logic, no auth, no broadcasting — only routing.
 
 export class MessageDispatcher {
-  private handlers = new Map<string, Handler<any>>();
+  // Store as Handler<any> internally; callers get the correct T via register<T>.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private readonly handlers = new Map<string, Handler<any>>();
 
-  public register<T extends { type: string }>(
-    type: T["type"],
-    handler: Handler<T>
-  ) {
+  /** Register a handler for the given message type.
+   *  Calling register() twice for the same type overwrites the first. */
+  public register<T>(type: string, handler: Handler<T>): void {
     this.handlers.set(type, handler);
   }
 
-  public async dispatch(session: UserSession, rawData: any) {
-    try {
+  /** Dispatch a raw message to its registered handler.
+   *  Silently ignores messages with no `type` field.
+   *  Logs a warning for unknown message types. */
+  public async dispatch(session: UserSession, raw: unknown): Promise<void> {
+    if (!raw || typeof raw !== "object") return;
 
-      let message;
+    const type = (raw as Record<string, unknown>).type;
+    if (typeof type !== "string" || !type) return;
 
-      if (typeof rawData === "string" || rawData instanceof Buffer) {
-        message = JSON.parse(rawData.toString());
-      } else {
-        message = rawData;
-      }
-
-      const handler = this.handlers.get(message.type);
-
-      if (!handler) {
-        console.error(`Unknown message type: ${message.type}`);
-        return;
-      }
-
-      await handler(session, message);
-
-    } catch (err) {
-      console.error("Dispatch error:", err);
+    const handler = this.handlers.get(type);
+    if (handler) {
+      await handler(session, raw);
+    } else {
+      console.warn(`[Dispatcher] No handler for type="${type}"`);
     }
+  }
+
+  /** Returns true if a handler is registered for the given type. */
+  public has(type: string): boolean {
+    return this.handlers.has(type);
+  }
+
+  /** Remove a previously registered handler (useful in tests). */
+  public unregister(type: string): void {
+    this.handlers.delete(type);
   }
 }

@@ -1,13 +1,13 @@
 {
   "name": "card-game-server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "server": "ts-node src/index.ts",
-    "dev": "ts-node src/index.ts",
+    "server": "ts-node src/main.ts",
+    "dev": "ts-node src/main.ts",
     "gtest": "ts-node src/BlackjackGame.test.ts"
   },
   "keywords": [],

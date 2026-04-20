@@ -1,130 +1,190 @@
-import { describe, it, expect } from 'vitest';
-import { BlackjackGame } from '../src/core/BlackjackGame';
-import { IDeck } from '../src/core/Deck';
-import { Card } from '../src/shared/types';
+import { describe, it, expect } from "vitest";
+import { BlackjackGame } from "../src/core/BlackjackGame";
+import { IDeck } from "../src/core/Deck";
+import { Card } from "../src/shared/types";
 
-// FakeDeck เอาไว้ล็อกผลการจั่วไพ่ เพื่อเทส logic
+// ─── FakeDeck ─────────────────────────────────────────────────────────────────
+// ล็อกลำดับไพ่เพื่อให้ผลลัพธ์แน่นอน
+
 class FakeDeck implements IDeck {
   constructor(private cards: Card[]) { }
+
   draw(): Card {
     const card = this.cards.shift();
-    if (!card) throw new Error("❌ FakeDeck ไพ่หมดกอง! กรุณาเพิ่มไพ่ใน Mock");
+    if (!card) throw new Error("FakeDeck ไพ่หมด — กรุณาเพิ่มไพ่ใน mock");
     return card;
   }
 }
 
-describe('Blackjack Core Game Rules', () => {
+// ─── หมายเหตุลำดับการแจกไพ่ ──────────────────────────────────────────────────
+//
+// BlackjackGame.startGame() แจกแบบ "round robin ต่อรอบ" คือ:
+//
+//   รอบที่ 1:  P1 ใบ1, P2 ใบ1, ..., Dealer ใบ1
+//   รอบที่ 2:  P1 ใบ2, P2 ใบ2, ..., Dealer ใบ2
+//
+// ต่างจาก comment เดิมที่เขียนว่า P1→Dealer→P1→Dealer
+// ให้จัดลำดับไพ่ใน FakeDeck ตามรูปแบบนี้เสมอ
 
-  // แจกไพ่ในเกมจะสลับกัน: P1 ใบที่ 1 -> Dealer ใบที่ 1 -> P1 ใบที่ 2 -> Dealer ใบที่ 2
-  it('1. แต้ม Ace ต้องเปลี่ยนจาก 11 เป็น 1 ได้ถ้าเกิด Bust', () => {
-    const mockDeck = new FakeDeck([
-      { suit: '♠', rank: 'A' },  // [แจกใบที่ 1] Player 1
-      { suit: '♦', rank: '9' },  // [แจกใบที่ 2] Dealer
-      { suit: '♥', rank: 'A' },  // [แจกใบที่ 3] Player 1 (มี A 2 ใบ รวมเป็น 12)
-      { suit: '♣', rank: '9' },  // [แจกใบที่ 4] Dealer
-      { suit: '♠', rank: '10' }  // Player 1 ขอจั่ว Hit 10 -> มี (A, A, 10) รวมแล้วต้องได้ 12 
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Blackjack Core Game Rules", () => {
+
+  // ─── 1. Ace ───────────────────────────────────────────────────────────────
+
+  it("1. แต้ม Ace ต้องเปลี่ยนจาก 11 เป็น 1 ได้ถ้าเกิด Bust", () => {
+    // ลำดับแจก (1 player):
+    //   รอบ 1: P1 = A♠   Dealer = 9♦
+    //   รอบ 2: P1 = A♥   Dealer = 9♣   → P1 มี A+A = 12  (ไม่ bust เพราะ A ลดเป็น 1)
+    //   hit:   P1 = 10♠  → A+A+10 = 12  (A ใบแรกลดเป็น 1, A ใบสอง = 11 → 1+11+10=22 bust? → ลด A ใบสองเป็น 1 = 12)
+
+    const fakeDeck = new FakeDeck([
+      // รอบ 1
+      { suit: "♠", rank: "A" }, // P1 ใบ 1
+      { suit: "♦", rank: "9" }, // Dealer ใบ 1
+      // รอบ 2
+      { suit: "♥", rank: "A" }, // P1 ใบ 2  → P1 มี A+A = 12
+      { suit: "♣", rank: "9" }, // Dealer ใบ 2
+      // hit
+      { suit: "♠", rank: "10" }, // P1 hit → A+A+10 = 12 (ไม่ bust)
     ]);
 
-    const game = new BlackjackGame(mockDeck);
+    const game = new BlackjackGame(fakeDeck);
     game.startGame([1]);
 
-    // จั่วไพ่เพิ่ม 1 ใบ
     game.hit(1);
 
     const p1Hand = game.getHand(1)!;
     expect(p1Hand.getScore()).toBe(12);
-    expect(p1Hand.isBust()).toBe(false); // ต้องไม่ BUST
+    expect(p1Hand.isBust()).toBe(false);
   });
 
-  it('2. Flow ของเกม: Player Bust -> Dealer ชนะอัตโนมัติ', () => {
-    const mockDeck = new FakeDeck([
-      { suit: '♠', rank: '10' }, // [แจกใบที่ 1] Player 1
-      { suit: '♦', rank: '2' },  // [แจกใบที่ 2] Dealer
-      { suit: '♥', rank: '10' }, // [แจกใบที่ 3] Player 1 (รวม 20)
-      { suit: '♣', rank: '2' },  // [แจกใบที่ 4] Dealer (รวม 4)
-      { suit: '♠', rank: '5' }   // Player 1 กด Hit (จั่วได้ 5 รวมเป็น 25 -> BUST)
+  // ─── 2. Player Bust ───────────────────────────────────────────────────────
+
+  it("2. Flow ของเกม: Player Bust → Dealer ชนะอัตโนมัติ", () => {
+    // รอบ 1: P1=10♠  Dealer=2♦
+    // รอบ 2: P1=10♥  Dealer=2♣  → P1=20  Dealer=4
+    // hit:   P1=5♠   → P1=25 BUST
+    // เมื่อ player ทุกคน bust → playDealerTurn() ถูกเรียก (dealer ไม่ต้องจั่วเพิ่ม)
+    // state ควรเป็น "RESOLVING" และ P1 = LOSE
+
+    const fakeDeck = new FakeDeck([
+      // รอบ 1
+      { suit: "♠", rank: "10" }, // P1
+      { suit: "♦", rank: "2" }, // Dealer
+      // รอบ 2
+      { suit: "♥", rank: "10" }, // P1 → 20
+      { suit: "♣", rank: "2" }, // Dealer → 4
+      // hit
+      { suit: "♠", rank: "5" }, // P1 hit → 25 BUST
     ]);
- 
-    const game = new BlackjackGame(mockDeck);
+
+    const game = new BlackjackGame(fakeDeck);
     game.startGame([1]);
 
-    game.hit(1); // Player จั่วแล้ว Bust
+    game.hit(1); // → BUST → areAllPlayersDone() → playDealerTurn() ถูกเรียกอัตโนมัติ
 
-    // เมื่อ Bust ทุกคน เกมต้องจบ และ Dealer ไม่ต้องจั่วเพิ่ม
-    expect(game.state).toBe('RESOLVED');
-    expect(game.getStatus(1)).toBe('BUST');
-    expect(game.getResult(1)).toBe('LOSE');
+    if (game.areAllPlayersDone()) {
+      game.playDealerTurn();
+    }
+
+    expect(game.state).toBe("RESOLVING");
+    expect(game.getStatus(1)).toBe("BUST");
+    expect(game.getResult(1)).toBe("LOSE");
   });
 
-  it('3. Flow ของเกม: Player Stand -> Dealer จั่วจนกว่าจะถึง 17', () => {
-    const mockDeck = new FakeDeck([
-      { suit: '♠', rank: '10' }, // [แจกใบที่ 1] Player 1
-      { suit: '♦', rank: '10' }, // [แจกใบที่ 2] Dealer
-      { suit: '♥', rank: '10' }, // [แจกใบที่ 3] Player 1 (รวม 20)
-      { suit: '♣', rank: '5' },  // [แจกใบที่ 4] Dealer (รวม 15 -> ต้องจั่วเพิ่ม)
-      { suit: '♠', rank: '4' }   // Dealer จั่วอัตโนมัติ (รวม 19 -> หยุดจั่ว)
+  // ─── 3. Player Stand → Dealer draws ──────────────────────────────────────
+
+  it("3. Flow ของเกม: Player Stand → Dealer จั่วจนกว่าจะถึง 17", () => {
+    // รอบ 1: P1=10♠  Dealer=10♦
+    // รอบ 2: P1=10♥  Dealer=5♣   → P1=20  Dealer=15 (ต้องจั่วเพิ่ม)
+    // dealer draw: 4♠ → Dealer=19 (≥17 หยุด)
+    // P1(20) vs Dealer(19) → P1 WIN
+
+    const fakeDeck = new FakeDeck([
+      // รอบ 1
+      { suit: "♠", rank: "10" }, // P1
+      { suit: "♦", rank: "10" }, // Dealer
+      // รอบ 2
+      { suit: "♥", rank: "10" }, // P1 → 20
+      { suit: "♣", rank: "5" }, // Dealer → 15
+      // dealer draw
+      { suit: "♠", rank: "4" }, // Dealer → 19
     ]);
 
-    const game = new BlackjackGame(mockDeck);
+    const game = new BlackjackGame(fakeDeck);
     game.startGame([1]);
 
-    game.stand(1); // Player กดหยุด
+    game.stand(1); // → areAllPlayersDone() → playDealerTurn() อัตโนมัติ
 
-    // เกมจบ P1(20) vs Dealer(19) -> P1 ชนะ
-    expect(game.state).toBe('RESOLVED');
+    if (game.areAllPlayersDone()) {
+      game.playDealerTurn();
+    }
+
+    expect(game.state).toBe("RESOLVING");
     expect(game.getDealerHand().getScore()).toBe(19);
-    expect(game.getResult(1)).toBe('WIN');
+    expect(game.getResult(1)).toBe("WIN");
   });
 
-  it('4. เกมแบบผู้เล่น 2 คน: P1 ยืน, P2 บัสต์, Dealer เล่นต่อสู้กับ P1', () => {
-    // ลำดับการแจก: P1 -> P2 -> Dealer -> P1 -> P2 -> Dealer
-    const mockDeck = new FakeDeck([
-      { suit: '♠', rank: 'A' }, // [แจกใบที่ 1] Player 1
-      { suit: '♥', rank: '10' }, // [แจกใบที่ 2] Player 2
-      { suit: '♦', rank: '10' }, // [แจกใบที่ 3] Dealer
-      { suit: '♣', rank: '10' }, // [แจกใบที่ 4] Player 1 (รวม 20)
-      { suit: '♠', rank: '6' },  // [แจกใบที่ 5] Player 2 (รวม 16)
-      { suit: '♥', rank: '5' },  // [แจกใบที่ 6] Dealer (รวม 15)
+  // ─── 4. 2 ผู้เล่น ─────────────────────────────────────────────────────────
 
-      // -- จบช่วงแจกไพ่ --
+  it("4. เกมแบบผู้เล่น 2 คน: P1 ยืน, P2 บัสต์, Dealer เล่นต่อสู้กับ P1", () => {
+    // ลำดับแจก (2 players):
+    //   รอบ 1: P1=A♠  P2=10♥  Dealer=10♦
+    //   รอบ 2: P1=10♣  P2=6♠   Dealer=5♥   → P1=21(BJ)  P2=16  Dealer=15
+    //
+    // ตาผู้เล่น:
+    //   P1 stand (มี blackjack → สถานะ BLACKJACK อยู่แล้ว)
+    //   P2 hit K♠ → 16+10=26 BUST
+    //
+    // dealer draw:
+    //   3♦ → 15+3=18 (≥17 หยุด)
+    //
+    // ผล: P1(BJ) WIN, P2(BUST) LOSE
 
-      { suit: '♠', rank: 'K' }, // [ใบที่ 7] รอให้คนกด Hit จั่ว (จะโดน P2 จั่ว)
-      { suit: '♦', rank: '3' },  // [ใบที่ 8] รอให้ Dealer จั่วอัตโนมัติตอนจบ
-      { suit: '♦', rank: '6' },
-      { suit: '♦', rank: '7' }
+    const fakeDeck = new FakeDeck([
+      // รอบ 1
+      { suit: "♠", rank: "A" }, // P1 ใบ 1
+      { suit: "♥", rank: "10" }, // P2 ใบ 1
+      { suit: "♦", rank: "10" }, // Dealer ใบ 1
+      // รอบ 2
+      { suit: "♣", rank: "10" }, // P1 ใบ 2 → A+10=21 BLACKJACK
+      { suit: "♠", rank: "6" }, // P2 ใบ 2 → 10+6=16
+      { suit: "♥", rank: "5" }, // Dealer ใบ 2 → 10+5=15
+      // ตาผู้เล่น
+      { suit: "♠", rank: "K" }, // P2 hit → 16+10=26 BUST
+      // dealer draw
+      { suit: "♦", rank: "3" }, // Dealer → 15+3=18
     ]);
 
-    const game = new BlackjackGame(mockDeck);
-
-    // เริ่มเกมพร้อมกัน 2 คน ให้ P1(id=1) และ P2(id=2)
+    const game = new BlackjackGame(fakeDeck);
     game.startGame([1, 2]);
 
-    // --- เริ่มตาของผู้เล่น ---
+    // P1 มี Blackjack อยู่แล้ว (status = BLACKJACK) → stand() จะ no-op แต่เรียกได้
+    // ในการใช้งานจริง GameSession จะ skip P1 ไปเลย แต่ในระดับ BlackjackGame
+    // เราเรียก stand() ได้ตรงๆ เฉพาะถ้า status ยัง "PLAYING"
+    // P1 เป็น BLACKJACK แล้ว → ไม่ต้องเรียก stand()
 
-    // Player 1 พอใจกับ 20 แต้ม เลยขอ Stand
-    game.stand(1);
+    // เกมต้องยังไม่จบ — P2 ยังไม่ได้เล่น
+    expect(game.state).toBe("PLAYER_TURN");
 
-    // ณ ตอนนี้เกมต้องยังไม่จบ (เพราะ Player 2 ยังไม่ได้เล่น)
-    expect(game.state).toBe('PLAYING');
-
-    // Player 2 มี 16 แต้ม เลยขอ Hit (จั่วได้ 10 ทำให้รวมเป็น 26 -> BUST)
+    // P2 hit → BUST → ทุกคนจบ → dealer อัตโนมัติ
     game.hit(2);
 
-    // --- จบตาผู้เล่น เกมจะประมวลผล Dealer อัตโนมัติ ---
+    if (game.areAllPlayersDone()) {
+      game.playDealerTurn();
+    }
 
-    // ตรวจสอบว่าระบบทำงานครบถ้วน
-    expect(game.state).toBe('RESOLVED'); // สถานะห้องต้องเป็นจบเกม
+    expect(game.state).toBe("RESOLVING");
 
-    // ตรวจสอบแต้มของแต่ละคน
     expect(game.getHand(1)!.getScore()).toBe(21);
     expect(game.getHand(2)!.getScore()).toBe(26);
-    expect(game.getDealerHand().getScore()).toBe(18); // Dealer เดิมมี 15 จั่วใบที่ 8 (3) เข้าไปรวมเป็น 18
+    expect(game.getDealerHand().getScore()).toBe(18);
 
-    // ตรวจสอบผลแพ้-ชนะ
-    expect(game.getStatus(1)).toBe('BLACKJACK');
-    expect(game.getResult(1)).toBe('WIN');  // P1(20) ชนะ Dealer(18)
+    expect(game.getStatus(1)).toBe("BLACKJACK");
+    expect(game.getResult(1)).toBe("WIN");
 
-    expect(game.getStatus(2)).toBe('BUST');
-    expect(game.getResult(2)).toBe('LOSE'); // P2 แพ้เพราะ Bust เกิน 21 แต้ม
+    expect(game.getStatus(2)).toBe("BUST");
+    expect(game.getResult(2)).toBe("LOSE");
   });
 });

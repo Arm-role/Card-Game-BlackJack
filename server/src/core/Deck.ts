@@ -1,26 +1,28 @@
-import { Card, Suit, Rank } from '../shared/types';
+import { Card, Rank, Suit } from "../shared/types";
+
+// ─── Interface ────────────────────────────────────────────────────────────────
 
 export interface IDeck {
   draw(): Card;
 }
 
+// ─── Standard shuffled deck ───────────────────────────────────────────────────
+
+const SUITS: Suit[] = ["♣", "♦", "♥", "♠"];
+const RANKS: Rank[] = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+
 export class Deck implements IDeck {
-  private cards: Card[] = [];
+  private cards: Card[];
+  private index = 0;
 
   constructor() {
-    this.initialize();
-    this.shuffle();
-  }
-
-  private initialize() {
-    const suits: Suit[] = ['♣', '♦', '♥', '♠'];
-    const ranks: Rank[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-
-    for (const suit of suits) {
-      for (const rank of ranks) {
+    this.cards = [];
+    for (const suit of SUITS) {
+      for (const rank of RANKS) {
         this.cards.push({ suit, rank });
       }
     }
+    this.shuffle();
   }
 
   private shuffle() {
@@ -31,9 +33,11 @@ export class Deck implements IDeck {
   }
 
   public draw(): Card {
-    if (this.cards.length === 0) {
-      throw new Error("Deck is empty");
+    if (this.index >= this.cards.length) {
+      // Reshuffle when exhausted
+      this.index = 0;
+      this.shuffle();
     }
-    return this.cards.pop()!;
+    return this.cards[this.index++];
   }
 }

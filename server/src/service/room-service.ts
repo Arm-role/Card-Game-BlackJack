@@ -1,31 +1,20 @@
-import { IRoomIdGenerator } from "../models/interface";
 import { Room } from "../core/room";
 
-export class RoomService {
-  private rooms: Map<number, Room> = new Map();
-  private idGenerator: IRoomIdGenerator;
+export interface IRoomIdGenerator {
+  generate(): number;
+}
 
-  constructor(idGenerator: IRoomIdGenerator) {
-    this.idGenerator = idGenerator;
-  }
-  // =========================================================
-  // Create
-  // =========================================================
+export class RoomService {
+  private rooms = new Map<number, Room>();
+
+  constructor(private idGenerator: IRoomIdGenerator) {}
 
   public createRoom(): Room {
-    let roomId: number;
-
-    roomId = this.idGenerator.generate();
-    const room = new Room(roomId);
-
+    const roomId = this.idGenerator.generate();
+    const room   = new Room(roomId);
     this.rooms.set(roomId, room);
-
     return room;
   }
-
-  // =========================================================
-  // Get
-  // =========================================================
 
   public getRoom(roomId: number): Room | undefined {
     return this.rooms.get(roomId);
@@ -35,35 +24,21 @@ export class RoomService {
     return Array.from(this.rooms.values());
   }
 
-  // =========================================================
-  // Join Helpers
-  // =========================================================
-
   public quickJoin(): Room | undefined {
     for (const room of this.rooms.values()) {
-      if (!room.isFull()) {
-        return room;
-      }
+      if (!room.isFull()) return room;
     }
-
     return undefined;
   }
 
   public findRoomByPlayer(playerId: number): Room | undefined {
     for (const room of this.rooms.values()) {
-      if (room.hasPlayer(playerId)) {
-        return room;
-      }
+      if (room.hasPlayer(playerId)) return room;
     }
-
     return undefined;
   }
 
-  // =========================================================
-  // Delete
-  // =========================================================
-
-  public deleteRoom(roomId: number): void {
+  public deleteRoom(roomId: number) {
     this.rooms.delete(roomId);
   }
 }
