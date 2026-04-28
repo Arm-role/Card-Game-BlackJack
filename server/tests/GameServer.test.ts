@@ -1,19 +1,18 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { GameServer }  from "../src/server/game-server";
-import { RoomService } from "../src/service/room-service";
-import { UserSession, ISocket } from "../src/core/user-session";
-import { IDeck }       from "../src/core/Deck";
-import { Room }        from "../src/core/room";
-import { Card }        from "../src/shared/types";
+import { GameServer } from "../src/server/game-server.js";
+import { RoomService } from "../src/service/room-service.js";
+import { UserSession, ISocket } from "../src/core/user-session.js";
+import { IDeck } from "../src/core/Deck.js";
+import { Room } from "../src/core/room.js";
+import { Card } from "../src/shared/types.js";
 
 // ─── MockUserSession ──────────────────────────────────────────────────────────
-// Replaces the real WebSocket with an in-memory message log.
 
 class MockUserSession extends UserSession {
   public sentMessages: any[] = [];
 
   constructor(userId: number, username: string) {
-    const fakeSocket: ISocket = { send: () => {} };
+    const fakeSocket: ISocket = { send: () => { } };
     super(fakeSocket);
     this.bindUser(userId, username);
   }
@@ -32,10 +31,9 @@ class MockUserSession extends UserSession {
 }
 
 // ─── GameClient ───────────────────────────────────────────────────────────────
-// Thin wrapper: send a typed message to the server on behalf of a session.
 
 class GameClient {
-  constructor(public session: MockUserSession, private server: GameServer) {}
+  constructor(public session: MockUserSession, private server: GameServer) { }
 
   async send(type: string, data: any = {}) {
     await this.server.handleMessage(this.session, { type, data });
@@ -43,11 +41,10 @@ class GameClient {
 }
 
 // ─── ScriptedDeck ─────────────────────────────────────────────────────────────
-// Deterministic deck for tests — draws cards in declared order.
 
 class ScriptedDeck implements IDeck {
   private index = 0;
-  constructor(private cards: Card[]) {}
+  constructor(private cards: Card[]) { }
 
   draw(): Card {
     const card = this.cards[this.index++];
@@ -57,93 +54,68 @@ class ScriptedDeck implements IDeck {
 }
 
 // ─── Rigged deck: 4-player deterministic scenario ────────────────────────────
-//
-// Deal order per round: P1 P2 P3 P4 Dealer
-//
-// After initial deal:
-//   P1 = 10+10 = 20   P2 = 9+7 = 16   P3 = 10+7 = 17
-//   P4 = 10+6 = 16    Dealer = 9+6 = 15
-//
-// Action cards:
-//   P2 hits K♦  → 16+10 = 26  BUST
-//
-// Dealer draw:
-//   3♣ → 15+3 = 18  (stops, ≥17)
+
 
 function createRiggedDeck(): ScriptedDeck {
   return new ScriptedDeck([
     // ── Round 1 ──────────────────────────────────────────────
     { suit: "♠", rank: "10" }, // P1
-    { suit: "♠", rank: "9"  }, // P2
+    { suit: "♠", rank: "9" }, // P2
     { suit: "♠", rank: "10" }, // P3
     { suit: "♠", rank: "10" }, // P4
-    { suit: "♠", rank: "9"  }, // Dealer
+    { suit: "♠", rank: "9" }, // Dealer
     // ── Round 2 ──────────────────────────────────────────────
     { suit: "♥", rank: "10" }, // P1  → 20
-    { suit: "♥", rank: "7"  }, // P2  → 16
-    { suit: "♥", rank: "7"  }, // P3  → 17
-    { suit: "♥", rank: "6"  }, // P4  → 16
-    { suit: "♥", rank: "6"  }, // Dlr → 15
+    { suit: "♥", rank: "7" }, // P2  → 16
+    { suit: "♥", rank: "7" }, // P3  → 17
+    { suit: "♥", rank: "6" }, // P4  → 16
+    { suit: "♥", rank: "6" }, // Dlr → 15
     // ── Action ───────────────────────────────────────────────
-    { suit: "♦", rank: "K"  }, // P2 hit → BUST (26)
+    { suit: "♦", rank: "K" }, // P2 hit → BUST (26)
     // ── Dealer draw ──────────────────────────────────────────
-    { suit: "♣", rank: "3"  }, // Dlr → 18 (stop)
+    { suit: "♣", rank: "3" }, // Dlr → 18 (stop)
   ]);
 }
 
 // ─── Deck for "turn does NOT move on safe hit" test ──────────────────────────
-//
-// P1 = 2+3 = 5    P2 = 3+2 = 5    Dealer = 9+4 = 13
-// P1 hits 2♦ → 7  (not bust, not 21 → still PLAYING → turn must NOT change)
 
 function createSafeDeck(): ScriptedDeck {
   return new ScriptedDeck([
-    { suit: "♠", rank: "2"  }, // P1 r1
-    { suit: "♠", rank: "3"  }, // P2 r1
-    { suit: "♠", rank: "9"  }, // Dealer r1
-    { suit: "♥", rank: "3"  }, // P1 r2 → 5
-    { suit: "♥", rank: "2"  }, // P2 r2 → 5
-    { suit: "♥", rank: "4"  }, // Dealer r2 → 13
-    { suit: "♦", rank: "2"  }, // P1 hit → 7  (safe)
-    { suit: "♣", rank: "K"  }, // dealer potential draw
+    { suit: "♠", rank: "2" }, // P1 r1
+    { suit: "♠", rank: "3" }, // P2 r1
+    { suit: "♠", rank: "9" }, // Dealer r1
+    { suit: "♥", rank: "3" }, // P1 r2 → 5
+    { suit: "♥", rank: "2" }, // P2 r2 → 5
+    { suit: "♥", rank: "4" }, // Dealer r2 → 13
+    { suit: "♦", rank: "2" }, // P1 hit → 7  (safe)
+    { suit: "♣", rank: "K" }, // dealer potential draw
   ]);
 }
 
 // ─── Generic deck: safe for 1-3 player tests ─────────────────────────────────
-//
-// No blackjack (no A+10 combo), no bust on first two cards.
-// Deal order: P1, [P2], [P3], Dealer  × 2 rounds
-//
-// 1-player: P1=5+6=11, Dealer=8+7=15
-// 2-player: P1=5+6=11, P2=6+5=11, Dealer=8+7=15
-// 3-player: P1=5+6=11, P2=6+5=11, P3=7+4=11, Dealer=8+7=15
-// Extra cards for hits: 2,3,4,5,6,7,8,9 (all safe, no bust risk from low scores)
 
 function createGenericDeck(): ScriptedDeck {
   return new ScriptedDeck([
-    { suit: "♠", rank: "5"  }, // P1 r1
-    { suit: "♠", rank: "6"  }, // P2 r1 (unused in 1p)
-    { suit: "♠", rank: "7"  }, // P3 r1 (unused in 1-2p)
-    { suit: "♠", rank: "8"  }, // Dealer r1
-    { suit: "♥", rank: "6"  }, // P1 r2 → 11
-    { suit: "♥", rank: "5"  }, // P2 r2 → 11 (unused in 1p)
-    { suit: "♥", rank: "4"  }, // P3 r2 → 11 (unused in 1-2p)
-    { suit: "♥", rank: "7"  }, // Dealer r2 → 15
+    { suit: "♠", rank: "5" }, // P1 r1
+    { suit: "♠", rank: "6" }, // P2 r1 (unused in 1p)
+    { suit: "♠", rank: "7" }, // P3 r1 (unused in 1-2p)
+    { suit: "♠", rank: "8" }, // Dealer r1
+    { suit: "♥", rank: "6" }, // P1 r2 → 11
+    { suit: "♥", rank: "5" }, // P2 r2 → 11 (unused in 1p)
+    { suit: "♥", rank: "4" }, // P3 r2 → 11 (unused in 1-2p)
+    { suit: "♥", rank: "7" }, // Dealer r2 → 15
     // Extra action cards (safe hits)
-    { suit: "♦", rank: "2"  },
-    { suit: "♦", rank: "3"  },
-    { suit: "♦", rank: "4"  },
-    { suit: "♦", rank: "5"  },
-    { suit: "♦", rank: "6"  },
-    { suit: "♣", rank: "2"  },
-    { suit: "♣", rank: "3"  },
+    { suit: "♦", rank: "2" },
+    { suit: "♦", rank: "3" },
+    { suit: "♦", rank: "4" },
+    { suit: "♦", rank: "5" },
+    { suit: "♦", rank: "6" },
+    { suit: "♣", rank: "2" },
+    { suit: "♣", rank: "3" },
   ]);
 }
 
 // ─── Deck for disconnect tests ────────────────────────────────────────────────
-//
-// P1 = 5+6 = 11   P2 = 6+5 = 11   Dealer = 8+7 = 15
-// No blackjack, no bust — guarantees P2 is still PLAYING after P1 disconnects.
 
 function createDisconnectDeck(): ScriptedDeck {
   return new ScriptedDeck([
@@ -183,13 +155,13 @@ function findLastMsg(session: MockUserSession, type: string, action?: string) {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe("GameServer – integration", () => {
-  let server:      GameServer;
+  let server: GameServer;
   let roomService: RoomService;
 
   // Always generate room ID 999 so tests can look it up predictably.
   beforeEach(() => {
     roomService = new RoomService({ generate: () => 999 });
-    server      = new GameServer({} as any, roomService);
+    server = new GameServer({} as any, roomService);
   });
 
   // ─── Lobby ────────────────────────────────────────────────────────────────
@@ -386,10 +358,6 @@ describe("GameServer – integration", () => {
 
       p1.clear();
 
-      // Three sequential hits — actionLocked prevents 2nd and 3rd.
-      // Note: resetReadyState() is called AFTER broadcast so subsequent hits
-      // still pass isReadyToAct(). The actionLocked flag is the real guard here.
-      // We must NOT call unlockAction() between hits in the same "frame".
       await c1.send("request_hit");
       await c1.send("request_hit");
       await c1.send("request_hit");
@@ -503,15 +471,15 @@ describe("GameServer – integration", () => {
     });
 
     it("user who joins last plays last in turn order", async () => {
-      const p1     = new MockUserSession(1,  "P1");
-      const p2     = new MockUserSession(2,  "P2");
-      const last   = new MockUserSession(99, "Last");
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      const last = new MockUserSession(99, "Last");
       server.addSession(p1);
       server.addSession(p2);
       server.addSession(last);
 
-      const c1   = new GameClient(p1,   server);
-      const c2   = new GameClient(p2,   server);
+      const c1 = new GameClient(p1, server);
+      const c2 = new GameClient(p2, server);
       const cLast = new GameClient(last, server);
 
       // Seat order: P1 → seat1, P2 → seat2, Last → seat3

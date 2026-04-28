@@ -1,7 +1,7 @@
-import { UserSession } from "../core/user-session";
-import { Room } from "../core/room";
-import { MessageDispatcher } from "../core/dispatcher";
-import { RoomService } from "../service/room-service";
+import { UserSession } from "../core/user-session.js";
+import { Room } from "../core/room.js";
+import { MessageDispatcher } from "../core/dispatcher.js";
+import { RoomService } from "../service/room-service.js";
 
 export interface UserAccount {
   id: number;
@@ -270,7 +270,7 @@ export class GameServer {
     if (!room) return;
 
     const allReady = room.setPlayerReady(playerId);
-    
+
     if (allReady) {
       this.broadcastToRoom(room, { type: "game_update", action: "ready_to_act" });
       this.broadcastToRoom(room, {
@@ -308,7 +308,16 @@ export class GameServer {
     // // so concurrent hits that arrive while we broadcast see the gate shut.
     // room.resetReadyState();
 
-    this.broadcastToRoom(room, { type: "game_event", action: "player_hit", payload: result.card });
+    this.broadcastToRoom(room, {
+      type: "game_event",
+      action: "player_hit",
+      payload: {
+        player_id: playerId,
+        card: result.card, 
+        status: result.status,  
+        score: room.getPlayerScore(playerId),
+      }
+    });
 
     if (result.turnChanged) {
       this.broadcastToRoom(room, {
@@ -382,6 +391,7 @@ export class GameServer {
   }
 
   private broadcastToRoom(room: Room, message: any) {
+    console.log(message);
     for (const id of room.getPlayerIds()) {
       this.sessionsByUserId.get(id)?.send(message);
     }

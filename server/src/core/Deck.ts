@@ -1,4 +1,4 @@
-import { Card, Rank, Suit } from "../shared/types";
+import { Card, Rank, Suit } from "../shared/types.js";
 
 // ─── Interface ────────────────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-import { Seat, SeatRole } from "../shared/types";
+import { Seat, SeatRole } from "../shared/types.js";
 
 export const MAX_PLAYERS = 4;
 

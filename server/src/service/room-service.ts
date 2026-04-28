@@ -1,4 +1,4 @@
-import { Room } from "../core/room";
+import { Room } from "../core/room.js";
 
 export interface IRoomIdGenerator {
   generate(): number;

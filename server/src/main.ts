@@ -1,10 +1,10 @@
 import { WebSocketServer } from "ws";
-import { UserSession } from "./core/user-session";
-import { GameServer } from "./server/game-server";
-import { AuthService } from "./service/auth-service";
-import { RoomService } from "./service/room-service";
-import { RandomRoomIdGenerator } from "./models/roomId-generator";
-import { MemoryUserRepository } from "./models/memory-user-repository";
+import { UserSession } from "./core/user-session.js";
+import { GameServer } from "./server/game-server.js";
+import { AuthService } from "./service/auth-service.js";
+import { RoomService } from "./service/room-service.js";
+import { RandomRoomIdGenerator } from "./models/roomId-generator.js";
+import { MemoryUserRepository } from "./models/memory-user-repository.js";
  
 const wss = new WebSocketServer({ port: 2567 });
  

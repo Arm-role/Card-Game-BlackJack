@@ -1,4 +1,4 @@
-import { IUserRepository, UserAccount } from "../service/auth-service";
+import { IUserRepository, UserAccount } from "../service/auth-service.js";
 
 export class MemoryUserRepository implements IUserRepository {
   private users: UserAccount[] = [];

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { BlackjackGame } from "../src/core/BlackjackGame";
-import { IDeck } from "../src/core/Deck";
-import { Card } from "../src/shared/types";
+import { BlackjackGame } from "../src/core/BlackjackGame.js";
+import { IDeck } from "../src/core/Deck.js";
+import { Card } from "../src/shared/types.js";
 
 // ─── FakeDeck ─────────────────────────────────────────────────────────────────
 // ล็อกลำดับไพ่เพื่อให้ผลลัพธ์แน่นอน

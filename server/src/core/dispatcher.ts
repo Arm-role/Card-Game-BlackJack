@@ -1,4 +1,4 @@
-import { UserSession } from "./user-session";
+import { UserSession } from "./user-session.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

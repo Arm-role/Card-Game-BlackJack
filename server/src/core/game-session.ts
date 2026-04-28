@@ -1,6 +1,6 @@
-import { ActionResult, Card, GameEvent, GameResult, GameState, PlayerAction, PlayerStatus } from "../shared/types";
-import { BlackjackGame } from "./BlackjackGame";
-import { IDeck, Deck } from "./Deck";
+import { ActionResult, Card, GameEvent, GameResult, GameState, PlayerAction, PlayerStatus } from "../shared/types.js";
+import { BlackjackGame } from "./BlackjackGame.js";
+import { IDeck, Deck } from "./Deck.js";
 
 export class GameSession {
   private state: GameState = "WAITING";
@@ -52,12 +52,19 @@ export class GameSession {
     if (event === "HIT") {
       const { playerId } = payload;
       if (!this.isPlayerTurn(playerId)) return undefined;
+
       const card = this.game.hit(playerId);
       const status = this.game.getStatus(playerId)!;
       if (!card) return undefined;
-      if (this.shouldMoveNext(playerId)) return this.buildNextTurnResult({ card, status });
+
+      if (status === "BUST") {
+        return this.buildNextTurnResult({ card, status });
+      }
+
+      this.actionTakenThisTurn.clear();
       return { card, status, turnChanged: false, gameEnded: false };
     }
+
     if (event === "STAND") {
       const { playerId } = payload;
       if (!this.isPlayerTurn(playerId)) return undefined;
@@ -65,6 +72,7 @@ export class GameSession {
       const status = this.game.getStatus(playerId)!;
       return this.buildNextTurnResult({ status });
     }
+
     if (event === "NEXT_TURN") return payload as ActionResult;
   }
 
@@ -176,16 +184,21 @@ export class GameSession {
     if (this.state !== "PLAYER_TURN") return undefined;
     if (!this.isPlayerTurn(playerId)) return undefined;
 
-    if (this.actionTakenThisTurn.has(playerId)) return undefined;
-    this.actionTakenThisTurn.add(playerId);
+    // HIT spam guard: ถ้า action = STAND ผ่านได้เสมอ
+    // ถ้า action = HIT ใช้ Set กัน double-submit ในระดับ network frame เดียว
+    if (action === "HIT" && this.actionTakenThisTurn.has(playerId)) return undefined;
+    if (action === "HIT") this.actionTakenThisTurn.add(playerId);
 
     const result = this.dispatch(action, { playerId });
-
     return result;
-  }
+}
 
   public isPlaying(): boolean {
     return this.state !== "WAITING";
+  }
+
+  public getPlayerScore(playerId: number): number {
+    return this.game.getHand(playerId)?.getScore() ?? 0;
   }
 
   public getGameSnapshot() {

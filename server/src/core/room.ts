@@ -1,8 +1,8 @@
-import { ActionResult, PlayerAction, RoomState, Seat } from "../shared/types";
-import { GameSession } from "./game-session";
-import { IDeck } from "./Deck";
-import { SeatManager, MAX_PLAYERS } from "./SeatManager";
-import { SwapManager, SwapRequest } from "./SwapManager";
+import { ActionResult, PlayerAction, RoomState, Seat } from "../shared/types.js";
+import { GameSession } from "./game-session.js";
+import { IDeck } from "./Deck.js";
+import { SeatManager, MAX_PLAYERS } from "./SeatManager.js";
+import { SwapManager, SwapRequest } from "./SwapManager.js";
 
 export class Room {
   private seatManager = new SeatManager();
@@ -123,6 +123,10 @@ export class Room {
   public hasPlayer(playerId: number) { return this.seatManager.hasPlayer(playerId); }
   public isFull() { return this.seatManager.isFull(); }
   public getCurrentPlayerId(): number | undefined { return this.gameSession?.getCurrentPlayerId(); }
+
+  public getPlayerScore(playerId: number): number {
+    return this.gameSession?.getPlayerScore(playerId) ?? 0;
+}
 
   public getSnapshot() {
     return {

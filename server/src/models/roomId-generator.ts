@@ -1,4 +1,4 @@
-import { IRoomIdGenerator } from "./interface";
+import { IRoomIdGenerator } from "./interface.js";
 
 export class RandomRoomIdGenerator implements IRoomIdGenerator {
 
