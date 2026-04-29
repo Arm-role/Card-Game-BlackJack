@@ -2,6 +2,7 @@ import { UserSession } from "../core/user-session.js";
 import { Room } from "../core/room.js";
 import { MessageDispatcher } from "../core/dispatcher.js";
 import { RoomService } from "../service/room-service.js";
+import { STARTING_CHIPS } from "../config/config.js";
 
 export interface UserAccount {
   id: number;
@@ -16,6 +17,7 @@ export interface IAuthService {
 
 export class GameServer {
   private sessionsByUserId = new Map<number, UserSession>();
+  private playerChips = new Map<number, number>();
   private dispatcher: MessageDispatcher;
 
   constructor(private authService: IAuthService, private roomService: RoomService) {
@@ -129,14 +131,21 @@ export class GameServer {
   // Room management
   // =====================================================
 
-  private async handleCreateRoom(session: UserSession, _data: any) {
+  private async handleCreateRoom(session: UserSession, data: any) {
     if (!session.isAuthenticated()) {
       session.send({ type: "room_result", action: "create", success: false, reason: "NOT_AUTHENTICATED" });
       return;
     }
-    const room = this.roomService.createRoom();
+    const minChip = typeof data?.minChip === "number" ? data.minChip : 0; 1
+    const betAmount = typeof data?.betAmount === "number" ? data.betAmount : 100;
+    const room = this.roomService.createRoom({ minChip, betAmount });
+
     room.addPlayer(session.getUserId()!, session.getUsername()!);
-    session.send({ type: "room_result", action: "create", success: true, seat: room.getSeatByPlayerId(session.getUserId()!) });
+
+    session.send({
+      type: "room_result", action: "create", success: true,
+      seat: room.getSeatByPlayerId(session.getUserId()!),
+    });
     this.broadcastRoomUpdate(room);
   }
 
@@ -150,12 +159,22 @@ export class GameServer {
       session.send({ type: "room_result", action: "join", success: false, reason: "ROOM_NOT_FOUND" });
       return;
     }
-    if (room.isFull()) {
-      session.send({ type: "room_result", action: "join", success: false, reason: "ROOM_FULL" });
+
+    const playerId = session.getUserId()!;
+    const chip = this.getPlayerChip(playerId);
+
+    // canJoin ตรวจ: isFull + isPlaying + minChip
+    if (!room.canJoin(chip)) {
+      const reason = room.isFull() ? "ROOM_FULL" : "INSUFFICIENT_CHIP";
+      session.send({ type: "room_result", action: "join", success: false, reason });
       return;
     }
-    room.addPlayer(session.getUserId()!, session.getUsername()!);
-    session.send({ type: "room_result", action: "join", success: true, seat: room.getSeatByPlayerId(session.getUserId()!) });
+
+    room.addPlayer(playerId, session.getUsername()!);
+    session.send({
+      type: "room_result", action: "join", success: true,
+      seat: room.getSeatByPlayerId(playerId),
+    });
     this.broadcastRoomUpdate(room);
   }
 
@@ -164,13 +183,22 @@ export class GameServer {
       session.send({ type: "room_result", action: "quick_join", success: false, reason: "NOT_AUTHENTICATED" });
       return;
     }
-    const room = this.roomService.quickJoin();
+
+    const playerId = session.getUserId()!;
+    const chip = this.getPlayerChip(playerId);
+
+    // หาห้องที่ chip ผ่านเกณฑ์
+    const room = this.roomService.quickJoin(chip);
     if (!room) {
       session.send({ type: "room_result", action: "quick_join", success: false, reason: "NO_AVAILABLE_ROOM" });
       return;
     }
-    room.addPlayer(session.getUserId()!, session.getUsername()!);
-    session.send({ type: "room_result", action: "quick_join", success: true, seat: room.getSeatByPlayerId(session.getUserId()!) });
+
+    room.addPlayer(playerId, session.getUsername()!);
+    session.send({
+      type: "room_result", action: "quick_join", success: true,
+      seat: room.getSeatByPlayerId(playerId),
+    });
     this.broadcastRoomUpdate(room);
   }
 
@@ -272,6 +300,7 @@ export class GameServer {
       return;
     }
     room.startGame();
+    room.placeBets();
     this.broadcastToRoom(room, { type: "game_update", action: "start", payload: { roomId: room.getRoomId() } });
     this.broadcastGameState(room);
   }
@@ -396,7 +425,33 @@ export class GameServer {
   private broadcastGameState(room: Room) {
     const gameState = room.getGameState();
     if (!gameState) return;
-    this.broadcastToRoom(room, { type: "game_update", action: "state_changed", payload: gameState });
+
+    const brokeBeforeSettle = gameState.state === "WAITING"
+      ? room.getPlayersWithZeroChip()
+      : [];
+
+    let chipAfter: Map<number, number> | undefined;
+    if (gameState.state === "WAITING" && gameState.results) {
+      chipAfter = room.settleBets(gameState.results);
+    }
+
+    const payload = chipAfter
+      ? {
+        ...gameState,
+        results: gameState.results!.map(r => ({
+          ...r,
+          chipAfter: chipAfter!.get(r.playerId) ?? 0,
+        })),
+      }
+      : gameState;
+
+    this.broadcastToRoom(room, {
+      type: "game_update", action: "state_changed", payload,
+    });
+
+    if (gameState.state === "WAITING") {
+      this.kickBrokePlayersFromRoom(room, brokeBeforeSettle);
+    }
   }
 
   private broadcastRoomUpdate(room: Room) {
@@ -408,5 +463,50 @@ export class GameServer {
     for (const id of room.getPlayerIds()) {
       this.sessionsByUserId.get(id)?.send(message);
     }
+  }
+
+  // =====================================================
+  // Helper
+  // =====================================================
+
+  private getPlayerChip(playerId: number): number {
+    // ── เพิ่ม: ถ้าเคย kick ไปแล้ว ใช้ค่าจาก map ──
+    if (this.playerChips.has(playerId)) {
+      return this.playerChips.get(playerId)!;
+    }
+    const room = this.roomService.findRoomByPlayer(playerId);
+    if (room) return room.getSeatByPlayerId(playerId)?.chip ?? STARTING_CHIPS;
+    return STARTING_CHIPS;
+  }
+
+  private kickBrokePlayersFromRoom(room: Room, toKick?: number[]) {
+    const kickList = toKick ?? room.getPlayersWithZeroChip();
+    if (kickList.length === 0) return;
+
+    for (const kickedId of kickList) {
+      this.playerChips.set(kickedId, 0);
+    }
+
+    for (const kickedId of kickList) {
+      this.sessionsByUserId.get(kickedId)?.send({
+        type: "room_result",
+        action: "kicked",
+        success: false,
+        reason: "OUT_OF_CHIP",
+      });
+    }
+
+    this.broadcastToRoom(room, {
+      type: "room_update",
+      action: "players_kicked",
+      payload: { kickedIds: kickList, reason: "OUT_OF_CHIP" },
+    });
+
+    const kicked = room.kickBrokePlayers(kickList);
+    for (const kickedId of kicked) {
+      this.playerChips.set(kickedId, 0);
+    }
+
+    this.broadcastRoomUpdate(room);
   }
 }

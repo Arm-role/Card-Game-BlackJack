@@ -34,7 +34,7 @@ public class NetworkHelper
     OnSend?.Invoke(request);
   }
 
-  public static void RequestCreateRoom(bool isShowCard, int minChip = 0)
+  public static void RequestCreateRoom(bool isShowCard, int minChip = 0, int betAmount = 100)
   {
     var request = new CreateRoomRequest
     {
@@ -42,7 +42,8 @@ public class NetworkHelper
       data = new CreatRoomDataRequest
       {
         isShowCard = isShowCard,
-        minChip = minChip     // ← เพิ่ม (Step 2 จะใช้)
+        minChip = minChip,  
+        betAmount = betAmount
       }
     };
     OnSend?.Invoke(request);

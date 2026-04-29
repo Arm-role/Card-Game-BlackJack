@@ -1,4 +1,10 @@
+// RoomService.ts
 import { Room } from "../core/room.js";
+
+export interface RoomConfig {
+  minChip: number;
+  betAmount: number;
+}
 
 export interface IRoomIdGenerator {
   generate(): number;
@@ -7,13 +13,24 @@ export interface IRoomIdGenerator {
 export class RoomService {
   private rooms = new Map<number, Room>();
 
-  constructor(private idGenerator: IRoomIdGenerator) {}
+  constructor(private idGenerator: IRoomIdGenerator) { }
 
-  public createRoom(): Room {
+  public createRoom(config: Partial<RoomConfig> = {}): Room {
+    const fullConfig: RoomConfig = {
+      minChip: config.minChip ?? 0,
+      betAmount: config.betAmount ?? 100,
+    };
     const roomId = this.idGenerator.generate();
-    const room   = new Room(roomId);
+    const room = new Room(roomId, fullConfig);
     this.rooms.set(roomId, room);
     return room;
+  }
+
+  public quickJoin(playerChip: number = 0): Room | undefined {
+    for (const room of this.rooms.values()) {
+      if (room.canJoin(playerChip)) return room;
+    }
+    return undefined;
   }
 
   public getRoom(roomId: number): Room | undefined {
@@ -22,13 +39,6 @@ export class RoomService {
 
   public getAllRooms(): Room[] {
     return Array.from(this.rooms.values());
-  }
-
-  public quickJoin(): Room | undefined {
-    for (const room of this.rooms.values()) {
-      if (!room.isFull()) return room;
-    }
-    return undefined;
   }
 
   public findRoomByPlayer(playerId: number): Room | undefined {

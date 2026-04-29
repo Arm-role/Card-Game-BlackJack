@@ -51,11 +51,12 @@ public class RoomResultMessage
 public class RoomUpdateMessage
 {
   public string type;        // "room_update"
-  public string action;       // "snapshot" | "swap_request" | "host_changed"
+  public string action;       // "snapshot"|"swap_request"|"host_changed"|"players_kicked"
   public bool success;
   public RoomData room;      // มีเฉพาะ action="snapshot"
   public SeatSwapData seatSwap; // มีเฉพาะ action="swap_request"
   public HostChangedData hostChanged;
+  public PlayersKickedData payload;
 }
 
 [Serializable]
@@ -63,6 +64,8 @@ public class RoomData
 {
   public int roomId;
   public int hostId;
+  public int minChip;
+  public int betAmount;
   public int max_player_count;
   public int player_count;
   public int user_count;
@@ -74,6 +77,13 @@ public class RoomData
 public class HostChangedData
 {
   public int hostId;
+}
+
+[Serializable]
+public class PlayersKickedData
+{
+  public int[] kickedIds;
+  public string reason;    // "OUT_OF_CHIP"
 }
 
 [Serializable]
@@ -184,6 +194,7 @@ public class PlayerRoundResult
 {
   public int playerId;
   public string result;          // "WIN" | "LOSE" | "DRAW" | "BLACKJACK" | "PENDING"
+  public int chipAfter;
 }
 
 // =====================================================

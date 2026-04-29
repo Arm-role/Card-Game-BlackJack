@@ -1,6 +1,6 @@
 // SeatManager.ts
+import { BET_AMOUNT, STARTING_CHIPS } from "../config/config.js";
 import { Seat, SeatRole } from "../shared/types.js";
-
 export const MAX_PLAYERS = 4;
 
 export class SeatManager {
@@ -26,11 +26,20 @@ export class SeatManager {
     if (!seat) return false;
     seat.playerId = id;
     seat.username = username;
-    seat.chip     = 1_000_000;
-
-    // คนแรกที่ join เป็น host
+    seat.chip = STARTING_CHIPS;
     if (!this.hostId) this.hostId = id;
     return true;
+  }
+
+  public adjustChip(playerId: number, delta: number): number {
+    const seat = this.getSeatByPlayerId(playerId);
+    if (!seat) return 0;
+    seat.chip = Math.max(0, (seat.chip ?? 0) + delta);
+    return seat.chip;
+  }
+
+  public getChip(playerId: number): number {
+    return this.getSeatByPlayerId(playerId)?.chip ?? 0;
   }
 
   // return: hostChanged, newHostId
@@ -39,7 +48,7 @@ export class SeatManager {
       if (s.playerId === playerId) {
         s.playerId = undefined;
         s.username = undefined;
-        s.chip     = undefined;
+        s.chip = undefined;
       }
     }
 
@@ -59,12 +68,12 @@ export class SeatManager {
 
   public swapSeat(playerId: number, fromSeat: number, toSeat: number): boolean {
     const from = this.getSeat(fromSeat);
-    const to   = this.getSeat(toSeat);
+    const to = this.getSeat(toSeat);
     if (!from || !to) return false;
     if (from.playerId !== playerId) return false;
     [from.playerId, to.playerId] = [to.playerId, from.playerId];
-    [from.username,  to.username]  = [to.username,  from.username];
-    [from.chip,      to.chip]      = [to.chip,      from.chip];
+    [from.username, to.username] = [to.username, from.username];
+    [from.chip, to.chip] = [to.chip, from.chip];
     return true;
   }
 
@@ -73,11 +82,11 @@ export class SeatManager {
     if (!dealer.playerId) {
       dealer.playerId = -1;
       dealer.username = "BOT";
-      dealer.chip     = 999_999;
+      dealer.chip = 999_999;
     }
   }
 
-  public getSeat(index: number)            { return this.seats[index]; }
+  public getSeat(index: number) { return this.seats[index]; }
   public getSeatByPlayerId(playerId: number) {
     return this.seats.find(s => s.playerId === playerId);
   }

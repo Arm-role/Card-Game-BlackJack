@@ -13,7 +13,7 @@ public class GameLobbyView : MonoBehaviour
   [SerializeField] private TextMeshProUGUI _RoomPlayersText;
   [SerializeField] private TextMeshProUGUI _RoomUsersText;
   [SerializeField] private TextMeshProUGUI _RoomIDText;
-  [SerializeField] private Button _LeaveButton;
+  [SerializeField] private Button[] _LeaveButtons;
 
   private LobbyService _Serviec;
 
@@ -21,7 +21,8 @@ public class GameLobbyView : MonoBehaviour
   {
     _Serviec = lobbySystem;
 
-    _LeaveButton.onClick.AddListener(OnLeaveClicked);
+    foreach (var leaveButton in _LeaveButtons)
+      leaveButton.onClick.AddListener(OnLeaveClicked);
 
     _Serviec.OnRoomUpdated += HandleRoomUpdated;
     _Serviec.OnSeatUpdated += HandleSeatUpdated;
@@ -56,7 +57,8 @@ public class GameLobbyView : MonoBehaviour
     {
       _RoomIDText.text = "-";
       _RoomPlayersText.text = "Not in room";
-      _LeaveButton.interactable = false;
+      foreach (var leaveButton in _LeaveButtons)
+        leaveButton.interactable = false;
       return;
     }
 
@@ -64,8 +66,8 @@ public class GameLobbyView : MonoBehaviour
 
     _RoomPlayersText.text = $"Players: {room.player_count}/{room.max_player_count}";
     _RoomUsersText.text = $"Users in room: {room.user_count}";
-
-    _LeaveButton.interactable = true;
+    foreach (var leaveButton in _LeaveButtons)
+      leaveButton.interactable = true;
   }
 
   private void OnSeatClicked(int targetSeat)

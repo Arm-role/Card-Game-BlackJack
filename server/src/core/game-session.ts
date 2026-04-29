@@ -191,7 +191,7 @@ export class GameSession {
 
     const result = this.dispatch(action, { playerId });
     return result;
-}
+  }
 
   public isPlaying(): boolean {
     return this.state !== "WAITING";
@@ -216,6 +216,9 @@ export class GameSession {
         hand: this.game.getDealerHand().cards,
         score: this.game.getDealerHand().getScore(),
       },
+      results: this.state === "WAITING"
+        ? this.buildResults()
+        : undefined,
     };
   }
 }

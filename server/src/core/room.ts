@@ -1,17 +1,24 @@
-import { ActionResult, PlayerAction, RoomState, Seat } from "../shared/types.js";
+import { ActionResult, GameResult, PlayerAction, RoomState, Seat } from "../shared/types.js";
 import { GameSession } from "./game-session.js";
 import { IDeck } from "./Deck.js";
 import { SeatManager, MAX_PLAYERS } from "./SeatManager.js";
 import { SwapManager, SwapRequest } from "./SwapManager.js";
+import { RoomConfig } from "../service/room-service.js";
 
 export class Room {
+  private minChip: number;
+  private betAmount: number;
+
   private seatManager = new SeatManager();
   private swapManager = new SwapManager();
   private gameSession: GameSession | null = null;
   private readyPlayers: Set<number> = new Set();
   private roomState: RoomState = "WAITING";
 
-  constructor(private roomId: number) { }
+  constructor(private roomId: number, config: RoomConfig = { minChip: 0, betAmount: 100 }) {
+    this.minChip = config.minChip;
+    this.betAmount = config.betAmount;
+  }
 
   public getRoomId() { return this.roomId; }
 
@@ -54,14 +61,31 @@ export class Room {
     return this.seatManager.isHost(playerId);
   }
 
-  public swapSeat(playerId: number, fromSeat: number, toSeat: number): boolean {
+  public canJoin(chip: number): boolean {
     if (this.gameSession?.isPlaying()) return false;
-    return this.seatManager.swapSeat(playerId, fromSeat, toSeat);
+    if (this.isFull()) return false;
+    if (this.minChip > 0 && chip < this.minChip) return false;
+    return true;
+  }
+
+  public kickBrokePlayers(ids?: number[]): number[] {
+    const toRemove = ids ?? this.getPlayersWithZeroChip();
+    const kicked: number[] = [];
+    for (const id of toRemove) {
+      this.seatManager.removePlayer(id);
+      kicked.push(id);
+    }
+    return kicked;
   }
 
   // =====================================================
   // 2. Swap Requests
   // =====================================================
+
+  public swapSeat(playerId: number, fromSeat: number, toSeat: number): boolean {
+    if (this.gameSession?.isPlaying()) return false;
+    return this.seatManager.swapSeat(playerId, fromSeat, toSeat);
+  }
 
   public addSwapRequest(targetId: number, req: SwapRequest): boolean {
     if (this.gameSession?.isPlaying()) return false;
@@ -84,8 +108,33 @@ export class Room {
     return success;
   }
 
+  public placeBets(): void {
+    for (const id of this.seatManager.getPlayerIds()) {
+      this.seatManager.adjustChip(id, -this.betAmount);
+    }
+  }
+
+  public settleBets(results: Array<{ playerId: number; result: GameResult }>): Map<number, number> {
+    const chipAfter = new Map<number, number>();
+    for (const { playerId, result } of results) {
+      let payout = 0;
+      if (result === "WIN") payout = this.betAmount * 2;
+      if (result === "DRAW") payout = this.betAmount;
+      const after = this.seatManager.adjustChip(playerId, payout);
+      chipAfter.set(playerId, after);
+    }
+    return chipAfter;
+  }
+
+  public getPlayersWithZeroChip(): number[] {
+    return this.seatManager.getPlayerIds().filter(id => {
+      const seat = this.seatManager.getSeatByPlayerId(id);
+      return seat && (seat.chip ?? 0) <= 0;
+    });
+  }
+
   // =====================================================
-  // 3. Game Flow
+  // Game Flow
   // =====================================================
 
   public canStartGame(playerId: number): boolean {
@@ -140,6 +189,8 @@ export class Room {
   // 4. Getters & Snapshots
   // =====================================================
 
+  public getMinChip(): number { return this.minChip; }
+
   public getSeat(index: number) { return this.seatManager.getSeat(index); }
   public getSeatByPlayerId(playerId: number) { return this.seatManager.getSeatByPlayerId(playerId); }
   public getPlayerIds() { return this.seatManager.getPlayerIds(); }
@@ -155,6 +206,8 @@ export class Room {
     return {
       roomId: this.roomId,
       hostId: this.seatManager.getHostId(),
+      minChip: this.minChip,
+      betAmount: this.betAmount,
       max_player_count: MAX_PLAYERS,
       player_count: this.seatManager.getPlayerCount(),
       user_count: this.seatManager.getUserCount(),
@@ -170,7 +223,7 @@ export class Room {
   }
 
   public getGameState() {
-    if (!this.gameSession) return null;
+    if (!this.gameSession) return undefined;
     const snap = this.gameSession.getGameSnapshot();
     if (snap.state === "WAITING") this.roomState = "WAITING";
     return snap;

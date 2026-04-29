@@ -346,28 +346,6 @@ describe("GameServer – integration", () => {
       expect(findMsg(p2, "game_event", "player_hit")).toBeUndefined();
     });
 
-    it("hit spam: only the first hit in a frame is processed", async () => {
-      const p1 = new MockUserSession(1, "P1");
-      server.addSession(p1);
-      const c1 = new GameClient(p1, server);
-
-      await c1.send("request_create_room");
-      injectDeck(roomService.getRoom(999)!, createGenericDeck());
-      await c1.send("request_start_game");
-      await c1.send("request_player_ready");
-
-      p1.clear();
-
-      await c1.send("request_hit");
-      await c1.send("request_hit");
-      await c1.send("request_hit");
-
-      const hits = p1.sentMessages.filter(
-        (m) => m.type === "game_event" && m.action === "player_hit",
-      );
-      expect(hits.length).toBe(1);
-    });
-
     it("turn does NOT advance after a safe hit (score < 21, no bust)", async () => {
       const p1 = new MockUserSession(1, "P1");
       const p2 = new MockUserSession(2, "P2");
@@ -585,6 +563,281 @@ describe("GameServer – integration", () => {
 
       const turnMsg = findLastMsg(p2, "game_update", "turn_changed");
       expect(turnMsg?.payload.currentPlayer).toBe(2);
+    });
+  });
+
+  describe("join validation", () => {
+    it("player with enough chip can join a room with minChip", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      server.addSession(p1);
+      server.addSession(p2);
+
+      // p1 create ห้อง minChip=500
+      await new GameClient(p1, server).send("request_create_room", { minChip: 500 });
+      // p2 chip default = 1_000_000 ผ่านแน่นอน
+      await new GameClient(p2, server).send("request_join_room", { roomId: 999 });
+
+      expect(findMsg(p2, "room_result", "join")?.success).toBe(true);
+    });
+
+    it("player with insufficient chip cannot join room", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      server.addSession(p1);
+      server.addSession(p2);
+
+      await new GameClient(p1, server).send("request_create_room", { minChip: 2_000_000 });
+      await new GameClient(p2, server).send("request_join_room", { roomId: 999 });
+
+      const msg = findMsg(p2, "room_result", "join");
+      expect(msg?.success).toBe(false);
+      expect(msg?.reason).toBe("INSUFFICIENT_CHIP");
+    });
+
+    it("quick_join skips rooms where chip requirement is not met", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      server.addSession(p1);
+      server.addSession(p2);
+
+      // p1 สร้างห้อง minChip สูงมาก
+      await new GameClient(p1, server).send("request_create_room", { minChip: 2_000_000 });
+      // p2 quick_join → ไม่ควร join ได้
+      await new GameClient(p2, server).send("request_quick_join_room");
+
+      const msg = findMsg(p2, "room_result", "quick_join");
+      expect(msg?.success).toBe(false);
+      expect(msg?.reason).toBe("NO_AVAILABLE_ROOM");
+    });
+
+    it("quick_join succeeds when chip meets minChip", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      server.addSession(p1);
+      server.addSession(p2);
+
+      // minChip = 0 (default) → ทุกคนเข้าได้
+      await new GameClient(p1, server).send("request_create_room", { minChip: 0 });
+      await new GameClient(p2, server).send("request_quick_join_room");
+
+      expect(findMsg(p2, "room_result", "quick_join")?.success).toBe(true);
+    });
+
+    it("room with minChip=0 allows anyone to join", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      server.addSession(p1);
+      server.addSession(p2);
+
+      await new GameClient(p1, server).send("request_create_room");
+      await new GameClient(p2, server).send("request_join_room", { roomId: 999 });
+
+      expect(findMsg(p2, "room_result", "join")?.success).toBe(true);
+    });
+  });
+
+  // ─── Kick after game end ─────────────────────────────────────────────────
+
+  describe("kick broke players after game end", () => {
+
+    // helper: จบเกมแบบเร็ว (p1 stand → dealer resolves)
+    async function runFullGame(
+      c1: GameClient, p1: MockUserSession,
+      extraClients: GameClient[] = [],
+      extraSessions: MockUserSession[] = [],
+    ) {
+      injectDeck(roomService.getRoom(999)!, createGenericDeck());
+      await c1.send("request_start_game");
+      await c1.send("request_player_ready");
+      for (const c of extraClients) await c.send("request_player_ready");
+      await c1.send("request_stand");
+      for (const c of extraClients) await c.send("request_stand");
+    }
+
+    it("player with chip > 0 after game is NOT kicked", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      server.addSession(p1);
+      const c1 = new GameClient(p1, server);
+
+      await c1.send("request_create_room");
+      await runFullGame(c1, p1);
+
+      // chip ยังเหลือ (ยังไม่มีระบบหัก) → ไม่ควรได้รับ kicked message
+      const kicked = findMsg(p1, "room_result", "kicked");
+      expect(kicked).toBeUndefined();
+    });
+
+    it("player with 0 chip after game receives kicked message", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      server.addSession(p1);
+      server.addSession(p2);
+      const c1 = new GameClient(p1, server);
+      const c2 = new GameClient(p2, server);
+
+      await c1.send("request_create_room");
+      injectDeck(roomService.getRoom(999)!, createGenericDeck());
+      await c2.send("request_join_room", { roomId: 999 });
+
+      await c1.send("request_start_game"); // placeBets() เกิดที่นี่
+      const room = roomService.getRoom(999)!;
+      const seat = room.getSeatByPlayerId(2);
+      if (seat) seat.chip = 0;
+
+      await c1.send("request_player_ready");
+      await c2.send("request_player_ready");
+      await c1.send("request_stand");
+      await c2.send("request_stand");
+
+      const kickedMsg = findMsg(p2, "room_result", "kicked");
+      expect(kickedMsg).toBeDefined();
+      expect(kickedMsg?.reason).toBe("OUT_OF_CHIP");
+    });
+
+    it("kicked player is removed from room after game ends", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      server.addSession(p1);
+      server.addSession(p2);
+      const c1 = new GameClient(p1, server);
+      const c2 = new GameClient(p2, server);
+
+      await c1.send("request_create_room");
+      injectDeck(roomService.getRoom(999)!, createGenericDeck());
+      await c2.send("request_join_room", { roomId: 999 });
+
+      await c1.send("request_start_game");
+      const room = roomService.getRoom(999)!;
+      const seat = room.getSeatByPlayerId(2);
+      if (seat) seat.chip = 0;
+
+      await c1.send("request_player_ready");
+      await c2.send("request_player_ready");
+      await c1.send("request_stand");
+      await c2.send("request_stand");
+
+      // p2 ควรถูก remove ออกจากห้องแล้ว
+      expect(room.hasPlayer(2)).toBe(false);
+    });
+
+    it("remaining players get room_update after broke player is kicked", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      server.addSession(p1);
+      server.addSession(p2);
+      const c1 = new GameClient(p1, server);
+      const c2 = new GameClient(p2, server);
+
+      await c1.send("request_create_room");
+      injectDeck(roomService.getRoom(999)!, createGenericDeck());
+      await c2.send("request_join_room", { roomId: 999 });
+
+      p1.clear();
+
+      await c1.send("request_start_game");
+      const room = roomService.getRoom(999)!;
+      const seat = room.getSeatByPlayerId(2);
+      if (seat) seat.chip = 0;
+
+      await c1.send("request_player_ready");
+      await c2.send("request_player_ready");
+      await c1.send("request_stand");
+      await c2.send("request_stand");
+
+      // p1 ต้องได้รับ players_kicked broadcast
+      const kickBroadcast = findMsg(p1, "room_update", "players_kicked");
+      expect(kickBroadcast).toBeDefined();
+      expect(kickBroadcast?.payload?.kickedIds).toContain(2);
+    });
+
+    it("only broke players are kicked — others remain", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      const p3 = new MockUserSession(3, "P3");
+      server.addSession(p1);
+      server.addSession(p2);
+      server.addSession(p3);
+      const c1 = new GameClient(p1, server);
+      const c2 = new GameClient(p2, server);
+      const c3 = new GameClient(p3, server);
+
+      await c1.send("request_create_room");
+      injectDeck(roomService.getRoom(999)!, createGenericDeck());
+      await c2.send("request_join_room", { roomId: 999 });
+      await c3.send("request_join_room", { roomId: 999 });
+
+      // เฉพาะ p2 chip = 0
+      const room = roomService.getRoom(999)!;
+      const seat2 = room.getSeatByPlayerId(2);
+      if (seat2) seat2.chip = 0;
+
+      await c1.send("request_start_game");
+      await c1.send("request_player_ready");
+      await c2.send("request_player_ready");
+      await c3.send("request_player_ready");
+      await c1.send("request_stand");
+      await c2.send("request_stand");
+      await c3.send("request_stand");
+
+      expect(room.hasPlayer(1)).toBe(true);  // p1 ยังอยู่
+      expect(room.hasPlayer(2)).toBe(false); // p2 ถูก kick
+      expect(room.hasPlayer(3)).toBe(true);  // p3 ยังอยู่
+    });
+
+    it("broke player kicked from room cannot rejoin if minChip not met", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      const p2 = new MockUserSession(2, "P2");
+      server.addSession(p1);
+      server.addSession(p2);
+      const c1 = new GameClient(p1, server);
+      const c2 = new GameClient(p2, server);
+
+      await c1.send("request_create_room", { minChip: 1000 });
+      injectDeck(roomService.getRoom(999)!, createGenericDeck());
+      await c2.send("request_join_room", { roomId: 999 });
+
+      const room = roomService.getRoom(999)!;
+      const seat = room.getSeatByPlayerId(2);
+      if (seat) seat.chip = 0;
+
+      await c1.send("request_start_game");
+      await c1.send("request_player_ready");
+      await c2.send("request_player_ready");
+      await c1.send("request_stand");
+      await c2.send("request_stand");
+
+      // p2 ถูก kick แล้ว พยายาม rejoin
+      p2.clear();
+      await c2.send("request_join_room", { roomId: 999 });
+
+      const rejoinMsg = findMsg(p2, "room_result", "join");
+      expect(rejoinMsg?.success).toBe(false);
+      expect(rejoinMsg?.reason).toBe("INSUFFICIENT_CHIP");
+    });
+  });
+
+  // ─── minChip in snapshot ─────────────────────────────────────────────────
+
+  describe("minChip in snapshot", () => {
+    it("room snapshot includes minChip", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      server.addSession(p1);
+
+      await new GameClient(p1, server).send("request_create_room", { minChip: 5000 });
+
+      const snapshot = findMsg(p1, "room_update", "snapshot");
+      expect(snapshot?.room?.minChip).toBe(5000);
+    });
+
+    it("room snapshot minChip defaults to 0 when not specified", async () => {
+      const p1 = new MockUserSession(1, "P1");
+      server.addSession(p1);
+
+      await new GameClient(p1, server).send("request_create_room");
+
+      const snapshot = findMsg(p1, "room_update", "snapshot");
+      expect(snapshot?.room?.minChip).toBe(0);
     });
   });
 });

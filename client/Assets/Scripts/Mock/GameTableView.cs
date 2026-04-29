@@ -9,9 +9,25 @@ using TMPro;
 
 public class GameTableView : MonoBehaviour
 {
+  public event Action OnPlayAgainPressed;
+  public event Action OnLeavePressed;
+
   [Header("Host")]
   [SerializeField] private Button _btnStart;
   [SerializeField] private GameObject _hostCrown; // icon มงกุฎ (optional)
+
+  [Header("Result Popup Buttons")]
+  [SerializeField] private Button _btnPlayAgain;
+  [SerializeField] private Button _btnLeaveFromResult;
+
+  [Header("Chip")]
+  [SerializeField] private TextMeshProUGUI _myChipLabel;
+  [SerializeField] private TextMeshProUGUI _myBetLabel;
+
+  [Header("Room info")]
+  [SerializeField] private TextMeshProUGUI _minChipLabel;
+  [SerializeField] private GameObject _kickedPanel;
+  [SerializeField] private TextMeshProUGUI _kickedText;
 
   [Header("My hand (bottom)")]
   [SerializeField] private HandView _myHand;
@@ -36,6 +52,16 @@ public class GameTableView : MonoBehaviour
   [Header("Waiting label")]
   [SerializeField] private GameObject _waitingForPlayers; // "รอผู้เล่นอื่น..."
 
+  [Header("Result")]
+  [SerializeField] private TextMeshProUGUI _myResultLabel;     // บน HandView ของตัวเอง
+  [SerializeField] private TextMeshProUGUI _resultPopupLabel;  // popup กลางจอ
+
+  [Header("Panels")]
+  [SerializeField] private GameObject _lobbyPanel;      // มี btnStart, player list, minChip
+  [SerializeField] private GameObject _gameplayPanel;   // มี hand, score, action buttons
+  [SerializeField] private GameObject _resultPopupPanel; // popup หลังเกมจบ
+
+
   private readonly Dictionary<int, OtherPlayerView> _playerViews = new();
   private int _myPlayerId;
 
@@ -44,10 +70,14 @@ public class GameTableView : MonoBehaviour
     _btnStart.onClick.AddListener(OnClickStart);
     _btnHit.onClick.AddListener(() => NetworkHelper.RequestHit());
     _btnStand.onClick.AddListener(() => NetworkHelper.RequestStand());
+    _btnPlayAgain.onClick.AddListener(OnClickPlayAgain);
+    _btnLeaveFromResult.onClick.AddListener(OnClickLeaveFromResult);
 
     SetActionButtons(false);
     if (_waitingForPlayers) _waitingForPlayers.SetActive(false);
     foreach (var slot in _otherSlots) slot.gameObject.SetActive(false);
+
+    ShowLobby();
   }
 
   // ─── Setup ──────────────────────────────────────────────────
@@ -56,6 +86,18 @@ public class GameTableView : MonoBehaviour
   public void SetMyName(string name) => _myNameLabel.text = name;
 
   // ─── Deal initial (DEALING state) ───────────────────────────
+
+  public void UpdateMyChip(int chip)
+  {
+    if (_myChipLabel)
+      _myChipLabel.text = $"{chip:N0}";
+  }
+
+  public void UpdateBetAmount(int betAmount)
+  {
+    if (_myBetLabel)
+      _myBetLabel.text = $"BET {betAmount:N0}";
+  }
 
   public void DealInitialCards(
       PlayerState[] players,
@@ -119,6 +161,26 @@ public class GameTableView : MonoBehaviour
     _animator.DealCards(queue.ToArray(), onComplete);
   }
 
+  // ─── Chip ────────────────────────────────────────────────
+
+  public void UpdateMinChipLabel(int minChip)
+  {
+    if (_minChipLabel)
+      _minChipLabel.text = minChip > 0 ? $"min {minChip:N0}" : "";
+  }
+
+  public void ShowKickedMessage(string reason)
+  {
+    if (_kickedPanel) _kickedPanel.SetActive(true);
+    if (_kickedText) _kickedText.text = reason;
+    Invoke(nameof(HideKickedMessage), 3f);
+  }
+
+  private void HideKickedMessage()
+  {
+    if (_kickedPanel) _kickedPanel.SetActive(false);
+  }
+
   // ─── UpdateHostUI ────────────────────────────────────────────────
 
   public void UpdateHostUI(bool isHost)
@@ -127,7 +189,7 @@ public class GameTableView : MonoBehaviour
     _btnStart.gameObject.SetActive(isHost);
 
     if (_hostCrown) _hostCrown.SetActive(isHost);
-
+    if (_btnPlayAgain) _btnPlayAgain.gameObject.SetActive(isHost);
     Debug.Log($"[TableView] isHost={isHost} → btnStart {(isHost ? "shown" : "hidden")}");
   }
 
@@ -205,11 +267,68 @@ public class GameTableView : MonoBehaviour
     if (_myTurnIndicator) _myTurnIndicator.SetActive(false);
   }
 
+  public void ShowResult(int playerId, string result)
+  {
+    // ── บน HandView ──
+    if (playerId == _myPlayerId)
+    {
+      if (_myResultLabel)
+      {
+        _myResultLabel.text = result;
+        _myResultLabel.color = ResultColor(result);
+        _myResultLabel.gameObject.SetActive(true);
+      }
+
+      // ── popup กลางจอ ──
+      if (_resultPopupPanel) _resultPopupPanel.SetActive(true);
+      if (_resultPopupLabel)
+      {
+        _resultPopupLabel.text = result;
+        _resultPopupLabel.color = ResultColor(result);
+      }
+    }
+    else if (_playerViews.TryGetValue(playerId, out var view))
+    {
+      view.ShowResult(result);
+    }
+  }
+
+  public void HideResult()
+  {
+    if (_myResultLabel) _myResultLabel.gameObject.SetActive(false);
+    if (_resultPopupPanel) _resultPopupPanel.SetActive(false);
+  }
+
+  private Color ResultColor(string result) => result switch
+  {
+    "WIN" => new Color(0.2f, 0.85f, 0.2f),   // เขียว
+    "LOSE" => new Color(0.9f, 0.2f, 0.2f),    // แดง
+    "DRAW" => new Color(0.9f, 0.75f, 0.1f),   // เหลือง
+    _ => Color.white,
+  };
+
+  public void ShowLobby()
+  {
+    _lobbyPanel.SetActive(true);
+    _gameplayPanel.SetActive(false);
+    _resultPopupPanel.SetActive(false);
+  }
+
+  public void ShowGameplay()
+  {
+    _lobbyPanel.SetActive(false);
+    _gameplayPanel.SetActive(true);
+    _resultPopupPanel.SetActive(false);
+  }
+
   // ─── Reset ───────────────────────────────────────────────────
 
   public void ResetTable()
   {
+    _animator.StopAll();
     ClearAll();
+    HideResult();
+    _resultPopupPanel.SetActive(false);
     SetScore(_myScoreLabel, 0);
     SetScore(_dealerScoreLabel, 0, hidden: true);
     HideActionButtons();
@@ -225,6 +344,17 @@ public class GameTableView : MonoBehaviour
   {
     _btnStart.interactable = false;
     NetworkHelper.RequestStartGame();
+  }
+
+  private void OnClickPlayAgain()
+  {
+    OnPlayAgainPressed?.Invoke();
+  }
+
+  private void OnClickLeaveFromResult()
+  {
+    NetworkHelper.RequestLeaveRoom();
+    OnLeavePressed?.Invoke();
   }
 
   private void SetActionButtons(bool show)

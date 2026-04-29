@@ -1,6 +1,4 @@
-﻿// =====================================================
-// MockLogin.cs
-// =====================================================
+﻿// MockLogin.cs — เพิ่ม OnGUI สำหรับ manual test
 using UnityEngine;
 
 public class MockLogin : MonoBehaviour
@@ -10,8 +8,16 @@ public class MockLogin : MonoBehaviour
   private string _password = "123456789";
   private int _myPlayerId;
   private int _hostId;
+  private int _minChip;
+
+  private int _myChip;
+  private int _betAmount;
 
   [SerializeField] private GameTableView _table;
+
+  [Header("Test Config")]
+  [SerializeField] private int _createRoomMinChip = 0;
+  [SerializeField] private int _createRoomBetAmount = 100;
 
   private ClientGameState _state = ClientGameState.Disconnected;
   private ClientGameState State
@@ -34,6 +40,9 @@ public class MockLogin : MonoBehaviour
     d.Register<GameResultMessage>("game_result", OnGameResultMessage);
     d.Register<GameEventMessage>("game_event", OnGameEventMessage);
     d.Register<GameUpdateMessage>("game_update", OnGameUpdateMessage);
+
+    _table.OnPlayAgainPressed += OnPlayAgain;
+    _table.OnLeavePressed += OnLeaveRoom;
   }
 
   // =====================================================
@@ -84,13 +93,29 @@ public class MockLogin : MonoBehaviour
           State = ClientGameState.InRoom;
           break;
         case "leave":
+          _table.ShowLobby();
           State = ClientGameState.Authenticated;
           break;
       }
     }
     else
     {
-      Debug.LogWarning($"[room] ❌ {msg.action} {msg.reason}");
+      Debug.LogWarning($"[room] ❌ {msg.action} | reason={msg.reason}");
+      switch (msg.reason)
+      {
+        case "INSUFFICIENT_CHIP":
+          _table.ShowKickedMessage($"chip ไม่ถึง {_minChip:N0} — เข้าห้องไม่ได้");
+          break;
+        case "OUT_OF_CHIP":
+          _table.ShowKickedMessage("chip หมดแล้ว — ถูกเตะออกจากห้อง");
+          _table.ShowLobby();
+          State = ClientGameState.Authenticated;
+          Invoke(nameof(OnQuickJoinRoom), 2f);
+          break;
+        case "NOT_HOST":
+          Debug.LogWarning("[room] คุณไม่ใช่ host");
+          break;
+      }
       if (msg.action == "quick_join") OnCreateRoom();
     }
   }
@@ -102,22 +127,35 @@ public class MockLogin : MonoBehaviour
       case "snapshot":
         var r = msg.room;
         _hostId = r.hostId;
-        Debug.Log($"[room_update] roomId={r.roomId} host={r.hostId} {r.player_count}/{r.max_player_count}");
+        _minChip = r.minChip;
+        _betAmount = r.betAmount;
+        Debug.Log($"[room_update] roomId={r.roomId} host={r.hostId} minChip={r.minChip:N0} bet={r.betAmount:N0} {r.player_count}/{r.max_player_count}");
         _table.UpdateHostUI(_myPlayerId == _hostId);
+        _table.UpdateMinChipLabel(_minChip);
+        _table.UpdateBetAmount(_betAmount);
+        if (r.seats != null)
+        {
+          var mySeat = r.seats.Find(s => s.playerId == _myPlayerId);
+          if (mySeat != null)
+          {
+            _myChip = mySeat.chip;
+            _table.UpdateMyChip(_myChip);
+          }
+        }
         break;
 
       case "host_changed":
         _hostId = msg.hostChanged?.hostId ?? 0;
-        Debug.Log($"[room_update] host_changed → new host={_hostId}");
+        Debug.Log($"[room_update] host_changed → {_hostId}");
         _table.UpdateHostUI(_myPlayerId == _hostId);
-
-        if (_myPlayerId == _hostId)
-          Debug.Log("⭐ คุณเป็น host ใหม่");
+        if (_myPlayerId == _hostId) Debug.Log("⭐ คุณเป็น host ใหม่");
         break;
 
-      case "swap_request":
-        var sw = msg.seatSwap;
-        Debug.Log($"[room_update] swap_request from={sw.fromPlayerName} seat {sw.fromSeat}→{sw.toSeat}");
+      case "players_kicked":
+        var pk = msg.payload;
+        if (pk?.kickedIds == null) break;
+        foreach (var id in pk.kickedIds)
+          Debug.Log($"[room_update] player {id} ถูกเตะ เหตุ: {pk.reason}");
         break;
     }
   }
@@ -129,8 +167,6 @@ public class MockLogin : MonoBehaviour
   {
     if (msg.success) return;
     Debug.LogWarning($"[game_result] ❌ {msg.action} {msg.reason}");
-
-    // ถ้าไม่ใช่ host แล้วดัน start
     if (msg.reason == "NOT_HOST")
       Debug.LogWarning("[game_result] คุณไม่ใช่ host");
   }
@@ -146,17 +182,14 @@ public class MockLogin : MonoBehaviour
       case "start":
         Debug.Log($"[game_update] start roomId={msg.payload?.roomId}");
         break;
-
       case "state_changed":
         HandleStateChanged(msg.payload);
         break;
-
       case "ready_to_act":
         _table.HideWaitingForPlayers();
         State = ClientGameState.WaitingTurn;
-        Debug.Log("[game_update] ready_to_act — all players ready");
+        Debug.Log("[game_update] ready_to_act");
         break;
-
       case "turn_changed":
         HandleTurnChanged(msg.payload?.currentPlayer ?? 0);
         break;
@@ -173,32 +206,33 @@ public class MockLogin : MonoBehaviour
       case "DEALING":
         if (p.players == null || p.dealer == null) return;
         State = ClientGameState.Dealing;
-
+        _table.ShowGameplay();
         _table.SetMyPlayerId(_myPlayerId);
         _table.SetMyName(_username);
-
-        _table.DealInitialCards(
-            p.players, p.dealer, _myPlayerId,
-            onComplete: () =>
-            {
-              Debug.Log("[deal] done → RequestPlayerReady");
-              _table.ShowWaitingForPlayers();
-              NetworkHelper.RequestPlayerReady();
-            });
+        _table.DealInitialCards(p.players, p.dealer, _myPlayerId, () =>
+        {
+          Debug.Log("[deal] done → RequestPlayerReady");
+          _table.ShowWaitingForPlayers();
+          NetworkHelper.RequestPlayerReady();
+        });
         break;
 
       case "WAITING":
         State = ClientGameState.GameOver;
-
-        // เปิดไพ่ทั้งหมด + แสดง score จริง
         _table.RevealAll(p.players, p.dealer);
         _table.HideActionButtons();
-
         if (p.results != null)
           foreach (var r in p.results)
-            Debug.Log($"  player[{r.playerId}] → {r.result}");
-
-        Invoke(nameof(ResetAfterGame), 3f);
+          {
+            Debug.Log($"  player[{r.playerId}] → {r.result}  chip={r.chipAfter:N0}");
+            _table.ShowResult(r.playerId, r.result);
+            if (r.playerId == _myPlayerId)
+            {
+              _myChip = r.chipAfter;
+              _table.UpdateMyChip(_myChip);
+            }
+          }
+        //Invoke(nameof(ResetAfterGame), 3f);
         break;
     }
   }
@@ -207,7 +241,6 @@ public class MockLogin : MonoBehaviour
   {
     Debug.Log($"[turn_changed] currentPlayer={currentPlayer}");
     _table.SetTurn(currentPlayer);
-
     if (currentPlayer == _myPlayerId)
     {
       State = ClientGameState.MyTurn;
@@ -233,9 +266,7 @@ public class MockLogin : MonoBehaviour
         var h = msg.payload;
         if (h?.card == null) return;
         Debug.Log($"[player_hit] player={h.player_id} {h.card} score={h.score} status={h.status}");
-
         _table.AddCard(h.card, h.score, h.player_id);
-
         if (h.player_id == _myPlayerId && h.status == "BUST")
         {
           Debug.Log("💥 BUST");
@@ -255,6 +286,21 @@ public class MockLogin : MonoBehaviour
   // =====================================================
   // Helpers
   // =====================================================
+
+  private void OnPlayAgain()
+  {
+    _table.ResetTable();
+    State = ClientGameState.InRoom;
+    if (_myPlayerId == _hostId)
+      NetworkHelper.RequestStartGame();
+  }
+
+  private void OnLeaveRoom()
+  {
+    _table.ResetTable();
+    _table.ShowLobby();
+    NetworkHelper.RequestLeaveRoom();
+  }
 
   private void ResetAfterGame()
   {
@@ -277,6 +323,6 @@ public class MockLogin : MonoBehaviour
     _Logic.OnRegister();
   }
 
-  private void OnCreateRoom() => _Logic.OnCreateRoomShowCard();
+  private void OnCreateRoom() => NetworkHelper.RequestCreateRoom(true, _createRoomMinChip, _createRoomBetAmount);
   private void OnQuickJoinRoom() => _Logic.OnQuickJoinRoom();
 }
