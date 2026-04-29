@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 public class NetworkHelper
 {
@@ -34,17 +34,17 @@ public class NetworkHelper
     OnSend?.Invoke(request);
   }
 
-  public static void RequestCreateRoom(bool isShowCard)
+  public static void RequestCreateRoom(bool isShowCard, int minChip = 0)
   {
     var request = new CreateRoomRequest
     {
       type = "request_create_room",
-      data = new CreatRoomDataRequest()
+      data = new CreatRoomDataRequest
       {
-        isShowCard = isShowCard
+        isShowCard = isShowCard,
+        minChip = minChip     // ← เพิ่ม (Step 2 จะใช้)
       }
     };
-
     OnSend?.Invoke(request);
   }
 

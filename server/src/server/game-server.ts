@@ -62,21 +62,34 @@ export class GameServer {
     const room = this.roomService.findRoomByPlayer(playerId);
     if (!room) return;
 
-    const { turnChanged, nextPlayerId } = room.removePlayer(playerId);
+    const { turnChanged, nextPlayerId, hostChanged, newHostId } =
+      room.removePlayer(playerId);
 
     if (room.getPlayerIds().length === 0) {
       this.roomService.deleteRoom(room.getRoomId());
-    } else {
-      this.broadcastRoomUpdate(room);
-      if (turnChanged) {
-        this.broadcastToRoom(room, {
-          type: "game_update",
-          action: "turn_changed",
-          payload: { currentPlayer: nextPlayerId ?? null },
-        });
-      }
+      return;
+    }
+
+    this.broadcastRoomUpdate(room);
+
+    // แจ้ง host ใหม่
+    if (hostChanged) {
+      this.broadcastToRoom(room, {
+        type: "room_update",
+        action: "host_changed",
+        payload: { hostId: newHostId ?? null },
+      });
+    }
+
+    if (turnChanged) {
+      this.broadcastToRoom(room, {
+        type: "game_update",
+        action: "turn_changed",
+        payload: { currentPlayer: nextPlayerId ?? null },
+      });
     }
   }
+
 
   // =====================================================
   // Auth
@@ -254,8 +267,8 @@ export class GameServer {
       session.send({ type: "game_result", action: "start", success: false, reason: "ROOM_NOT_FOUND" });
       return;
     }
-    if (!room.canStartGame()) {
-      session.send({ type: "game_result", action: "start", success: false, reason: "NOT_ENOUGH_PLAYERS" });
+    if (!room.canStartGame(playerId)) {
+      session.send({ type: "game_result", action: "start", success: false, reason: "NOT_HOST" });
       return;
     }
     room.startGame();
@@ -313,8 +326,8 @@ export class GameServer {
       action: "player_hit",
       payload: {
         player_id: playerId,
-        card: result.card, 
-        status: result.status,  
+        card: result.card,
+        status: result.status,
         score: room.getPlayerScore(playerId),
       }
     });

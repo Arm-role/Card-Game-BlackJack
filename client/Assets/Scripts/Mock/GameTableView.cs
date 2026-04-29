@@ -9,6 +9,10 @@ using TMPro;
 
 public class GameTableView : MonoBehaviour
 {
+  [Header("Host")]
+  [SerializeField] private Button _btnStart;
+  [SerializeField] private GameObject _hostCrown; // icon มงกุฎ (optional)
+
   [Header("My hand (bottom)")]
   [SerializeField] private HandView _myHand;
   [SerializeField] private TextMeshProUGUI _myScoreLabel;
@@ -26,7 +30,6 @@ public class GameTableView : MonoBehaviour
   [SerializeField] private CardDealAnimator _animator;
 
   [Header("Buttons")]
-  [SerializeField] private Button _btnStart;
   [SerializeField] private Button _btnHit;
   [SerializeField] private Button _btnStand;
 
@@ -115,6 +118,19 @@ public class GameTableView : MonoBehaviour
 
     _animator.DealCards(queue.ToArray(), onComplete);
   }
+
+  // ─── UpdateHostUI ────────────────────────────────────────────────
+
+  public void UpdateHostUI(bool isHost)
+  {
+    // host เท่านั้นเห็นปุ่ม Start
+    _btnStart.gameObject.SetActive(isHost);
+
+    if (_hostCrown) _hostCrown.SetActive(isHost);
+
+    Debug.Log($"[TableView] isHost={isHost} → btnStart {(isHost ? "shown" : "hidden")}");
+  }
+
 
   // ─── Hit card ────────────────────────────────────────────────
 

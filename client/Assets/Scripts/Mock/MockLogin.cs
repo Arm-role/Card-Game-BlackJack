@@ -9,6 +9,7 @@ public class MockLogin : MonoBehaviour
   private string _username;
   private string _password = "123456789";
   private int _myPlayerId;
+  private int _hostId;
 
   [SerializeField] private GameTableView _table;
 
@@ -96,8 +97,29 @@ public class MockLogin : MonoBehaviour
 
   private void OnRoomUpdateMessage(RoomUpdateMessage msg)
   {
-    if (msg.action != "snapshot") return;
-    Debug.Log($"[room_update] {msg.room?.roomId} {msg.room?.player_count}/{msg.room?.max_player_count}");
+    switch (msg.action)
+    {
+      case "snapshot":
+        var r = msg.room;
+        _hostId = r.hostId;
+        Debug.Log($"[room_update] roomId={r.roomId} host={r.hostId} {r.player_count}/{r.max_player_count}");
+        _table.UpdateHostUI(_myPlayerId == _hostId);
+        break;
+
+      case "host_changed":
+        _hostId = msg.hostChanged?.hostId ?? 0;
+        Debug.Log($"[room_update] host_changed → new host={_hostId}");
+        _table.UpdateHostUI(_myPlayerId == _hostId);
+
+        if (_myPlayerId == _hostId)
+          Debug.Log("⭐ คุณเป็น host ใหม่");
+        break;
+
+      case "swap_request":
+        var sw = msg.seatSwap;
+        Debug.Log($"[room_update] swap_request from={sw.fromPlayerName} seat {sw.fromSeat}→{sw.toSeat}");
+        break;
+    }
   }
 
   private void OnErrorMessage(ErrorMessage msg) =>
@@ -105,8 +127,12 @@ public class MockLogin : MonoBehaviour
 
   private void OnGameResultMessage(GameResultMessage msg)
   {
-    if (!msg.success)
-      Debug.LogWarning($"[game_result] ❌ {msg.action} {msg.reason}");
+    if (msg.success) return;
+    Debug.LogWarning($"[game_result] ❌ {msg.action} {msg.reason}");
+
+    // ถ้าไม่ใช่ host แล้วดัน start
+    if (msg.reason == "NOT_HOST")
+      Debug.LogWarning("[game_result] คุณไม่ใช่ host");
   }
 
   // =====================================================

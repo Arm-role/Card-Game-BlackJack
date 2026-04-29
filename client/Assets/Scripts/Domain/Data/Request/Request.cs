@@ -32,6 +32,7 @@ public class CreateRoomRequest
 public class CreatRoomDataRequest
 {
   public bool isShowCard;
+  public int minChip;            // ← เพิ่ม
 }
 
 [Serializable]

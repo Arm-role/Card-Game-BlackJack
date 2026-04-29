@@ -24,12 +24,34 @@ export class Room {
     return this.seatManager.addPlayer(id, username);
   }
 
-  public removePlayer(playerId: number): { turnChanged: boolean; nextPlayerId?: number } {
-    this.seatManager.removePlayer(playerId);
+  public removePlayer(playerId: number): {
+    turnChanged: boolean;
+    nextPlayerId?: number;
+    hostChanged: boolean;
+    newHostId?: number;
+  } {
+    const { hostChanged, newHostId } = this.seatManager.removePlayer(playerId);
     this.swapManager.clearRequestsOfPlayer(playerId);
     this.readyPlayers.delete(playerId);
-    if (this.gameSession) return this.gameSession.onPlayerLeave(playerId);
-    return { turnChanged: false };
+
+    let turnChanged = false;
+    let nextPlayerId: number | undefined;
+
+    if (this.gameSession) {
+      const result = this.gameSession.onPlayerLeave(playerId);
+      turnChanged = result.turnChanged;
+      nextPlayerId = result.nextPlayerId;
+    }
+
+    return { turnChanged, nextPlayerId, hostChanged, newHostId };
+  }
+
+  public getHostId(): number | undefined {
+    return this.seatManager.getHostId();
+  }
+
+  public isHost(playerId: number): boolean {
+    return this.seatManager.isHost(playerId);
   }
 
   public swapSeat(playerId: number, fromSeat: number, toSeat: number): boolean {
@@ -66,8 +88,9 @@ export class Room {
   // 3. Game Flow
   // =====================================================
 
-  public canStartGame(): boolean {
-    return this.seatManager.getPlayerCount() >= 1;
+  public canStartGame(playerId: number): boolean {
+    return this.seatManager.getPlayerCount() >= 1
+      && this.seatManager.isHost(playerId);
   }
 
   public startGame(deck?: IDeck): boolean {
@@ -94,8 +117,8 @@ export class Room {
   //   return this.readyPlayers.size > 0;
   // }
 
-    public isReadyToAct(): boolean {
-    return this.gameSession?.isReadyToAct() ?? false; 
+  public isReadyToAct(): boolean {
+    return this.gameSession?.isReadyToAct() ?? false;
   }
 
   public resetReadyState() {
@@ -126,11 +149,12 @@ export class Room {
 
   public getPlayerScore(playerId: number): number {
     return this.gameSession?.getPlayerScore(playerId) ?? 0;
-}
+  }
 
   public getSnapshot() {
     return {
       roomId: this.roomId,
+      hostId: this.seatManager.getHostId(),
       max_player_count: MAX_PLAYERS,
       player_count: this.seatManager.getPlayerCount(),
       user_count: this.seatManager.getUserCount(),

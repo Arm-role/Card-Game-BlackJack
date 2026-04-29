@@ -51,21 +51,29 @@ public class RoomResultMessage
 public class RoomUpdateMessage
 {
   public string type;        // "room_update"
-  public string action;      // "snapshot" | "swap_request"
+  public string action;       // "snapshot" | "swap_request" | "host_changed"
   public bool success;
   public RoomData room;      // มีเฉพาะ action="snapshot"
   public SeatSwapData seatSwap; // มีเฉพาะ action="swap_request"
+  public HostChangedData hostChanged;
 }
 
 [Serializable]
 public class RoomData
 {
   public int roomId;
+  public int hostId;
   public int max_player_count;
   public int player_count;
   public int user_count;
   public string state;       // "WAITING" | "PLAYING"
   public List<SeatData> seats;
+}
+
+[Serializable]
+public class HostChangedData
+{
+  public int hostId;
 }
 
 [Serializable]
