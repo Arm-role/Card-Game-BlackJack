@@ -3,12 +3,9 @@ import { Room } from "../core/room.js";
 import { MessageDispatcher } from "../core/dispatcher.js";
 import { RoomService } from "../service/room-service.js";
 import { STARTING_CHIPS } from "../config/config.js";
+import { UserAccount } from "../service/auth-service.js";
 
-export interface UserAccount {
-  id: number;
-  username: string;
-  passwordHash: string;
-}
+import { createWriteStream, WriteStream } from "fs";
 
 export interface IAuthService {
   register(username: string, password: string): Promise<UserAccount | undefined>;
@@ -19,8 +16,12 @@ export class GameServer {
   private sessionsByUserId = new Map<number, UserSession>();
   private playerChips = new Map<number, number>();
   private dispatcher: MessageDispatcher;
+  private logStream: WriteStream;
 
   constructor(private authService: IAuthService, private roomService: RoomService) {
+    const logPath = process.cwd() + "/log.txt";
+    console.log("[LOG PATH]", logPath);
+    this.logStream = createWriteStream(logPath, { flags: "a" });
     this.dispatcher = new MessageDispatcher();
     this.registerHandlers();
   }
@@ -63,6 +64,10 @@ export class GameServer {
     const playerId = user.getUserId()!;
     const room = this.roomService.findRoomByPlayer(playerId);
     if (!room) return;
+
+    // บันทึก chip ก่อน remove เพื่อ persist ข้าม session
+    const chip = room.getSeatByPlayerId(playerId)?.chip;
+    if (chip !== undefined) this.playerChips.set(playerId, chip);
 
     const { turnChanged, nextPlayerId, hostChanged, newHostId } =
       room.removePlayer(playerId);
@@ -136,15 +141,16 @@ export class GameServer {
       session.send({ type: "room_result", action: "create", success: false, reason: "NOT_AUTHENTICATED" });
       return;
     }
-    const minChip = typeof data?.minChip === "number" ? data.minChip : 0; 1
+    const minChip = typeof data?.minChip === "number" ? data.minChip : 0;
     const betAmount = typeof data?.betAmount === "number" ? data.betAmount : 100;
     const room = this.roomService.createRoom({ minChip, betAmount });
 
-    room.addPlayer(session.getUserId()!, session.getUsername()!);
+    const playerId = session.getUserId()!;
+    room.addPlayer(playerId, session.getUsername()!, this.getPlayerChip(playerId));
 
     session.send({
       type: "room_result", action: "create", success: true,
-      seat: room.getSeatByPlayerId(session.getUserId()!),
+      seat: room.getSeatByPlayerId(playerId),
     });
     this.broadcastRoomUpdate(room);
   }
@@ -170,7 +176,7 @@ export class GameServer {
       return;
     }
 
-    room.addPlayer(playerId, session.getUsername()!);
+    room.addPlayer(playerId, session.getUsername()!, chip);
     session.send({
       type: "room_result", action: "join", success: true,
       seat: room.getSeatByPlayerId(playerId),
@@ -194,7 +200,7 @@ export class GameServer {
       return;
     }
 
-    room.addPlayer(playerId, session.getUsername()!);
+    room.addPlayer(playerId, session.getUsername()!, chip);
     session.send({
       type: "room_result", action: "quick_join", success: true,
       seat: room.getSeatByPlayerId(playerId),
@@ -207,6 +213,11 @@ export class GameServer {
     const playerId = session.getUserId()!;
     const room = this.roomService.findRoomByPlayer(playerId);
     if (!room) return;
+
+    // บันทึก chip ปัจจุบันก่อน remove เพื่อ persist ข้าม room
+    const chip = room.getSeatByPlayerId(playerId)?.chip;
+    if (chip !== undefined) this.playerChips.set(playerId, chip);
+
     room.removePlayer(playerId);
     session.send({ type: "room_result", action: "leave", success: true });
     if (room.getPlayerIds().length === 0) {
@@ -314,6 +325,11 @@ export class GameServer {
     const allReady = room.setPlayerReady(playerId);
 
     if (allReady) {
+      // ถ้าเกมจบแล้ว (ทุกคน blackjack) ให้ broadcast state แทน turn
+      if (!room.isReadyToAct()) {
+        this.broadcastGameState(room); // ← เพิ่มบรรทัดนี้
+        return;
+      }
       this.broadcastToRoom(room, { type: "game_update", action: "ready_to_act" });
       this.broadcastToRoom(room, {
         type: "game_update",
@@ -426,10 +442,6 @@ export class GameServer {
     const gameState = room.getGameState();
     if (!gameState) return;
 
-    const brokeBeforeSettle = gameState.state === "WAITING"
-      ? room.getPlayersWithZeroChip()
-      : [];
-
     let chipAfter: Map<number, number> | undefined;
     if (gameState.state === "WAITING" && gameState.results) {
       chipAfter = room.settleBets(gameState.results);
@@ -450,7 +462,7 @@ export class GameServer {
     });
 
     if (gameState.state === "WAITING") {
-      this.kickBrokePlayersFromRoom(room, brokeBeforeSettle);
+      this.kickBrokePlayersFromRoom(room);
     }
   }
 
@@ -459,7 +471,7 @@ export class GameServer {
   }
 
   private broadcastToRoom(room: Room, message: any) {
-    console.log(message);
+    this.log(`BROADCAST room=${room.getRoomId()}`, message);
     for (const id of room.getPlayerIds()) {
       this.sessionsByUserId.get(id)?.send(message);
     }
@@ -508,5 +520,21 @@ export class GameServer {
     }
 
     this.broadcastRoomUpdate(room);
+  }
+
+
+  private log(tag: string, message: any) {
+    const { type, action, payload, reason } = message;
+    const parts = [
+      new Date().toISOString(),
+      `[${tag}]`,
+      `type=${type}`,
+      action ? `action=${action}` : "",
+      payload ? `payload=${JSON.stringify(payload)}` : "",
+      reason ? `reason=${reason}` : "",
+    ].filter(Boolean).join(" ");
+
+    console.log(parts);
+    this.logStream.write(parts + "\n");
   }
 }

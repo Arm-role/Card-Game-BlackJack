@@ -1,8 +1,8 @@
 import { ActionResult, GameResult, PlayerAction, RoomState, Seat } from "../shared/types.js";
 import { GameSession } from "./game-session.js";
 import { IDeck } from "./Deck.js";
-import { SeatManager, MAX_PLAYERS } from "./SeatManager.js";
-import { SwapManager, SwapRequest } from "./SwapManager.js";
+import { SeatManager, MAX_PLAYERS } from "./seat-manager.js";
+import { SwapManager, SwapRequest } from "./swap-manager.js";
 import { RoomConfig } from "../service/room-service.js";
 
 export class Room {
@@ -26,9 +26,9 @@ export class Room {
   // 1. Player & Seat Management
   // =====================================================
 
-  public addPlayer(id: number, username: string): boolean {
+  public addPlayer(id: number, username: string, startingChip?: number): boolean {
     if (this.gameSession?.isPlaying()) return false;
-    return this.seatManager.addPlayer(id, username);
+    return this.seatManager.addPlayer(id, username, startingChip);
   }
 
   public removePlayer(playerId: number): {
@@ -109,6 +109,7 @@ export class Room {
   }
 
   public placeBets(): void {
+    // getPlayerIds() returns only role="player" seats — dealer (BOT or user) is excluded
     for (const id of this.seatManager.getPlayerIds()) {
       this.seatManager.adjustChip(id, -this.betAmount);
     }
@@ -146,7 +147,8 @@ export class Room {
     if (this.gameSession?.isPlaying()) return false;
     this.seatManager.ensureDealer();
     const playerIds = this.seatManager.getPlayerIds();
-    this.gameSession = new GameSession(playerIds, deck);
+    const dealerId = this.seatManager.getDealerId()!;
+    this.gameSession = new GameSession(playerIds, dealerId, deck);
     this.readyPlayers.clear();
     this.roomState = "PLAYING";
     const result = this.gameSession.start();
@@ -158,7 +160,10 @@ export class Room {
   public setPlayerReady(playerId: number): boolean {
     if (!this.gameSession) return false;
     this.readyPlayers.add(playerId);
-    return this.gameSession.markPlayerReady(playerId);
+    const allReady = this.gameSession.markPlayerReady(playerId);
+    // sync roomState กรณีเกมจบทันที (เช่น ทุกคน Blackjack)
+    if (!this.gameSession.isPlaying()) this.roomState = "WAITING";
+    return allReady;
   }
 
   // public isReadyToAct(): boolean {
@@ -178,7 +183,10 @@ export class Room {
 
   public applyAction(playerId: number, action: PlayerAction): ActionResult | null {
     if (!this.gameSession) return null;
-    return this.gameSession.applyAction(playerId, action) ?? null;
+    const result = this.gameSession.applyAction(playerId, action) ?? null;
+    // sync roomState ทันทีที่เกมจบ ไม่รอให้ getGameState() ถูกเรียก
+    if (result?.gameEnded) this.roomState = "WAITING";
+    return result;
   }
 
   public isPlayerTurn(playerId: number): boolean {
@@ -224,8 +232,6 @@ export class Room {
 
   public getGameState() {
     if (!this.gameSession) return undefined;
-    const snap = this.gameSession.getGameSnapshot();
-    if (snap.state === "WAITING") this.roomState = "WAITING";
-    return snap;
+    return this.gameSession.getGameSnapshot();
   }
 }

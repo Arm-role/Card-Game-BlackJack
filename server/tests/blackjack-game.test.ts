@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { BlackjackGame } from "../src/core/BlackjackGame.js";
+import { BlackjackGame } from "../src/core/blackjack-game.js";
 import { IDeck } from "../src/core/Deck.js";
 import { Card } from "../src/shared/types.js";
 

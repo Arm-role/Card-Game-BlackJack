@@ -1,5 +1,5 @@
 import { Card, GameResult, GameState, PlayerStatus } from "../shared/types.js";
-import { IDeck, Deck } from "./Deck.js";
+import { Deck, IDeck } from "./Deck.js";
 
 // ─── Hand ─────────────────────────────────────────────────────────────────────
 
@@ -43,13 +43,15 @@ export class BlackjackGame {
   private playerStatuses = new Map<number, PlayerStatus>();
   private playerResults = new Map<number, GameResult>();
   private dealerHand = new Hand();
+  private dealerId: number = -1;  // -1 = BOT dealer (default)
   public state: GameState = "WAITING";
 
   constructor(private deck: IDeck = new Deck()) { }
 
   // ─── Setup ──────────────────────────────────────────────────────────────────
 
-  public startGame(playerIds: number[]) {
+  public startGame(playerIds: number[], dealerId: number = -1) {
+    this.dealerId = dealerId;
     this.state = "PLAYER_TURN";
     this.dealerHand = new Hand();
     this.playersHands.clear();
@@ -150,6 +152,7 @@ export class BlackjackGame {
 
   public getHand(playerId: number) { return this.playersHands.get(playerId); }
   public getDealerHand() { return this.dealerHand; }
+  public getDealerId() { return this.dealerId; }
   public getResult(playerId: number) { return this.playerResults.get(playerId); }
   public getStatus(playerId: number) { return this.playerStatuses.get(playerId); }
 

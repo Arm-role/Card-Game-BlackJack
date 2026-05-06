@@ -15,13 +15,15 @@ export type GameResult = "WIN" | "LOSE" | "DRAW" | "PENDING";
 
 // ─── FSM States ──────────────────────────────────────────────────────────────
 
+// DEALER_TURN และ RESOLVING ถูกใช้เป็น transient state ภายใน buildNextTurnResult() เท่านั้น
+// ไม่มีทางที่ external caller จะเห็นหรือ trigger state เหล่านี้ได้
 export type GameState =
   | "WAITING"
   | "DEALING"
   | "PLAYER_TURN"
   | "DEALER_TURN"
   | "RESOLVING";
-
+  
 export type RoomState =
   | "WAITING"
   | "PLAYING";
@@ -33,20 +35,9 @@ export type GameEvent =
   | "PLAYER_READY"
   | "ALL_READY"
   | "HIT"
-  | "STAND"
-  | "NEXT_TURN"
-  | "DEALER_PLAY"
-  | "END";
+  | "STAND";
 
-
-export type RoomEvent =
-  | "START_GAME"
-  | "ALL_READY"
-  | "PLAYER_HIT"
-  | "PLAYER_STAND"
-  | "NEXT_TURN"
-  | "DEALER_PLAY"
-  | "END_GAME";
+// RoomEvent ถูกแทนที่ด้วย PlayerAction และ GameEvent แล้ว — ไม่ใช้งาน
 
 export type PlayerAction = "HIT" | "STAND";
 

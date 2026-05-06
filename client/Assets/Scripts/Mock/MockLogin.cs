@@ -1,4 +1,5 @@
 ﻿// MockLogin.cs — เพิ่ม OnGUI สำหรับ manual test
+using System.Collections;
 using UnityEngine;
 
 public class MockLogin : MonoBehaviour
@@ -209,30 +210,32 @@ public class MockLogin : MonoBehaviour
         _table.ShowGameplay();
         _table.SetMyPlayerId(_myPlayerId);
         _table.SetMyName(_username);
-        _table.DealInitialCards(p.players, p.dealer, _myPlayerId, () =>
-        {
-          Debug.Log("[deal] done → RequestPlayerReady");
-          _table.ShowWaitingForPlayers();
-          NetworkHelper.RequestPlayerReady();
-        });
+        StartCoroutine(DealAfterFrame(p));  // ← เปลี่ยนจากเรียกตรงๆ
         break;
 
       case "WAITING":
         State = ClientGameState.GameOver;
-        _table.RevealAll(p.players, p.dealer);
         _table.HideActionButtons();
-        if (p.results != null)
-          foreach (var r in p.results)
-          {
-            Debug.Log($"  player[{r.playerId}] → {r.result}  chip={r.chipAfter:N0}");
-            _table.ShowResult(r.playerId, r.result);
-            if (r.playerId == _myPlayerId)
+        var snapshot = p;
+        _table.RevealAllWhenReady(() =>
+        {
+          _table.RevealDealerAndShowResult(
+            snapshot.dealer, snapshot.players, snapshot.results, _myPlayerId,
+            results =>
             {
-              _myChip = r.chipAfter;
-              _table.UpdateMyChip(_myChip);
-            }
-          }
-        //Invoke(nameof(ResetAfterGame), 3f);
+              if (results == null) return;
+              foreach (var r in results)
+              {
+                Debug.Log($"  player[{r.playerId}] → {r.result}  chip={r.chipAfter:N0}");
+                _table.ShowResult(r.playerId, r.result);
+                if (r.playerId == _myPlayerId)
+                {
+                  _myChip = r.chipAfter;
+                  _table.UpdateMyChip(_myChip);
+                }
+              }
+            });
+        });
         break;
     }
   }
@@ -289,24 +292,27 @@ public class MockLogin : MonoBehaviour
 
   private void OnPlayAgain()
   {
-    _table.ResetTable();
     State = ClientGameState.InRoom;
-    if (_myPlayerId == _hostId)
-      NetworkHelper.RequestStartGame();
+    _table.ResetWhenReady(() =>
+    {
+      if (_myPlayerId == _hostId)
+        NetworkHelper.RequestStartGame();
+    });
   }
 
   private void OnLeaveRoom()
   {
-    _table.ResetTable();
-    _table.ShowLobby();
-    NetworkHelper.RequestLeaveRoom();
+    _table.ResetWhenReady(() =>
+    {
+      _table.ShowLobby();
+      NetworkHelper.RequestLeaveRoom();
+    });
   }
 
-  private void ResetAfterGame()
+  private void OnGUI()
   {
-    _table.ResetTable();
-    State = ClientGameState.InRoom;
-    Debug.Log("[reset] Ready for next round");
+    GUI.Label(new Rect(10, 10, 300, 25), $"State: {State}");
+    GUI.Label(new Rect(10, 35, 300, 25), $"Animating: {_table.IsAnimating}");
   }
 
   private void OnLogin()
@@ -322,7 +328,16 @@ public class MockLogin : MonoBehaviour
     _Logic.OnPasswordChange(_password);
     _Logic.OnRegister();
   }
-
+  private IEnumerator DealAfterFrame(GameUpdatePayload p)
+  {
+    yield return null; // รอ 1 frame ให้ panel โผล่ก่อน
+    _table.DealInitialCards(p.players, p.dealer, _myPlayerId, () =>
+    {
+      Debug.Log("[deal] done → RequestPlayerReady");
+      _table.ShowWaitingForPlayers();
+      NetworkHelper.RequestPlayerReady();
+    });
+  }
   private void OnCreateRoom() => NetworkHelper.RequestCreateRoom(true, _createRoomMinChip, _createRoomBetAmount);
   private void OnQuickJoinRoom() => _Logic.OnQuickJoinRoom();
 }

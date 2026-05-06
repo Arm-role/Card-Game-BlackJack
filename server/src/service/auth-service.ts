@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
 
-// ─── Interfaces ───────────────────────────────────────────────────────────────
+// ─── Interfaces (single source of truth) ─────────────────────────────────────
 
 export interface UserAccount {
   id:           number;

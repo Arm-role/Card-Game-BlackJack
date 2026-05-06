@@ -8,7 +8,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "server": "ts-node src/main.ts",
-    "dev": "ts-node src/main.ts",
+    "dev": "node --loader ts-node/esm src/main.ts",
     "gtest": "ts-node src/BlackjackGame.test.ts"
   },
   "keywords": [],

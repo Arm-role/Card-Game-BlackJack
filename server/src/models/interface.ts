@@ -1,4 +1,3 @@
-
 export interface IUserRepository {
   createUser(username: string, passwordHash: string): Promise<UserAccount | undefined>;
   findByUsername(username: string): Promise<UserAccount | undefined>;

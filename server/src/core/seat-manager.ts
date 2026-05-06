@@ -21,12 +21,12 @@ export class SeatManager {
     ];
   }
 
-  public addPlayer(id: number, username: string): boolean {
+  public addPlayer(id: number, username: string, startingChip: number = STARTING_CHIPS): boolean {
     const seat = this.seats.find(s => s.role === "player" && !s.playerId);
     if (!seat) return false;
     seat.playerId = id;
     seat.username = username;
-    seat.chip = STARTING_CHIPS;
+    seat.chip = startingChip;
     if (!this.hostId) this.hostId = id;
     return true;
   }
@@ -62,6 +62,10 @@ export class SeatManager {
     return { hostChanged: true, newHostId: this.hostId };
   }
 
+  public getDealerId(): number | undefined {
+    return this.seats.find(s => s.role === "dealer")?.playerId;
+  }
+
   public getHostId(): number | undefined { return this.hostId; }
 
   public isHost(playerId: number): boolean { return this.hostId === playerId; }
@@ -74,16 +78,19 @@ export class SeatManager {
     [from.playerId, to.playerId] = [to.playerId, from.playerId];
     [from.username, to.username] = [to.username, from.username];
     [from.chip, to.chip] = [to.chip, from.chip];
+    [from.role, to.role] = [to.role, from.role];
     return true;
   }
 
   public ensureDealer() {
-    const dealer = this.seats[0];
-    if (!dealer.playerId) {
-      dealer.playerId = -1;
-      dealer.username = "BOT";
-      dealer.chip = 999_999;
-    }
+    // หา seat ที่มี role === "dealer" (อาจย้ายจาก seatIndex 0 แล้วถ้ามีการ swap)
+    const dealerSeat = this.seats.find(s => s.role === "dealer");
+    if (!dealerSeat) return;
+    // ถ้า user นั่งอยู่ที่ dealer seat อยู่แล้ว ไม่ต้อง spawn BOT
+    if (dealerSeat.playerId) return;
+    dealerSeat.playerId = -1;
+    dealerSeat.username = "BOT";
+    dealerSeat.chip = 999_999;
   }
 
   public getSeat(index: number) { return this.seats[index]; }
@@ -98,7 +105,7 @@ export class SeatManager {
   }
   public getPlayerIds(): number[] {
     return this.seats
-      .filter(s => s.playerId && s.playerId !== -1)
+      .filter(s => s.role === "player" && s.playerId && s.playerId !== -1)
       .map(s => s.playerId!);
   }
   public getPlayerCount(): number {

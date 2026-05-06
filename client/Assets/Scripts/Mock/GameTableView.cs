@@ -65,6 +65,11 @@ public class GameTableView : MonoBehaviour
   private readonly Dictionary<int, OtherPlayerView> _playerViews = new();
   private int _myPlayerId;
 
+  private bool _isAnimating = false;
+  private Action _pendingStateChange = null;
+
+  public bool IsAnimating => _isAnimating;
+
   private void Awake()
   {
     _btnStart.onClick.AddListener(OnClickStart);
@@ -152,13 +157,22 @@ public class GameTableView : MonoBehaviour
       }
       else if (_playerViews.TryGetValue(p.playerId, out var view))
       {
-        var (open, closed) = view.SpawnInitialCards(p.hand[0], p.hand[1]);
-        queue.Add((open, view.LastSlot()));
-        queue.Add((closed, view.LastSlot()));
+        // แก้ใหม่: spawn face-down แต่ส่ง index จริงเข้าไปเพื่อให้ flip ได้ตอน reveal
+        var (first, second) = view.SpawnInitialCards(p.hand[0], p.hand[1]);
+        // SpawnInitialCards ควร spawn ใบแรกเป็น face-down และใบที่สองเป็น face-down ด้วย
+        // แทนที่จะ spawn ใบแรกเป็น face-up
+        queue.Add((first, view.LastSlot()));
+        queue.Add((second, view.LastSlot()));
       }
     }
 
-    _animator.DealCards(queue.ToArray(), onComplete);
+    _isAnimating = true;
+    _animator.DealCards(queue.ToArray(), () => {
+      _isAnimating = false;
+      _pendingStateChange?.Invoke();
+      _pendingStateChange = null;
+      onComplete?.Invoke();
+    });
   }
 
   // ─── Chip ────────────────────────────────────────────────
@@ -181,6 +195,55 @@ public class GameTableView : MonoBehaviour
     if (_kickedPanel) _kickedPanel.SetActive(false);
   }
 
+  // ─── Reveal dealer + spawn extra + show result ───────────────
+  public void RevealDealerAndShowResult(DealerState dealer, PlayerState[] players,
+      PlayerRoundResult[] results, int myPlayerId, Action<PlayerRoundResult[]> onDone)
+  {
+    var queue = new List<(CardView card, RectTransform slot)>();
+
+    // 1. flip ใบที่ 2 (ใบที่ปิดอยู่)
+    _dealerHand.RevealAll();
+
+    // 2. spawn extra cards (ใบที่ 3+) ถ้ามี
+    if (dealer?.hand != null && dealer.hand.Length > 2)
+    {
+      for (int i = 2; i < dealer.hand.Length; i++)
+      {
+        var cv = _dealerHand.SpawnCard(
+            CardIndex.ToIndex(dealer.hand[i].suit, dealer.hand[i].rank));
+        queue.Add((cv, _dealerHand.LastSlot()));
+      }
+    }
+
+    // 3. ถ้ามี extra → animate แล้ว callback
+    //    ถ้าไม่มี → callback ทันที
+    void finish()
+    {
+      SetScore(_dealerScoreLabel, dealer?.score ?? 0);
+      if (players != null)
+        foreach (var p in players)
+          if (p.playerId != myPlayerId)
+            if (_playerViews.TryGetValue(p.playerId, out var view))
+              view.RevealAll(p.score);
+      onDone?.Invoke(results);
+    }
+
+    if (queue.Count > 0)
+    {
+      _isAnimating = true;
+      _animator.DealCards(queue.ToArray(), () => {
+        _isAnimating = false;
+        _pendingStateChange?.Invoke();
+        _pendingStateChange = null;
+        finish();
+      });
+    }
+    else
+    {
+      finish();
+    }
+  }
+
   // ─── UpdateHostUI ────────────────────────────────────────────────
 
   public void UpdateHostUI(bool isHost)
@@ -195,22 +258,30 @@ public class GameTableView : MonoBehaviour
 
 
   // ─── Hit card ────────────────────────────────────────────────
-
   public void AddCard(CardDataRes card, int newScore, int playerId)
   {
     if (playerId == _myPlayerId)
     {
       var cv = _myHand.SpawnCard(CardIndex.ToIndex(card.suit, card.rank));
       var slot = _myHand.LastSlot();
-      _animator.DealCards(new[] { (cv, slot) }, () =>
-          SetScore(_myScoreLabel, newScore));
+      _isAnimating = true;
+      _animator.DealCards(new[] { (cv, slot) }, () => {
+        SetScore(_myScoreLabel, newScore);
+        _isAnimating = false;
+        _pendingStateChange?.Invoke();
+        _pendingStateChange = null;
+      });
     }
     else if (_playerViews.TryGetValue(playerId, out var view))
     {
-      var cv = view.SpawnHitCard(card);
+      var cv = view.SpawnFaceDownHitCard(card);
       var slot = view.LastSlot();
-      _animator.DealCards(new[] { (cv, slot) }, () =>
-          view.UpdateScore(newScore));
+      _isAnimating = true;
+      _animator.DealCards(new[] { (cv, slot) }, () => {
+        _isAnimating = false;
+        _pendingStateChange?.Invoke();
+        _pendingStateChange = null;
+      });
     }
   }
 
@@ -250,6 +321,21 @@ public class GameTableView : MonoBehaviour
       if (p.playerId == _myPlayerId) continue;
       if (_playerViews.TryGetValue(p.playerId, out var view))
         view.RevealAll(p.score);
+    }
+  }
+  public void ResetWhenReady(Action onDone = null)
+  {
+    if (_isAnimating)
+    {
+      _pendingStateChange = () => {
+        ResetTable();
+        onDone?.Invoke();
+      };
+    }
+    else
+    {
+      ResetTable();
+      onDone?.Invoke();
     }
   }
 
@@ -365,6 +451,14 @@ public class GameTableView : MonoBehaviour
 
   private void SetScore(TextMeshProUGUI label, int score, bool hidden = false)
       => label.text = hidden ? "?" : score > 0 ? score.ToString() : "";
+
+  public void RevealAllWhenReady(Action reveal)
+  {
+    if (_isAnimating)
+      _pendingStateChange = reveal;
+    else
+      reveal();
+  }
 
   private void ClearAll()
   {

@@ -1,18 +1,20 @@
 import { ActionResult, Card, GameEvent, GameResult, GameState, PlayerAction, PlayerStatus } from "../shared/types.js";
-import { BlackjackGame } from "./BlackjackGame.js";
-import { IDeck, Deck } from "./Deck.js";
+import { BlackjackGame } from "./blackjack-game.js";
+import { Deck, IDeck } from "./Deck.js";
 
 export class GameSession {
   private state: GameState = "WAITING";
   private game: BlackjackGame;
   private players: number[];
+  private dealerId: number;
   private readyPlayers: Set<number> = new Set();
   private turnOrder: number[] = [];
   private currentTurnIndex = 0;
   private actionTakenThisTurn = new Set<number>();
 
-  constructor(playerIds: number[], deck?: IDeck) {
+  constructor(playerIds: number[], dealerId: number, deck?: IDeck) {
     this.players = [...playerIds];
+    this.dealerId = dealerId;
     this.game = new BlackjackGame(deck ?? new Deck());
   }
 
@@ -22,14 +24,14 @@ export class GameSession {
       case "WAITING": return this.handleWaiting(event);
       case "DEALING": return this.handleDealing(event, payload);
       case "PLAYER_TURN": return this.handlePlayerTurn(event, payload);
-      case "DEALER_TURN": return this.handleDealerTurn(event);
-      case "RESOLVING": return this.handleResolving(event);
+      // DEALER_TURN และ RESOLVING ถูก handle ภายใน buildNextTurnResult() โดยตรง
+      // ไม่มี external event ที่ควร trigger state เหล่านี้จากภายนอก
     }
   }
 
   private handleWaiting(event: GameEvent) {
     if (event !== "START") return;
-    this.game.startGame(this.players);
+    this.game.startGame(this.players, this.dealerId);
     this.setupTurnOrder();
     this.readyPlayers.clear();
     this.state = "DEALING";
@@ -44,6 +46,19 @@ export class GameSession {
     }
     if (event === "ALL_READY") {
       this.state = "PLAYER_TURN";
+
+      const firstId = this.getCurrentPlayerId();
+      const firstStatus = firstId !== undefined ? this.game.getStatus(firstId) : undefined;
+      if (firstStatus !== "PLAYING") {
+        if (this.isDealerTurn()) {
+          this.game.playDealerTurn();
+          const results = this.buildResults();
+          this.state = "WAITING"; // ← ต้อง set ก่อน return
+          return { type: "GAME_END", results };
+        }
+        this.nextTurn();
+      }
+
       return { type: "TURN", currentPlayer: this.getCurrentPlayerId() };
     }
   }
@@ -72,8 +87,6 @@ export class GameSession {
       const status = this.game.getStatus(playerId)!;
       return this.buildNextTurnResult({ status });
     }
-
-    if (event === "NEXT_TURN") return payload as ActionResult;
   }
 
   private buildNextTurnResult(partial: { card?: Card; status: PlayerStatus }): ActionResult {
@@ -81,27 +94,13 @@ export class GameSession {
     this.actionTakenThisTurn.clear();
 
     if (this.isDealerTurn()) {
-      this.state = "DEALER_TURN";
+      // dealer เล่นทันที — ไม่ต้องผ่าน FSM state เพิ่ม เพราะ sequential อยู่แล้ว
       this.game.playDealerTurn();
-      this.state = "RESOLVING";
       const results = this.buildResults();
       this.state = "WAITING";
       return { ...partial, turnChanged: true, nextPlayerId: undefined, gameEnded: true, results };
     }
     return { ...partial, turnChanged: true, nextPlayerId: this.getCurrentPlayerId(), gameEnded: false };
-  }
-
-  private handleDealerTurn(event: GameEvent) {
-    if (event !== "DEALER_PLAY") return;
-    this.game.playDealerTurn();
-    this.state = "RESOLVING";
-    return this.dispatch("END");
-  }
-
-  private handleResolving(event: GameEvent) {
-    if (event !== "END") return;
-    this.state = "WAITING";
-    return { type: "GAME_END", results: this.buildResults() };
   }
 
   private buildResults(): Array<{ playerId: number; result: GameResult }> {
@@ -122,6 +121,7 @@ export class GameSession {
   }
 
   private nextTurn() {
+    const startIndex = this.currentTurnIndex;
     let attempts = 0;
     do {
       this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnOrder.length;
@@ -130,6 +130,9 @@ export class GameSession {
       if (status === "PLAYING") return;
       attempts++;
     } while (attempts < this.turnOrder.length);
+
+    // ไม่มีใคร PLAYING เลย → คืน index เดิมไว้ให้ isDealerTurn() ตรวจจับต่อ
+    this.currentTurnIndex = startIndex;
   }
 
   private isDealerTurn(): boolean {
@@ -168,8 +171,10 @@ export class GameSession {
 
   public markPlayerReady(playerId: number): boolean {
     if (this.state !== "DEALING") return false;
-    this.dispatch("PLAYER_READY", { playerId });
-    return (this.state as GameState) === "PLAYER_TURN";
+    const result = this.dispatch("PLAYER_READY", { playerId });
+    // state จะเป็น PLAYER_TURN (มีคนเล่น) หรือ WAITING (ทุกคน Blackjack → จบเลย)
+    // ทั้งสองกรณีถือว่า "ready to proceed" → return true เพื่อให้ GameServer broadcast
+    return (this.state as GameState) === "PLAYER_TURN" || result?.type === "GAME_END";
   }
 
   public isReadyToAct(): boolean {
@@ -213,6 +218,7 @@ export class GameSession {
         result: this.game.getResult(id),
       })),
       dealer: {
+        dealerId: this.dealerId,
         hand: this.game.getDealerHand().cards,
         score: this.game.getDealerHand().getScore(),
       },

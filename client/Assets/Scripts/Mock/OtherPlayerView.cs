@@ -27,14 +27,11 @@ public class OtherPlayerView : MonoBehaviour
   }
 
   // แจกไพ่เริ่มต้น: ใบแรกเปิด ใบที่ 2 ปิด
-  public (CardView open, CardView closed) SpawnInitialCards(
-      CardDataRes card0, CardDataRes card1)
+  public (CardView, CardView) SpawnInitialCards(CardDataRes card0, CardDataRes card1)
   {
-    int idx0 = CardIndex.ToIndex(card0.suit, card0.rank);
-    int idx1 = CardIndex.ToIndex(card1.suit, card1.rank);
-    var open = _hand.SpawnCard(idx0);
-    var closed = _hand.SpawnFaceDown(idx1);
-    return (open, closed);
+    var first = _hand.SpawnFaceDown(CardIndex.ToIndex(card0.suit, card0.rank)); // face-down
+    var second = _hand.SpawnFaceDown(CardIndex.ToIndex(card1.suit, card1.rank)); // face-down
+    return (first, second);
   }
 
   // hit card เพิ่ม (หน้าขึ้น)
@@ -82,6 +79,9 @@ public class OtherPlayerView : MonoBehaviour
     _hand.Clear();
     if (_resultLabel) _resultLabel.gameObject.SetActive(false);  // ← เพิ่ม
   }
-
+  public CardView SpawnFaceDownHitCard(CardDataRes card)
+  {
+    return _hand.SpawnFaceDown(CardIndex.ToIndex(card.suit, card.rank));
+  }
   public RectTransform LastSlot() => _hand.LastSlot();
 }

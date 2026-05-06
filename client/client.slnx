@@ -1,11 +1,11 @@
 ﻿<Solution>
+  <Project Path="7_Mock.csproj" />
   <Project Path="5_Presentation.csproj" />
   <Project Path="2_Domain.csproj" />
   <Project Path="4_Infrastructure.csproj" />
   <Project Path="3_Application.csproj" />
   <Project Path="1_Abstraction.csproj" />
   <Project Path="Tests.csproj" />
-  <Project Path="7_Mock.csproj" />
   <Project Path="6_Installer.csproj" />
   <Project Path="endel.nativewebsocket.csproj" />
 </Solution>
