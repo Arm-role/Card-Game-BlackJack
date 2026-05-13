@@ -31,8 +31,7 @@ public class CreateRoomRequest
 [Serializable]
 public class CreatRoomDataRequest
 {
-  public bool isShowCard;
-  public int minChip;            // ← เพิ่ม
+  public int minChip;
   public int betAmount;
 }
 

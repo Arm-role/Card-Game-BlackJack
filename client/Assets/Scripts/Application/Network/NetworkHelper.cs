@@ -34,15 +34,14 @@ public class NetworkHelper
     OnSend?.Invoke(request);
   }
 
-  public static void RequestCreateRoom(bool isShowCard, int minChip = GameConfig.MinChip, int betAmount = GameConfig.BetAmount)
+  public static void RequestCreateRoom(int minChip = GameConfig.MinChip, int betAmount = GameConfig.BetAmount)
   {
     var request = new CreateRoomRequest
     {
       type = "request_create_room",
       data = new CreatRoomDataRequest
       {
-        isShowCard = isShowCard,
-        minChip = minChip,  
+        minChip = minChip,
         betAmount = betAmount
       }
     };

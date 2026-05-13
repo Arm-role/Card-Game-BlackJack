@@ -15,15 +15,14 @@ public class GameMainMenuView : MonoBehaviour
 
   [Header("Room")]
   [SerializeField] private TMP_InputField _RoomIDField;
-  [SerializeField] private Button _CreateRoomShowCard;
-  [SerializeField] private Button _CreateRoomHideCard;
+  [SerializeField] private Button _CreateRoom;
   [SerializeField] private Button _JoinRoom;
   [SerializeField] private Button _QuickJoinRoom;
+  [SerializeField] private CreateRoomPanel _createRoomPanel;
 
   [Header("UI")]
   [SerializeField] private Button _RegisterUIButton;
   [SerializeField] private Button _LoginUIButton;
-  [SerializeField] private Button _CreateUIButton;
   [SerializeField] private Button _JoinUIButton;
   [SerializeField] private TextMeshProUGUI _ErrorText;
 
@@ -40,14 +39,14 @@ public class GameMainMenuView : MonoBehaviour
 
     _RoomIDField.onValueChanged.AddListener(OnRoomIDChange);
 
-    _CreateRoomShowCard.onClick.AddListener(OnCreateRoomShowCard);
-    _CreateRoomHideCard.onClick.AddListener(OnCreateRoomHideCard);
+    _CreateRoom.onClick.AddListener(OnCreateRoomClicked);
+    if (_createRoomPanel != null)
+      _createRoomPanel.OnConfirmed += bet => _Logic.OnCreateRoom(bet);
     _JoinRoom.onClick.AddListener(OnJoinRoom);
     _QuickJoinRoom.onClick.AddListener(OnQuickJoinRoom);
 
     _RegisterUIButton.onClick.AddListener(OnGotoRegisterUI);
     _LoginUIButton.onClick.AddListener(OnGotoLoginUI);
-    _CreateUIButton.onClick.AddListener(OnGotoCreateUI);
     _JoinUIButton.onClick.AddListener(OnGotoJoinUI);
 
     if (GameState.Instance.AccountUsername != null)
@@ -151,14 +150,12 @@ public class GameMainMenuView : MonoBehaviour
     _Logic.OnRoomIDChange(input);
   }
 
-  private void OnCreateRoomShowCard()
+  private void OnCreateRoomClicked()
   {
-    _Logic.OnCreateRoomShowCard();
-  }
-
-  private void OnCreateRoomHideCard()
-  {
-    _Logic.OnCreateRoomHideCard();
+    if (_createRoomPanel != null)
+      _createRoomPanel.Show();
+    else
+      _Logic.OnCreateRoom();
   }
   private void OnJoinRoom()
   {
@@ -180,10 +177,6 @@ public class GameMainMenuView : MonoBehaviour
     _UISwip.ActiveUIOnly("Login");
   }
 
-  private void OnGotoCreateUI()
-  {
-    _UISwip.ActiveUIOnly("Create");
-  }
   private void OnGotoJoinUI()
   {
     _UISwip.ActiveUIOnly("Join");

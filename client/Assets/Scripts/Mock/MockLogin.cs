@@ -127,6 +127,6 @@ public class MockLogin : MonoBehaviour
     _Logic.OnRegister();
   }
 
-  private void OnCreateRoom() => NetworkHelper.RequestCreateRoom(true, _createRoomMinChip, _createRoomBetAmount);
+  private void OnCreateRoom() => NetworkHelper.RequestCreateRoom(_createRoomMinChip, _createRoomBetAmount);
   private void OnQuickJoinRoom() => _Logic.OnQuickJoinRoom();
 }

@@ -53,21 +53,9 @@ public class GameMainMenuLogic
     }
   }
 
-  public void OnCreateRoomShowCard()
+  public void OnCreateRoom(int betAmount = GameConfig.BetAmount)
   {
-    if (!IsValidRoom())
-    {
-      Debug.LogWarning("Invalid Room ID");
-      return;
-    }
-
-    NetworkHelper.RequestCreateRoom(true);
-  }
-
-
-  public void OnCreateRoomHideCard()
-  {
-    NetworkHelper.RequestCreateRoom(false);
+    NetworkHelper.RequestCreateRoom(betAmount: betAmount);
   }
 
   public void OnJoinRoom()
