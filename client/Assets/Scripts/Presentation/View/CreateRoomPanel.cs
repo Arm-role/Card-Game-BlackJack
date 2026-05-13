@@ -28,7 +28,6 @@ public class CreateRoomPanel : MonoBehaviour
     _bet1k.onClick.AddListener(() => SetBet(1_000));
     _bet10k.onClick.AddListener(() => SetBet(10_000));
     _bet100k.onClick.AddListener(() => SetBet(100_000));
-    gameObject.SetActive(false);
   }
 
   public void Show()

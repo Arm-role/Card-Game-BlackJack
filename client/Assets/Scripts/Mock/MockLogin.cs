@@ -25,7 +25,7 @@ public class MockLogin : MonoBehaviour
   {
     _username = "Player_" + Random.Range(1000, 9999);
     _gameplay = new GameplayLogic(this, WSClient.Instance, _table);
-    _table.MarkGameplayWired();
+    _table.MarkGameplayWired(_gameplay);
 
     var d = WSClient.Instance.Dispatcher;
     WSClient.Instance.Dispatcher.OnWSConnected += OnRegister;

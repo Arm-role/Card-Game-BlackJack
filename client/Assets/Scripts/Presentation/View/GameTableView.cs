@@ -19,6 +19,7 @@ public class GameTableView : MonoBehaviour, IGameTableView
 
   public bool IsAnimating => _cardDeal.IsAnimating;
   public bool IsGameplayWired { get; private set; }
+  private GameplayLogic _gameplay;
 
   private void Awake()
   {
@@ -30,7 +31,13 @@ public class GameTableView : MonoBehaviour, IGameTableView
 
   // ─── Setup ────────────────────────────────────────────
 
-  public void MarkGameplayWired() => IsGameplayWired = true;
+  public void MarkGameplayWired(GameplayLogic gameplay = null)
+  {
+    IsGameplayWired = true;
+    _gameplay = gameplay;
+  }
+
+  private void OnDestroy() => _gameplay?.Dispose();
 
   public void SetMyPlayerId(int id) => _cardDeal.SetMyPlayerId(id);
   public void SetMyName(string name) => _cardDeal.SetMyName(name);

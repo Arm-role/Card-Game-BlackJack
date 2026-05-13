@@ -1826,13 +1826,12 @@ MonoBehaviour:
   _Login: {fileID: 1951431154}
   _Register: {fileID: 905403423}
   _RoomIDField: {fileID: 833047194}
-  _CreateRoom: {fileID: 890251685}
   _JoinRoom: {fileID: 1373339528}
   _QuickJoinRoom: {fileID: 78503233}
   _createRoomPanel: {fileID: 1857268429}
   _RegisterUIButton: {fileID: 918678417}
   _LoginUIButton: {fileID: 1680906936}
-  _CreateUIButton: {fileID: 0}
+  _CreateUIButton: {fileID: 890251685}
   _JoinUIButton: {fileID: 219875383}
   _ErrorText: {fileID: 1480167020}
 --- !u!4 &315779052

@@ -31,7 +31,7 @@ public class LobbySceneInstaller : SceneInstaller
       gameTableView.OnPlayAgainPressed += gameplay.OnPlayAgain;
       gameTableView.OnLeavePressed += gameplay.OnLeaveRoom;
       gameTableView.OnKickedDismissed += () => GameSceneManager.LoadScene("Login");
-      gameTableView.MarkGameplayWired();
+      gameTableView.MarkGameplayWired(gameplay);
     }
 
     Destroy(gameObject);

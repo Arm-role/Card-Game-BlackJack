@@ -9,12 +9,12 @@ public class NetworkDispatcher : INetworkDispatcher
 
   public event Action OnWSConnected;
 
-  public void Register<T>(string type, Action<T> handler)
+  public Action<string> Register<T>(string type, Action<T> handler)
   {
     if (!_handlers.ContainsKey(type))
       _handlers[type] = new List<Action<string>>();
 
-    _handlers[type].Add((json) =>
+    Action<string> wrapper = (json) =>
     {
       try
       {
@@ -25,12 +25,16 @@ public class NetworkDispatcher : INetworkDispatcher
       {
         Debug.LogError($"Failed to parse message type {type}: {e}");
       }
-    });
+    };
+
+    _handlers[type].Add(wrapper);
+    return wrapper;
   }
 
-  public void Unregister(string type)
+  public void Unregister(string type, Action<string> token)
   {
-    _handlers.Remove(type);
+    if (_handlers.TryGetValue(type, out var list))
+      list.Remove(token);
   }
 
   public void Dispatch(string json)
@@ -46,7 +50,7 @@ public class NetworkDispatcher : INetworkDispatcher
 
     if (_handlers.TryGetValue(baseMsg.type, out var handlers))
     {
-      foreach (var handler in handlers)
+      foreach (var handler in new List<Action<string>>(handlers))
         handler.Invoke(json);
     }
     else

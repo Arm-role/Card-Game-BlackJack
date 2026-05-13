@@ -15,7 +15,6 @@ public class GameMainMenuView : MonoBehaviour
 
   [Header("Room")]
   [SerializeField] private TMP_InputField _RoomIDField;
-  [SerializeField] private Button _CreateRoom;
   [SerializeField] private Button _JoinRoom;
   [SerializeField] private Button _QuickJoinRoom;
   [SerializeField] private CreateRoomPanel _createRoomPanel;
@@ -23,6 +22,7 @@ public class GameMainMenuView : MonoBehaviour
   [Header("UI")]
   [SerializeField] private Button _RegisterUIButton;
   [SerializeField] private Button _LoginUIButton;
+  [SerializeField] private Button _CreateUIButton;
   [SerializeField] private Button _JoinUIButton;
   [SerializeField] private TextMeshProUGUI _ErrorText;
 
@@ -39,7 +39,6 @@ public class GameMainMenuView : MonoBehaviour
 
     _RoomIDField.onValueChanged.AddListener(OnRoomIDChange);
 
-    _CreateRoom.onClick.AddListener(OnCreateRoomClicked);
     if (_createRoomPanel != null)
       _createRoomPanel.OnConfirmed += bet => _Logic.OnCreateRoom(bet);
     _JoinRoom.onClick.AddListener(OnJoinRoom);
@@ -47,6 +46,8 @@ public class GameMainMenuView : MonoBehaviour
 
     _RegisterUIButton.onClick.AddListener(OnGotoRegisterUI);
     _LoginUIButton.onClick.AddListener(OnGotoLoginUI);
+    if (_CreateUIButton != null)
+      _CreateUIButton.onClick.AddListener(OnCreateRoomClicked);
     _JoinUIButton.onClick.AddListener(OnGotoJoinUI);
 
     if (GameState.Instance.AccountUsername != null)

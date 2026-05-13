@@ -1,11 +1,14 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameplayLogic
 {
   private readonly MonoBehaviour _mono;
   private readonly IGameTableView _table;
+  private readonly INetworkDispatcher _dispatcher;
+  private readonly List<(string type, Action<string> token)> _tokens = new();
 
   private int _myPlayerId;
   private int _hostId;
@@ -20,14 +23,27 @@ public class GameplayLogic
   {
     _mono = mono;
     _table = table;
+    _dispatcher = client.Dispatcher;
 
-    var d = client.Dispatcher;
-    d.Register<RoomResultMessage>("room_result", OnRoomResult);
-    d.Register<RoomUpdateMessage>("room_update", OnRoomUpdate);
-    d.Register<GameResultMessage>("game_result", OnGameResult);
-    d.Register<GameUpdateMessage>("game_update", OnGameUpdate);
-    d.Register<GameEventMessage>("game_event", OnGameEvent);
-    d.Register<ErrorMessage>("error", OnError);
+    Reg<RoomResultMessage>("room_result", OnRoomResult);
+    Reg<RoomUpdateMessage>("room_update", OnRoomUpdate);
+    Reg<GameResultMessage>("game_result", OnGameResult);
+    Reg<GameUpdateMessage>("game_update", OnGameUpdate);
+    Reg<GameEventMessage>("game_event", OnGameEvent);
+    Reg<ErrorMessage>("error", OnError);
+  }
+
+  private void Reg<T>(string type, Action<T> handler)
+  {
+    var token = _dispatcher.Register<T>(type, handler);
+    _tokens.Add((type, token));
+  }
+
+  public void Dispose()
+  {
+    foreach (var (type, token) in _tokens)
+      _dispatcher.Unregister(type, token);
+    _tokens.Clear();
   }
 
   public void SetMyPlayerId(int id) => _myPlayerId = id;
@@ -78,7 +94,7 @@ public class GameplayLogic
   {
     yield return new WaitForSeconds(3f);
     _table.HideResult();
-    _table.ShowKickedPanel("chip หมดแล้ว — ถูกเตะออกจากห้อง");
+    _table.ShowKickedPanel("Out of chips — you have been removed from the room.");
   }
 
   // ─── Room Update ──────────────────────────────────────
