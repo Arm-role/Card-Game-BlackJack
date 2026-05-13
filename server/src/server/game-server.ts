@@ -2,7 +2,7 @@ import { UserSession } from "../core/user-session.js";
 import { Room } from "../core/room.js";
 import { MessageDispatcher } from "../core/dispatcher.js";
 import { RoomService } from "../service/room-service.js";
-import { STARTING_CHIPS, RECONNECT_TIMEOUT_MS } from "../config/config.js";
+import { STARTING_CHIPS, RECONNECT_TIMEOUT_MS, CLAIM_CHIP_AMOUNT, BET_AMOUNT } from "../config/config.js";
 import { UserAccount } from "../service/auth-service.js";
 
 import { createWriteStream, WriteStream } from "fs";
@@ -42,6 +42,7 @@ export class GameServer {
     this.dispatcher.register<Msg>("request_player_ready", (s) => this.handlePlayerReady(s));
     this.dispatcher.register<Msg>("request_hit", (s) => this.handlePlayerHit(s));
     this.dispatcher.register<Msg>("request_stand", (s) => this.handlePlayerStand(s));
+    this.dispatcher.register<Msg>("request_claim_chip", (s) => this.handleClaimChip(s));
   }
 
   public async handleMessage(session: UserSession, rawData: any) {
@@ -201,11 +202,15 @@ export class GameServer {
       return;
     }
     const minChip = typeof data?.minChip === "number" ? data.minChip : 0;
-    const betAmount = typeof data?.betAmount === "number" ? data.betAmount : 100;
+    const betAmount = typeof data?.betAmount === "number" ? data.betAmount : BET_AMOUNT;
+    const playerId = session.getUserId()!;
+    if (this.getPlayerChip(playerId) < betAmount) {
+      session.send({ type: "room_result", action: "create", success: false, reason: "INSUFFICIENT_CHIP" });
+      return;
+    }
     const room = this.roomService.createRoom({ minChip, betAmount });
     this.setupRoomCallbacks(room);
 
-    const playerId = session.getUserId()!;
     room.addPlayer(playerId, session.getUsername()!, this.getPlayerChip(playerId));
 
     session.send({
@@ -257,6 +262,11 @@ export class GameServer {
     const room = this.roomService.quickJoin(chip);
     if (!room) {
       session.send({ type: "room_result", action: "quick_join", success: false, reason: "NO_AVAILABLE_ROOM" });
+      return;
+    }
+
+    if (!room.canJoin(chip)) {
+      session.send({ type: "room_result", action: "quick_join", success: false, reason: "INSUFFICIENT_CHIP" });
       return;
     }
 
@@ -494,6 +504,20 @@ export class GameServer {
 
   }
 
+  private handleClaimChip(session: UserSession) {
+    if (!session.isAuthenticated()) {
+      session.send({ type: "claim_chip_result", success: false, reason: "NOT_AUTHENTICATED" });
+      return;
+    }
+    const playerId = session.getUserId()!;
+    if (this.getPlayerChip(playerId) > 0) {
+      session.send({ type: "claim_chip_result", success: false, reason: "CHIP_NOT_EMPTY" });
+      return;
+    }
+    this.playerChips.set(playerId, CLAIM_CHIP_AMOUNT);
+    session.send({ type: "claim_chip_result", success: true, chip: CLAIM_CHIP_AMOUNT });
+  }
+
   // =====================================================
   // Broadcast helpers
   // =====================================================
@@ -577,6 +601,12 @@ export class GameServer {
     const kicked = room.kickBrokePlayers(kickList);
     for (const kickedId of kicked) {
       this.playerChips.set(kickedId, 0);
+    }
+
+    if (room.getPlayerIds().length === 0) {
+      room.destroy();
+      this.roomService.deleteRoom(room.getRoomId());
+      return;
     }
 
     this.broadcastRoomUpdate(room);

@@ -67,7 +67,11 @@ public class GameState : MonoBehaviour
 
   private void OnRoomResult(RoomResultMessage message)
   {
-    if (!message.success) return;
+    if (!message.success)
+    {
+      if (message.action == "kicked") ClearRoom();
+      return;
+    }
 
     switch (message.action)
     {

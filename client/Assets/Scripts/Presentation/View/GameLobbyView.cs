@@ -13,6 +13,7 @@ public class GameLobbyView : MonoBehaviour
   [SerializeField] private TextMeshProUGUI _RoomPlayersText;
   [SerializeField] private TextMeshProUGUI _RoomUsersText;
   [SerializeField] private TextMeshProUGUI _RoomIDText;
+  [SerializeField] private TextMeshProUGUI _BetAmountText;
   [SerializeField] private Button[] _LeaveButtons;
 
   private LobbyService _Serviec;
@@ -69,9 +70,9 @@ public class GameLobbyView : MonoBehaviour
     }
 
     _RoomIDText.text = $"Room: {room.roomId}";
-
     _RoomPlayersText.text = $"Players: {room.player_count}/{room.max_player_count}";
     _RoomUsersText.text = $"Users in room: {room.user_count}";
+    if (_BetAmountText) _BetAmountText.text = $"BET {room.betAmount:N0}";
     foreach (var leaveButton in _LeaveButtons)
       leaveButton.interactable = true;
   }

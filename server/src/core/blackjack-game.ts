@@ -1,5 +1,5 @@
 import { Card, GameResult, GameState, PlayerStatus } from "../shared/types.js";
-import { Deck, IDeck } from "./Deck.js";
+import { Deck, IDeck } from "./deck.js";
 
 // ─── Hand ─────────────────────────────────────────────────────────────────────
 
@@ -93,6 +93,8 @@ export class BlackjackGame {
 
     if (hand.isBust()) {
       this.playerStatuses.set(playerId, "BUST");
+    } else if (hand.getScore() === 21) {
+      this.playerStatuses.set(playerId, "STAND");
     }
     return card;
   }

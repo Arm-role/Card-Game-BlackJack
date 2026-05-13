@@ -1,16 +1,12 @@
-using System.Collections;
 using UnityEngine;
 
-public partial class MockLogin : MonoBehaviour
+public class MockLogin : MonoBehaviour
 {
   private GameMainMenuLogic _Logic = new GameMainMenuLogic();
+  private GameplayLogic _gameplay;
+
   private string _username;
   private string _password = "123456789";
-  private int _myPlayerId;
-  private int _hostId;
-  private int _minChip;
-  private int _myChip;
-  private int _betAmount;
 
   [SerializeField] private GameTableView _table;
 
@@ -28,26 +24,22 @@ public partial class MockLogin : MonoBehaviour
   private void Start()
   {
     _username = "Player_" + Random.Range(1000, 9999);
+    _gameplay = new GameplayLogic(this, WSClient.Instance, _table);
+    _table.MarkGameplayWired();
+
     var d = WSClient.Instance.Dispatcher;
     WSClient.Instance.Dispatcher.OnWSConnected += OnRegister;
 
     d.Register<RegisterResultMessage>("register_result", OnRegisterMessage);
     d.Register<LoginResultMessage>("login_result", OnLoginMessage);
     d.Register<RoomResultMessage>("room_result", OnRoomMessage);
-    d.Register<RoomUpdateMessage>("room_update", OnRoomUpdateMessage);
-    d.Register<ErrorMessage>("error", OnErrorMessage);
-    d.Register<GameResultMessage>("game_result", OnGameResultMessage);
-    d.Register<GameEventMessage>("game_event", OnGameEventMessage);
-    d.Register<GameUpdateMessage>("game_update", OnGameUpdateMessage);
 
-    _table.OnPlayAgainPressed += OnPlayAgain;
-    _table.OnLeavePressed += OnLeaveRoom;
+    _table.OnPlayAgainPressed += _gameplay.OnPlayAgain;
+    _table.OnLeavePressed += _gameplay.OnLeaveRoom;
     _table.OnKickedDismissed += () => GameSceneManager.LoadScene("Login");
   }
 
-  // =====================================================
-  // Auth
-  // =====================================================
+  // ─── Auth ─────────────────────────────────────────────
 
   private void OnRegisterMessage(RegisterResultMessage msg)
   {
@@ -75,9 +67,45 @@ public partial class MockLogin : MonoBehaviour
     else Debug.LogWarning($"[login] ❌ {msg.reason}");
   }
 
-  // =====================================================
-  // Debug / Helpers
-  // =====================================================
+  // ─── Room Entry / Leave ───────────────────────────────
+
+  private void OnRoomMessage(RoomResultMessage msg)
+  {
+    if (msg.success)
+    {
+      switch (msg.action)
+      {
+        case "create":
+        case "join":
+        case "quick_join":
+          State = ClientGameState.InRoom;
+          Debug.Log($"[room] ✅ Entered | myId={msg.seat?.playerId}");
+          break;
+
+        case "leave":
+          _table.ShowLobby();
+          State = ClientGameState.Authenticated;
+          break;
+      }
+    }
+    else
+    {
+      Debug.LogWarning($"[room] ❌ {msg.action} | reason={msg.reason}");
+      switch (msg.reason)
+      {
+        case "INSUFFICIENT_CHIP":
+          var needed = msg.action == "create" ? _createRoomBetAmount : _gameplay.MinChip;
+          _table.ShowKickedPanel($"chip ไม่ถึง {needed:N0} — เข้าห้องไม่ได้");
+          return;
+        case "NOT_HOST":
+          Debug.LogWarning("[room] คุณไม่ใช่ host");
+          break;
+      }
+      if (msg.action == "quick_join") OnCreateRoom();
+    }
+  }
+
+  // ─── Debug / Helpers ──────────────────────────────────
 
   private void OnGUI()
   {

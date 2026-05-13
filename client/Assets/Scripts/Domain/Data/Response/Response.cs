@@ -12,6 +12,19 @@ public class Response
 }
 
 // =====================================================
+// Chip
+// =====================================================
+
+[Serializable]
+public class ClaimChipResultMessage
+{
+  public string type;     // "claim_chip_result"
+  public bool success;
+  public int chip;        // chip ที่ได้รับ (เมื่อ success)
+  public string reason;   // "NOT_AUTHENTICATED" | "CHIP_NOT_EMPTY"
+}
+
+// =====================================================
 // Auth
 // =====================================================
 

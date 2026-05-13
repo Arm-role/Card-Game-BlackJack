@@ -304,8 +304,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 979242624}
-  - {fileID: 1265664791}
   - {fileID: 2085656768}
+  - {fileID: 1265664791}
   - {fileID: 928812658}
   - {fileID: 600453733}
   - {fileID: 2060677789}
@@ -1719,7 +1719,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &446705891
 Transform:
   m_ObjectHideFlags: 0
@@ -3887,7 +3887,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 939048247}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6011ac98afe15874cb79099b3c142087, type: 3}
+  m_Script: {fileID: 11500000, guid: f2944a9e0a57aac40b5eb04f9860ee32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _resultPopupLabel: {fileID: 235285030}
@@ -3903,12 +3903,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 939048247}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e933add522cd9354492fc916eac72721, type: 3}
+  m_Script: {fileID: 11500000, guid: 16946dc7baa7c364c8ebb3eb947fa45e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _btnHit: {fileID: 658323909}
-  _btnStand: {fileID: 1242065944}
-  _turnTimerLabel: {fileID: 554707568}
+  _myChipLabel: {fileID: 2691762112211876598}
+  _myBetLabel: {fileID: 807527393}
+  _minChipLabel: {fileID: 1864349358}
+  _waitingForPlayers: {fileID: 2030856105}
+  _kickedPanel: {fileID: 1454742976}
+  _kickedText: {fileID: 1287892150}
+  _kickedDisplaySeconds: 3
+  _btnStart: {fileID: 340392140}
+  _hostCrown: {fileID: 519898218}
 --- !u!114 &939048251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3918,18 +3924,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 939048247}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8085d1f48d91bef4887f85e6b12e9c58, type: 3}
+  m_Script: {fileID: 11500000, guid: fd49205a7ca0b1b4fbd26794a8f70ab9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _myChipLabel: {fileID: 1040387662}
-  _myBetLabel: {fileID: 807527393}
-  _minChipLabel: {fileID: 1213969092}
-  _waitingForPlayers: {fileID: 2030856105}
-  _kickedPanel: {fileID: 1454742976}
-  _kickedText: {fileID: 1287892150}
-  _kickedDisplaySeconds: 3
-  _btnStart: {fileID: 340392140}
-  _hostCrown: {fileID: 519898218}
+  _btnHit: {fileID: 658323909}
+  _btnStand: {fileID: 1242065944}
+  _turnTimerLabel: {fileID: 554707568}
 --- !u!114 &939048252
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3939,7 +3939,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 939048247}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 75201f6740e2a5f49bd93e89ee0489ec, type: 3}
+  m_Script: {fileID: 11500000, guid: 40ac8f81b73577341a5881f70a00067e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _myHand: {fileID: 600453734}
@@ -3962,12 +3962,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 939048247}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bef15529b67b24b40a1c10fb0f7145e7, type: 3}
+  m_Script: {fileID: 11500000, guid: 8c9e5d041fbcca240bd6afa364e2de32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _cardDeal: {fileID: 939048252}
-  _actionButtons: {fileID: 939048250}
-  _roomInfo: {fileID: 939048251}
+  _actionButtons: {fileID: 939048251}
+  _roomInfo: {fileID: 939048250}
   _result: {fileID: 939048249}
   _lobbyPanel: {fileID: 1505279286}
   _gameplayPanel: {fileID: 136340837}
@@ -4453,17 +4453,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1029083791}
   m_CullTransparentMesh: 1
---- !u!114 &1040387662 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5563630710435053702, guid: 35110f5a22997a841820d207cdc16043, type: 3}
-  m_PrefabInstance: {fileID: 2691762112211876597}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1042249292
 GameObject:
   m_ObjectHideFlags: 0
@@ -5017,7 +5006,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1265664791
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5558,7 +5547,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1454742977
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5862,6 +5851,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameLobbyView: {fileID: 1899182662}
+  gameTableView: {fileID: 939048253}
 --- !u!4 &1709711287
 Transform:
   m_ObjectHideFlags: 0
@@ -6248,6 +6238,7 @@ MonoBehaviour:
   _RoomPlayersText: {fileID: 645323491}
   _RoomUsersText: {fileID: 910627689}
   _RoomIDText: {fileID: 163861092}
+  _BetAmountText: {fileID: 0}
   _LeaveButtons:
   - {fileID: 1951431154}
 --- !u!4 &1899182663
@@ -6911,6 +6902,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 35110f5a22997a841820d207cdc16043, type: 3}
+--- !u!114 &2691762112211876598 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5563630710435053702, guid: 35110f5a22997a841820d207cdc16043, type: 3}
+  m_PrefabInstance: {fileID: 2691762112211876597}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3816254552024760485
 PrefabInstance:
   m_ObjectHideFlags: 0

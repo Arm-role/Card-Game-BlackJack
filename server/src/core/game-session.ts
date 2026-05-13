@@ -1,6 +1,6 @@
 import { ActionResult, Card, GameEvent, GameResult, GameState, PlayerAction, PlayerStatus } from "../shared/types.js";
 import { BlackjackGame } from "./blackjack-game.js";
-import { Deck, IDeck } from "./Deck.js";
+import { Deck, IDeck } from "./deck.js";
 import { TURN_TIMEOUT_MS } from "../config/config.js";
 
 export class GameSession {
@@ -77,7 +77,7 @@ export class GameSession {
       const status = this.game.getStatus(playerId)!;
       if (!card) return undefined;
 
-      if (status === "BUST") {
+      if (status === "BUST" || status === "STAND") {
         return this.buildNextTurnResult({ card, status });
       }
 

@@ -25,6 +25,7 @@ public class GameMainMenuView : MonoBehaviour
   [SerializeField] private Button _LoginUIButton;
   [SerializeField] private Button _CreateUIButton;
   [SerializeField] private Button _JoinUIButton;
+  [SerializeField] private TextMeshProUGUI _ErrorText;
 
   private GameMainMenuLogic _Logic;
 
@@ -87,18 +88,39 @@ public class GameMainMenuView : MonoBehaviour
 
   private void OnRoomMessage(RoomResultMessage message)
   {
-    Debug.Log(message);
-
-    if (!message.success) return;
+    if (!message.success)
+    {
+      ShowError(message.reason);
+      return;
+    }
 
     switch (message.action)
     {
       case "create":
       case "join":
       case "quick_join":
+        ClearError();
         GameSceneManager.LoadScene("Lobby");
         break;
     }
+  }
+
+  private void ShowError(string reason)
+  {
+    if (_ErrorText == null) return;
+    _ErrorText.text = reason switch
+    {
+      "INSUFFICIENT_CHIP" => "chip ไม่พอ — กด Claim เพื่อรับ chip",
+      "ROOM_NOT_FOUND"    => "ไม่พบห้อง",
+      "ROOM_FULL"         => "ห้องเต็ม",
+      "NO_AVAILABLE_ROOM" => "ไม่มีห้องว่าง",
+      _                   => reason
+    };
+  }
+
+  private void ClearError()
+  {
+    if (_ErrorText) _ErrorText.text = "";
   }
 
 

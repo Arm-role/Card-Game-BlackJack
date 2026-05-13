@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class GameTableView : MonoBehaviour
+public class GameTableView : MonoBehaviour, IGameTableView
 {
   [Header("Sub-views")]
   [SerializeField] private CardDealView _cardDeal;
@@ -18,6 +18,7 @@ public class GameTableView : MonoBehaviour
   public event Action OnKickedDismissed;
 
   public bool IsAnimating => _cardDeal.IsAnimating;
+  public bool IsGameplayWired { get; private set; }
 
   private void Awake()
   {
@@ -28,6 +29,8 @@ public class GameTableView : MonoBehaviour
   }
 
   // ─── Setup ────────────────────────────────────────────
+
+  public void MarkGameplayWired() => IsGameplayWired = true;
 
   public void SetMyPlayerId(int id) => _cardDeal.SetMyPlayerId(id);
   public void SetMyName(string name) => _cardDeal.SetMyName(name);

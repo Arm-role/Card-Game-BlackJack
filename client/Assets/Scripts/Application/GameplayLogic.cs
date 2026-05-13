@@ -1,0 +1,296 @@
+using System;
+using System.Collections;
+using UnityEngine;
+
+public class GameplayLogic
+{
+  private readonly MonoBehaviour _mono;
+  private readonly IGameTableView _table;
+
+  private int _myPlayerId;
+  private int _hostId;
+  private int _myChip;
+  private int _betAmount;
+  private int _minChip;
+
+  public ClientGameState State { get; private set; }
+  public int MinChip => _minChip;
+
+  public GameplayLogic(MonoBehaviour mono, IWSClient client, IGameTableView table)
+  {
+    _mono = mono;
+    _table = table;
+
+    var d = client.Dispatcher;
+    d.Register<RoomResultMessage>("room_result", OnRoomResult);
+    d.Register<RoomUpdateMessage>("room_update", OnRoomUpdate);
+    d.Register<GameResultMessage>("game_result", OnGameResult);
+    d.Register<GameUpdateMessage>("game_update", OnGameUpdate);
+    d.Register<GameEventMessage>("game_event", OnGameEvent);
+    d.Register<ErrorMessage>("error", OnError);
+  }
+
+  public void SetMyPlayerId(int id) => _myPlayerId = id;
+
+  public void SyncRoomData(RoomData room)
+  {
+    if (room == null) return;
+    _hostId = room.hostId;
+    _minChip = room.minChip;
+    _betAmount = room.betAmount;
+    _table.UpdateHostUI(_myPlayerId == _hostId);
+    _table.UpdateMinChipLabel(_minChip);
+    _table.UpdateBetAmount(_betAmount);
+    var mySeat = room.seats?.Find(s => s.playerId == _myPlayerId);
+    if (mySeat != null)
+    {
+      _myChip = mySeat.chip;
+      _table.UpdateMyChip(_myChip);
+    }
+  }
+
+  // ─── Room Entry ───────────────────────────────────────
+
+  private void OnRoomResult(RoomResultMessage msg)
+  {
+    if (!msg.success)
+    {
+      if (msg.action == "kicked" && msg.reason == "OUT_OF_CHIP")
+      {
+        _table.HideResultButtons();
+        State = ClientGameState.Authenticated;
+        _mono.StartCoroutine(ShowKickedAfterDelay());
+      }
+      return;
+    }
+    switch (msg.action)
+    {
+      case "create":
+      case "join":
+      case "quick_join":
+        _myPlayerId = msg.seat?.playerId ?? 0;
+        State = ClientGameState.InRoom;
+        break;
+    }
+  }
+
+  private IEnumerator ShowKickedAfterDelay()
+  {
+    yield return new WaitForSeconds(3f);
+    _table.HideResult();
+    _table.ShowKickedPanel("chip หมดแล้ว — ถูกเตะออกจากห้อง");
+  }
+
+  // ─── Room Update ──────────────────────────────────────
+
+  private void OnRoomUpdate(RoomUpdateMessage msg)
+  {
+    switch (msg.action)
+    {
+      case "snapshot":
+        var r = msg.room;
+        _hostId = r.hostId;
+        _minChip = r.minChip;
+        _betAmount = r.betAmount;
+        Debug.Log($"[room_update] roomId={r.roomId} host={r.hostId} minChip={r.minChip:N0} bet={r.betAmount:N0} {r.player_count}/{r.max_player_count}");
+        _table.UpdateHostUI(_myPlayerId == _hostId);
+        _table.UpdateMinChipLabel(_minChip);
+        _table.UpdateBetAmount(_betAmount);
+        if (r.seats != null)
+        {
+          var mySeat = r.seats.Find(s => s.playerId == _myPlayerId);
+          if (mySeat != null)
+          {
+            _myChip = mySeat.chip;
+            _table.UpdateMyChip(_myChip);
+          }
+        }
+        break;
+
+      case "host_changed":
+        _hostId = msg.hostChanged?.hostId ?? 0;
+        Debug.Log($"[room_update] host_changed → {_hostId}");
+        _table.UpdateHostUI(_myPlayerId == _hostId);
+        if (_myPlayerId == _hostId) Debug.Log("⭐ คุณเป็น host ใหม่");
+        break;
+
+      case "players_kicked":
+        var pk = msg.payload;
+        if (pk?.kickedIds == null) break;
+        foreach (var id in pk.kickedIds)
+          Debug.Log($"[room_update] player {id} ถูกเตะ เหตุ: {pk.reason}");
+        break;
+    }
+  }
+
+  // ─── Game Result / Error ──────────────────────────────
+
+  private void OnGameResult(GameResultMessage msg)
+  {
+    if (msg.success) return;
+    Debug.LogWarning($"[game_result] ❌ {msg.action} {msg.reason}");
+    if (msg.reason == "NOT_HOST")
+      Debug.LogWarning("[game_result] คุณไม่ใช่ host");
+  }
+
+  private void OnError(ErrorMessage msg) =>
+      Debug.LogError($"[error] {msg.reason}");
+
+  private void OnClaimChipResult(ClaimChipResultMessage msg)
+  {
+    if (!msg.success)
+    {
+      Debug.LogWarning($"[claim_chip] ❌ {msg.reason}");
+      return;
+    }
+    Debug.Log($"[claim_chip] ✅ +{msg.chip:N0}");
+    _table.UpdateMyChip(msg.chip);
+  }
+
+  // ─── Game Update ──────────────────────────────────────
+
+  private void OnGameUpdate(GameUpdateMessage msg)
+  {
+    switch (msg.action)
+    {
+      case "start":
+        Debug.Log($"[game_update] start roomId={msg.payload?.roomId}");
+        break;
+      case "state_changed":
+        HandleStateChanged(msg.payload);
+        break;
+      case "ready_to_act":
+        _table.HideWaitingForPlayers();
+        State = ClientGameState.WaitingTurn;
+        Debug.Log("[game_update] ready_to_act");
+        break;
+      case "turn_changed":
+        HandleTurnChanged(msg.payload?.currentPlayer ?? 0);
+        break;
+    }
+  }
+
+  private void HandleStateChanged(GameUpdatePayload p)
+  {
+    if (p == null) return;
+    Debug.Log($"[state_changed] {p.state}");
+
+    switch (p.state)
+    {
+      case "DEALING":
+        if (p.players == null || p.dealer == null) return;
+        State = ClientGameState.Dealing;
+        _table.ShowGameplay();
+        _table.SetMyPlayerId(_myPlayerId);
+        _table.SetMyName(GameState.Instance.AccountUsername ?? "");
+        _mono.StartCoroutine(DealAfterFrame(p));
+        break;
+
+      case "WAITING":
+        State = ClientGameState.GameOver;
+        _table.HideActionButtons();
+        var snapshot = p;
+        _table.RevealAllWhenReady(() =>
+        {
+          _table.RevealDealerAndShowResult(
+            snapshot.dealer, snapshot.players, snapshot.results, _myPlayerId,
+            results =>
+            {
+              if (results == null) return;
+              foreach (var r in results)
+              {
+                Debug.Log($"  player[{r.playerId}] → {r.result}  chip={r.chipAfter:N0}");
+                _table.ShowResult(r.playerId, r.result);
+                if (r.playerId == _myPlayerId)
+                {
+                  _myChip = r.chipAfter;
+                  _table.UpdateMyChip(_myChip);
+                }
+              }
+            });
+        });
+        break;
+    }
+  }
+
+  private void HandleTurnChanged(int currentPlayer)
+  {
+    Debug.Log($"[turn_changed] currentPlayer={currentPlayer}");
+    _table.SetTurn(currentPlayer);
+    if (currentPlayer == _myPlayerId)
+    {
+      State = ClientGameState.MyTurn;
+      _table.ShowActionButtons();
+      Debug.Log("⭐ YOUR TURN");
+    }
+    else
+    {
+      State = ClientGameState.WaitingTurn;
+      _table.HideActionButtons();
+    }
+  }
+
+  // ─── Game Event ───────────────────────────────────────
+
+  private void OnGameEvent(GameEventMessage msg)
+  {
+    switch (msg.action)
+    {
+      case "player_hit":
+        var h = msg.payload;
+        if (h?.card == null) return;
+        Debug.Log($"[player_hit] player={h.player_id} {h.card} score={h.score} status={h.status}");
+        _table.AddCard(h.card, h.score, h.player_id);
+        if (h.player_id == _myPlayerId)
+        {
+          if (h.status == "BUST")
+          {
+            Debug.Log("💥 BUST");
+            _table.HideActionButtons();
+          }
+          else
+          {
+            _table.ShowActionButtons();
+          }
+        }
+        break;
+
+      case "player_stand":
+        var s = msg.payload;
+        Debug.Log($"[player_stand] player={s.player_id}");
+        if (s.player_id == _myPlayerId)
+          _table.HideActionButtons();
+        break;
+    }
+  }
+
+  // ─── Post-game Actions ────────────────────────────────
+
+  public void OnPlayAgain()
+  {
+    State = ClientGameState.InRoom;
+    _table.ResetWhenReady(() =>
+    {
+      if (_myPlayerId == _hostId)
+        NetworkHelper.RequestStartGame();
+    });
+  }
+
+  public void OnLeaveRoom()
+  {
+    _table.ResetWhenReady(() => NetworkHelper.RequestLeaveRoom());
+  }
+
+  // ─── Coroutines ───────────────────────────────────────
+
+  private IEnumerator DealAfterFrame(GameUpdatePayload p)
+  {
+    yield return null;
+    _table.DealInitialCards(p.players, p.dealer, _myPlayerId, () =>
+    {
+      Debug.Log("[deal] done → RequestPlayerReady");
+      _table.ShowWaitingForPlayers();
+      NetworkHelper.RequestPlayerReady();
+    });
+  }
+}

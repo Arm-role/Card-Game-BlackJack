@@ -34,7 +34,7 @@ public class NetworkHelper
     OnSend?.Invoke(request);
   }
 
-  public static void RequestCreateRoom(bool isShowCard, int minChip = 0, int betAmount = 100)
+  public static void RequestCreateRoom(bool isShowCard, int minChip = GameConfig.MinChip, int betAmount = GameConfig.BetAmount)
   {
     var request = new CreateRoomRequest
     {
@@ -142,6 +142,12 @@ public class NetworkHelper
   {
     var request = new StandRequest();
     OnSend?.Invoke(request);
+  }
+
+  public static void RequestClaimChip()
+  {
+    string msg = "{\"type\":\"request_claim_chip\"}";
+    OnSend?.Invoke(msg);
   }
 
   public static void SendPlayCard(string cardId)

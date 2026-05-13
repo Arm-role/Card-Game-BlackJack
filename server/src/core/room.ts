@@ -1,6 +1,6 @@
 import { ActionResult, GameResult, PlayerAction, RoomState, Seat } from "../shared/types.js";
 import { GameSession } from "./game-session.js";
-import { IDeck } from "./Deck.js";
+import { IDeck } from "./deck.js";
 import { SeatManager, MAX_PLAYERS } from "./seat-manager.js";
 import { SwapManager, SwapRequest } from "./swap-manager.js";
 import { RoomConfig } from "../service/room-service.js";
@@ -90,6 +90,7 @@ export class Room {
   public canJoin(chip: number): boolean {
     if (this.gameSession?.isPlaying()) return false;
     if (this.isFull()) return false;
+    if (chip < this.betAmount) return false;
     if (this.minChip > 0 && chip < this.minChip) return false;
     return true;
   }
