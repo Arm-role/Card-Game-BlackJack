@@ -15,6 +15,7 @@ public class LobbyService
 
   public event Action<RoomData> OnRoomUpdated;
   public event Action<SeatSwapData> OnSwapRequest;
+  public event Action OnRoomClosed;
 
   public LobbyService(LobbyDomain domain, IWSClient client)
   {
@@ -39,6 +40,10 @@ public class LobbyService
 
       case "swap_request":
         OnSwapRequest?.Invoke(message.seatSwap);
+        break;
+
+      case "room_closed":
+        OnRoomClosed?.Invoke();
         break;
     }
   }

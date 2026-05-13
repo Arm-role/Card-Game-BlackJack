@@ -51,7 +51,7 @@ public class RoomResultMessage
 public class RoomUpdateMessage
 {
   public string type;        // "room_update"
-  public string action;       // "snapshot"|"swap_request"|"host_changed"|"players_kicked"
+  public string action;       // "snapshot"|"swap_request"|"host_changed"|"players_kicked"|"room_closed"
   public bool success;
   public RoomData room;      // มีเฉพาะ action="snapshot"
   public SeatSwapData seatSwap; // มีเฉพาะ action="swap_request"

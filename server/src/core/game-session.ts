@@ -1,6 +1,7 @@
 import { ActionResult, Card, GameEvent, GameResult, GameState, PlayerAction, PlayerStatus } from "../shared/types.js";
 import { BlackjackGame } from "./blackjack-game.js";
 import { Deck, IDeck } from "./Deck.js";
+import { TURN_TIMEOUT_MS } from "../config/config.js";
 
 export class GameSession {
   private state: GameState = "WAITING";
@@ -11,6 +12,8 @@ export class GameSession {
   private turnOrder: number[] = [];
   private currentTurnIndex = 0;
   private actionTakenThisTurn = new Set<number>();
+  private _turnTimer: ReturnType<typeof setTimeout> | null = null;
+  public onTurnTimeout?: (playerId: number, result: ActionResult) => void;
 
   constructor(playerIds: number[], dealerId: number, deck?: IDeck) {
     this.players = [...playerIds];
@@ -59,7 +62,9 @@ export class GameSession {
         this.nextTurn();
       }
 
-      return { type: "TURN", currentPlayer: this.getCurrentPlayerId() };
+      const currentId = this.getCurrentPlayerId();
+      if (currentId !== undefined) this.startTurnTimer(currentId);
+      return { type: "TURN", currentPlayer: currentId };
     }
   }
 
@@ -77,6 +82,7 @@ export class GameSession {
       }
 
       this.actionTakenThisTurn.clear();
+      this.startTurnTimer(playerId);
       return { card, status, turnChanged: false, gameEnded: false };
     }
 
@@ -100,7 +106,10 @@ export class GameSession {
       this.state = "WAITING";
       return { ...partial, turnChanged: true, nextPlayerId: undefined, gameEnded: true, results };
     }
-    return { ...partial, turnChanged: true, nextPlayerId: this.getCurrentPlayerId(), gameEnded: false };
+
+    const nextId = this.getCurrentPlayerId();
+    if (nextId !== undefined) this.startTurnTimer(nextId);
+    return { ...partial, turnChanged: true, nextPlayerId: nextId, gameEnded: false };
   }
 
   private buildResults(): Array<{ playerId: number; result: GameResult }> {
@@ -194,8 +203,29 @@ export class GameSession {
     if (action === "HIT" && this.actionTakenThisTurn.has(playerId)) return undefined;
     if (action === "HIT") this.actionTakenThisTurn.add(playerId);
 
+    this.clearTurnTimer();
     const result = this.dispatch(action, { playerId });
     return result;
+  }
+
+  private startTurnTimer(playerId: number): void {
+    this.clearTurnTimer();
+    this._turnTimer = setTimeout(() => {
+      this._turnTimer = null;
+      const result = this.applyAction(playerId, "STAND");
+      if (result) this.onTurnTimeout?.(playerId, result);
+    }, TURN_TIMEOUT_MS);
+  }
+
+  private clearTurnTimer(): void {
+    if (this._turnTimer !== null) {
+      clearTimeout(this._turnTimer);
+      this._turnTimer = null;
+    }
+  }
+
+  public destroy(): void {
+    this.clearTurnTimer();
   }
 
   public isPlaying(): boolean {

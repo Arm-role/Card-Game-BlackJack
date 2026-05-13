@@ -2,7 +2,7 @@ import { UserSession } from "../core/user-session.js";
 import { Room } from "../core/room.js";
 import { MessageDispatcher } from "../core/dispatcher.js";
 import { RoomService } from "../service/room-service.js";
-import { STARTING_CHIPS } from "../config/config.js";
+import { STARTING_CHIPS, RECONNECT_TIMEOUT_MS } from "../config/config.js";
 import { UserAccount } from "../service/auth-service.js";
 
 import { createWriteStream, WriteStream } from "fs";
@@ -17,6 +17,7 @@ export class GameServer {
   private playerChips = new Map<number, number>();
   private dispatcher: MessageDispatcher;
   private logStream: WriteStream;
+  private _reconnectTimers = new Map<number, ReturnType<typeof setTimeout>>();
 
   constructor(private authService: IAuthService, private roomService: RoomService) {
     const logPath = process.cwd() + "/log.txt";
@@ -55,8 +56,19 @@ export class GameServer {
   public removeSession(userId: number) {
     const session = this.sessionsByUserId.get(userId);
     if (!session) return;
-    this.handleDisconnect(session);
-    this.sessionsByUserId.delete(userId);
+
+    if (!session.isAuthenticated()) {
+      this.sessionsByUserId.delete(userId);
+      return;
+    }
+
+    // รอ reconnect ก่อน — ถ้าไม่กลับมาภายใน RECONNECT_TIMEOUT_MS จึง kick จริง
+    const timer = setTimeout(() => {
+      this._reconnectTimers.delete(userId);
+      this.handleDisconnect(session);
+      this.sessionsByUserId.delete(userId);
+    }, RECONNECT_TIMEOUT_MS);
+    this._reconnectTimers.set(userId, timer);
   }
 
   private handleDisconnect(user: UserSession) {
@@ -128,6 +140,23 @@ export class GameServer {
       return;
     }
     session.bindUser(account.id, account.username);
+
+    // ยกเลิก reconnect timer ถ้าผู้เล่นกลับมาทันเวลา
+    const pendingTimer = this._reconnectTimers.get(account.id);
+    if (pendingTimer !== undefined) {
+      clearTimeout(pendingTimer);
+      this._reconnectTimers.delete(account.id);
+      // Re-sync สถานะห้องและเกมให้ client ใหม่
+      const room = this.roomService.findRoomByPlayer(account.id);
+      if (room) {
+        session.send({ type: "room_update", action: "snapshot", room: room.getSnapshot() });
+        const gameState = room.getGameState();
+        if (gameState) {
+          session.send({ type: "game_update", action: "state_changed", payload: gameState });
+        }
+      }
+    }
+
     this.sessionsByUserId.set(account.id, session);
     session.send({ type: "login_result", success: true, username: account.username });
   }
@@ -135,6 +164,36 @@ export class GameServer {
   // =====================================================
   // Room management
   // =====================================================
+
+  private setupRoomCallbacks(room: Room): void {
+    room.onIdleTimeout = (roomId) => {
+      this.broadcastToRoom(room, {
+        type: "room_update",
+        action: "room_closed",
+        payload: { reason: "IDLE_TIMEOUT" },
+      });
+      room.destroy();
+      this.roomService.deleteRoom(roomId);
+    };
+
+    room.onTurnTimeout = (playerId, result) => {
+      this.broadcastToRoom(room, {
+        type: "game_event",
+        action: "player_stand",
+        payload: { player_id: playerId, status: "STAND" },
+      });
+      if (result.turnChanged) {
+        this.broadcastToRoom(room, {
+          type: "game_update",
+          action: "turn_changed",
+          payload: { currentPlayer: result.nextPlayerId ?? null },
+        });
+      }
+      if (result.gameEnded) {
+        this.broadcastGameState(room);
+      }
+    };
+  }
 
   private async handleCreateRoom(session: UserSession, data: any) {
     if (!session.isAuthenticated()) {
@@ -144,6 +203,7 @@ export class GameServer {
     const minChip = typeof data?.minChip === "number" ? data.minChip : 0;
     const betAmount = typeof data?.betAmount === "number" ? data.betAmount : 100;
     const room = this.roomService.createRoom({ minChip, betAmount });
+    this.setupRoomCallbacks(room);
 
     const playerId = session.getUserId()!;
     room.addPlayer(playerId, session.getUsername()!, this.getPlayerChip(playerId));

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { GameServer } from "../src/server/game-server.js";
 import { RoomService } from "../src/service/room-service.js";
 import { UserSession, ISocket } from "../src/core/user-session.js";
@@ -226,6 +226,7 @@ describe("GameServer – integration", () => {
     });
 
     it("disconnect in lobby: remaining players get room_update", async () => {
+      vi.useFakeTimers();
       const p1 = new MockUserSession(1, "P1");
       const p2 = new MockUserSession(2, "P2");
       server.addSession(p1);
@@ -236,6 +237,8 @@ describe("GameServer – integration", () => {
 
       p2.clear();
       server.removeSession(1);
+      vi.advanceTimersByTime(30_001); // fire reconnect timer only (idle timer is 300_000)
+      vi.useRealTimers();
 
       const update = findMsg(p2, "room_update", "snapshot");
       expect(update?.room.player_count).toBe(1);
@@ -521,6 +524,7 @@ describe("GameServer – integration", () => {
 
   describe("disconnect mid-game", () => {
     it("skips to next player's turn when current player disconnects", async () => {
+      vi.useFakeTimers();
       const p1 = new MockUserSession(1, "P1");
       const p2 = new MockUserSession(2, "P2");
       server.addSession(p1);
@@ -537,6 +541,8 @@ describe("GameServer – integration", () => {
 
       // P1 has the first turn → disconnect
       server.removeSession(1);
+      vi.advanceTimersByTime(30_001); // fire reconnect timer only (idle timer is 300_000)
+      vi.useRealTimers();
 
       // After ready_to_act, turn_changed(P1) was sent.
       // After disconnect, turn_changed(P2) is sent. We want the last one.
@@ -545,6 +551,7 @@ describe("GameServer – integration", () => {
     });
 
     it("immediately shifts turn on disconnect (duplicate of above with clearer name)", async () => {
+      vi.useFakeTimers();
       const p1 = new MockUserSession(1, "P1");
       const p2 = new MockUserSession(2, "P2");
       server.addSession(p1);
@@ -560,6 +567,8 @@ describe("GameServer – integration", () => {
       await c2.send("request_player_ready");
 
       server.removeSession(1);
+      vi.advanceTimersByTime(30_001); // fire reconnect timer only (idle timer is 300_000)
+      vi.useRealTimers();
 
       const turnMsg = findLastMsg(p2, "game_update", "turn_changed");
       expect(turnMsg?.payload.currentPlayer).toBe(2);

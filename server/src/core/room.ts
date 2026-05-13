@@ -4,6 +4,7 @@ import { IDeck } from "./Deck.js";
 import { SeatManager, MAX_PLAYERS } from "./seat-manager.js";
 import { SwapManager, SwapRequest } from "./swap-manager.js";
 import { RoomConfig } from "../service/room-service.js";
+import { ROOM_IDLE_TIMEOUT_MS } from "../config/config.js";
 
 export class Room {
   private minChip: number;
@@ -14,10 +15,35 @@ export class Room {
   private gameSession: GameSession | null = null;
   private readyPlayers: Set<number> = new Set();
   private roomState: RoomState = "WAITING";
+  private _idleTimer: ReturnType<typeof setTimeout> | null = null;
+
+  public onIdleTimeout?: (roomId: number) => void;
+  public onTurnTimeout?: (playerId: number, result: ActionResult) => void;
 
   constructor(private roomId: number, config: RoomConfig = { minChip: 0, betAmount: 100 }) {
     this.minChip = config.minChip;
     this.betAmount = config.betAmount;
+    this.startIdleTimer();
+  }
+
+  private startIdleTimer(): void {
+    this.clearIdleTimer();
+    this._idleTimer = setTimeout(() => {
+      this._idleTimer = null;
+      this.onIdleTimeout?.(this.roomId);
+    }, ROOM_IDLE_TIMEOUT_MS);
+  }
+
+  private clearIdleTimer(): void {
+    if (this._idleTimer !== null) {
+      clearTimeout(this._idleTimer);
+      this._idleTimer = null;
+    }
+  }
+
+  public destroy(): void {
+    this.clearIdleTimer();
+    this.gameSession?.destroy();
   }
 
   public getRoomId() { return this.roomId; }
@@ -145,10 +171,18 @@ export class Room {
 
   public startGame(deck?: IDeck): boolean {
     if (this.gameSession?.isPlaying()) return false;
+    this.clearIdleTimer();
     this.seatManager.ensureDealer();
     const playerIds = this.seatManager.getPlayerIds();
     const dealerId = this.seatManager.getDealerId()!;
     this.gameSession = new GameSession(playerIds, dealerId, deck);
+    this.gameSession.onTurnTimeout = (playerId, result) => {
+      if (result.gameEnded) {
+        this.roomState = "WAITING";
+        this.startIdleTimer();
+      }
+      this.onTurnTimeout?.(playerId, result);
+    };
     this.readyPlayers.clear();
     this.roomState = "PLAYING";
     const result = this.gameSession.start();
@@ -162,7 +196,10 @@ export class Room {
     this.readyPlayers.add(playerId);
     const allReady = this.gameSession.markPlayerReady(playerId);
     // sync roomState กรณีเกมจบทันที (เช่น ทุกคน Blackjack)
-    if (!this.gameSession.isPlaying()) this.roomState = "WAITING";
+    if (!this.gameSession.isPlaying()) {
+      this.roomState = "WAITING";
+      this.startIdleTimer();
+    }
     return allReady;
   }
 
@@ -185,7 +222,10 @@ export class Room {
     if (!this.gameSession) return null;
     const result = this.gameSession.applyAction(playerId, action) ?? null;
     // sync roomState ทันทีที่เกมจบ ไม่รอให้ getGameState() ถูกเรียก
-    if (result?.gameEnded) this.roomState = "WAITING";
+    if (result?.gameEnded) {
+      this.roomState = "WAITING";
+      this.startIdleTimer();
+    }
     return result;
   }
 

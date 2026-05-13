@@ -40,6 +40,8 @@ public class GameState : MonoBehaviour
   {
     if (!message.success) return;
     AccountUsername = message.username;
+    if (CurrentRoom != null)
+      GameSceneManager.LoadScene("Lobby");
   }
 
   private void SetMyPlayer(SeatData seat)
@@ -91,6 +93,11 @@ public class GameState : MonoBehaviour
     {
       case "snapshot":
         CurrentRoom = message.room;
+        break;
+
+      case "room_closed":
+        ClearRoom();
+        GameSceneManager.LoadScene("Login");
         break;
     }
   }

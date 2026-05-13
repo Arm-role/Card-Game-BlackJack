@@ -35,6 +35,10 @@ export class UserSession {
   public getSessionId() { return this.sessionId; }
 
   public send(message: any) {
-    this.ws.send(JSON.stringify(message));
+    try {
+      this.ws.send(JSON.stringify(message));
+    } catch {
+      // WebSocket already closed — ignore
+    }
   }
 }

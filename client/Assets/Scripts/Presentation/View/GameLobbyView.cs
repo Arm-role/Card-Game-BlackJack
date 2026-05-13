@@ -27,6 +27,7 @@ public class GameLobbyView : MonoBehaviour
     _Serviec.OnRoomUpdated += HandleRoomUpdated;
     _Serviec.OnSeatUpdated += HandleSeatUpdated;
     _Serviec.OnSwapRequest += _swapView.Setup;
+    _Serviec.OnRoomClosed += HandleRoomClosed;
     _view.OnSeatClicked += OnSeatClicked;
 
     _Serviec.RequestRoomData();
@@ -35,6 +36,11 @@ public class GameLobbyView : MonoBehaviour
   private void OnLeaveClicked()
   {
     _Serviec.LeaveRoom();
+  }
+
+  private void HandleRoomClosed()
+  {
+    GameSceneManager.LoadScene("Login");
   }
 
   private void HandleRoomUpdated(RoomData room)

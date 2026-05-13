@@ -1,469 +1,131 @@
-﻿// =====================================================
-// GameTableView.cs
-// =====================================================
 using System;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 
 public class GameTableView : MonoBehaviour
 {
-  public event Action OnPlayAgainPressed;
-  public event Action OnLeavePressed;
-
-  [Header("Host")]
-  [SerializeField] private Button _btnStart;
-  [SerializeField] private GameObject _hostCrown; // icon มงกุฎ (optional)
-
-  [Header("Result Popup Buttons")]
-  [SerializeField] private Button _btnPlayAgain;
-  [SerializeField] private Button _btnLeaveFromResult;
-
-  [Header("Chip")]
-  [SerializeField] private TextMeshProUGUI _myChipLabel;
-  [SerializeField] private TextMeshProUGUI _myBetLabel;
-
-  [Header("Room info")]
-  [SerializeField] private TextMeshProUGUI _minChipLabel;
-  [SerializeField] private GameObject _kickedPanel;
-  [SerializeField] private TextMeshProUGUI _kickedText;
-
-  [Header("My hand (bottom)")]
-  [SerializeField] private HandView _myHand;
-  [SerializeField] private TextMeshProUGUI _myScoreLabel;
-  [SerializeField] private TextMeshProUGUI _myNameLabel;
-  [SerializeField] private GameObject _myTurnIndicator;
-
-  [Header("Dealer (top)")]
-  [SerializeField] private HandView _dealerHand;
-  [SerializeField] private TextMeshProUGUI _dealerScoreLabel;
-
-  [Header("Other players (middle row)")]
-  [SerializeField] private OtherPlayerView[] _otherSlots;
-
-  [Header("Animator")]
-  [SerializeField] private CardDealAnimator _animator;
-
-  [Header("Buttons")]
-  [SerializeField] private Button _btnHit;
-  [SerializeField] private Button _btnStand;
-
-  [Header("Waiting label")]
-  [SerializeField] private GameObject _waitingForPlayers; // "รอผู้เล่นอื่น..."
-
-  [Header("Result")]
-  [SerializeField] private TextMeshProUGUI _myResultLabel;     // บน HandView ของตัวเอง
-  [SerializeField] private TextMeshProUGUI _resultPopupLabel;  // popup กลางจอ
+  [Header("Sub-views")]
+  [SerializeField] private CardDealView _cardDeal;
+  [SerializeField] private ActionButtonsView _actionButtons;
+  [SerializeField] private RoomInfoView _roomInfo;
+  [SerializeField] private ResultView _result;
 
   [Header("Panels")]
-  [SerializeField] private GameObject _lobbyPanel;      // มี btnStart, player list, minChip
-  [SerializeField] private GameObject _gameplayPanel;   // มี hand, score, action buttons
-  [SerializeField] private GameObject _resultPopupPanel; // popup หลังเกมจบ
+  [SerializeField] private GameObject _lobbyPanel;
+  [SerializeField] private GameObject _gameplayPanel;
 
+  public event Action OnPlayAgainPressed;
+  public event Action OnLeavePressed;
+  public event Action OnKickedDismissed;
 
-  private readonly Dictionary<int, OtherPlayerView> _playerViews = new();
-  private int _myPlayerId;
-
-  private bool _isAnimating = false;
-  private Action _pendingStateChange = null;
-
-  public bool IsAnimating => _isAnimating;
+  public bool IsAnimating => _cardDeal.IsAnimating;
 
   private void Awake()
   {
-    _btnStart.onClick.AddListener(OnClickStart);
-    _btnHit.onClick.AddListener(() => NetworkHelper.RequestHit());
-    _btnStand.onClick.AddListener(() => NetworkHelper.RequestStand());
-    _btnPlayAgain.onClick.AddListener(OnClickPlayAgain);
-    _btnLeaveFromResult.onClick.AddListener(OnClickLeaveFromResult);
-
-    SetActionButtons(false);
-    if (_waitingForPlayers) _waitingForPlayers.SetActive(false);
-    foreach (var slot in _otherSlots) slot.gameObject.SetActive(false);
-
+    _result.OnPlayAgainPressed += () => OnPlayAgainPressed?.Invoke();
+    _result.OnLeavePressed += () => OnLeavePressed?.Invoke();
+    _roomInfo.OnKickedDismissed += () => OnKickedDismissed?.Invoke();
     ShowLobby();
   }
 
-  // ─── Setup ──────────────────────────────────────────────────
+  // ─── Setup ────────────────────────────────────────────
 
-  public void SetMyPlayerId(int id) => _myPlayerId = id;
-  public void SetMyName(string name) => _myNameLabel.text = name;
+  public void SetMyPlayerId(int id) => _cardDeal.SetMyPlayerId(id);
+  public void SetMyName(string name) => _cardDeal.SetMyName(name);
 
-  // ─── Deal initial (DEALING state) ───────────────────────────
-
-  public void UpdateMyChip(int chip)
-  {
-    if (_myChipLabel)
-      _myChipLabel.text = $"{chip:N0}";
-  }
-
-  public void UpdateBetAmount(int betAmount)
-  {
-    if (_myBetLabel)
-      _myBetLabel.text = $"BET {betAmount:N0}";
-  }
-
-  public void DealInitialCards(
-      PlayerState[] players,
-      DealerState dealer,
-      int myPlayerId,
-      Action onComplete)
-  {
-    ClearAll();
-    _playerViews.Clear();
-
-    // ── assign OtherPlayerView slots ──
-    int slotIdx = 0;
-    foreach (var p in players)
-    {
-      if (p.playerId == myPlayerId) continue;
-      if (slotIdx >= _otherSlots.Length) break;
-
-      var slot = _otherSlots[slotIdx++];
-      slot.gameObject.SetActive(true);
-      slot.Init(p.playerId, $"P{p.playerId}");
-      _playerViews[p.playerId] = slot;
-    }
-
-    var queue = new List<(CardView card, RectTransform slot)>();
-
-    // dealer: ใบแรกเปิด ใบที่ 2 ปิด
-    if (dealer?.hand != null && dealer.hand.Length >= 2)
-    {
-      var cv0 = _dealerHand.SpawnCard(
-          CardIndex.ToIndex(dealer.hand[0].suit, dealer.hand[0].rank));
-      var cv1 = _dealerHand.SpawnFaceDown(
-          CardIndex.ToIndex(dealer.hand[1].suit, dealer.hand[1].rank));
-      queue.Add((cv0, _dealerHand.LastSlot()));
-      queue.Add((cv1, _dealerHand.LastSlot()));
-      SetScore(_dealerScoreLabel, 0, hidden: true);
-    }
-
-    // players: เราเห็นไพ่ตัวเอง / คนอื่นปิดใบที่ 2
-    foreach (var p in players)
-    {
-      if (p.hand == null || p.hand.Length < 2) continue;
-
-      if (p.playerId == myPlayerId)
-      {
-        var cv0 = _myHand.SpawnCard(
-            CardIndex.ToIndex(p.hand[0].suit, p.hand[0].rank));
-        var cv1 = _myHand.SpawnCard(
-            CardIndex.ToIndex(p.hand[1].suit, p.hand[1].rank));
-        queue.Add((cv0, _myHand.LastSlot()));
-        queue.Add((cv1, _myHand.LastSlot()));
-        SetScore(_myScoreLabel, p.score);
-      }
-      else if (_playerViews.TryGetValue(p.playerId, out var view))
-      {
-        // แก้ใหม่: spawn face-down แต่ส่ง index จริงเข้าไปเพื่อให้ flip ได้ตอน reveal
-        var (first, second) = view.SpawnInitialCards(p.hand[0], p.hand[1]);
-        // SpawnInitialCards ควร spawn ใบแรกเป็น face-down และใบที่สองเป็น face-down ด้วย
-        // แทนที่จะ spawn ใบแรกเป็น face-up
-        queue.Add((first, view.LastSlot()));
-        queue.Add((second, view.LastSlot()));
-      }
-    }
-
-    _isAnimating = true;
-    _animator.DealCards(queue.ToArray(), () => {
-      _isAnimating = false;
-      _pendingStateChange?.Invoke();
-      _pendingStateChange = null;
-      onComplete?.Invoke();
-    });
-  }
-
-  // ─── Chip ────────────────────────────────────────────────
-
-  public void UpdateMinChipLabel(int minChip)
-  {
-    if (_minChipLabel)
-      _minChipLabel.text = minChip > 0 ? $"min {minChip:N0}" : "";
-  }
-
-  public void ShowKickedMessage(string reason)
-  {
-    if (_kickedPanel) _kickedPanel.SetActive(true);
-    if (_kickedText) _kickedText.text = reason;
-    Invoke(nameof(HideKickedMessage), 3f);
-  }
-
-  private void HideKickedMessage()
-  {
-    if (_kickedPanel) _kickedPanel.SetActive(false);
-  }
-
-  // ─── Reveal dealer + spawn extra + show result ───────────────
-  public void RevealDealerAndShowResult(DealerState dealer, PlayerState[] players,
-      PlayerRoundResult[] results, int myPlayerId, Action<PlayerRoundResult[]> onDone)
-  {
-    var queue = new List<(CardView card, RectTransform slot)>();
-
-    // 1. flip ใบที่ 2 (ใบที่ปิดอยู่)
-    _dealerHand.RevealAll();
-
-    // 2. spawn extra cards (ใบที่ 3+) ถ้ามี
-    if (dealer?.hand != null && dealer.hand.Length > 2)
-    {
-      for (int i = 2; i < dealer.hand.Length; i++)
-      {
-        var cv = _dealerHand.SpawnCard(
-            CardIndex.ToIndex(dealer.hand[i].suit, dealer.hand[i].rank));
-        queue.Add((cv, _dealerHand.LastSlot()));
-      }
-    }
-
-    // 3. ถ้ามี extra → animate แล้ว callback
-    //    ถ้าไม่มี → callback ทันที
-    void finish()
-    {
-      SetScore(_dealerScoreLabel, dealer?.score ?? 0);
-      if (players != null)
-        foreach (var p in players)
-          if (p.playerId != myPlayerId)
-            if (_playerViews.TryGetValue(p.playerId, out var view))
-              view.RevealAll(p.score);
-      onDone?.Invoke(results);
-    }
-
-    if (queue.Count > 0)
-    {
-      _isAnimating = true;
-      _animator.DealCards(queue.ToArray(), () => {
-        _isAnimating = false;
-        _pendingStateChange?.Invoke();
-        _pendingStateChange = null;
-        finish();
-      });
-    }
-    else
-    {
-      finish();
-    }
-  }
-
-  // ─── UpdateHostUI ────────────────────────────────────────────────
-
-  public void UpdateHostUI(bool isHost)
-  {
-    // host เท่านั้นเห็นปุ่ม Start
-    _btnStart.gameObject.SetActive(isHost);
-
-    if (_hostCrown) _hostCrown.SetActive(isHost);
-    if (_btnPlayAgain) _btnPlayAgain.gameObject.SetActive(isHost);
-    Debug.Log($"[TableView] isHost={isHost} → btnStart {(isHost ? "shown" : "hidden")}");
-  }
-
-
-  // ─── Hit card ────────────────────────────────────────────────
-  public void AddCard(CardDataRes card, int newScore, int playerId)
-  {
-    if (playerId == _myPlayerId)
-    {
-      var cv = _myHand.SpawnCard(CardIndex.ToIndex(card.suit, card.rank));
-      var slot = _myHand.LastSlot();
-      _isAnimating = true;
-      _animator.DealCards(new[] { (cv, slot) }, () => {
-        SetScore(_myScoreLabel, newScore);
-        _isAnimating = false;
-        _pendingStateChange?.Invoke();
-        _pendingStateChange = null;
-      });
-    }
-    else if (_playerViews.TryGetValue(playerId, out var view))
-    {
-      var cv = view.SpawnFaceDownHitCard(card);
-      var slot = view.LastSlot();
-      _isAnimating = true;
-      _animator.DealCards(new[] { (cv, slot) }, () => {
-        _isAnimating = false;
-        _pendingStateChange?.Invoke();
-        _pendingStateChange = null;
-      });
-    }
-  }
-
-  // ─── Turn highlight ──────────────────────────────────────────
-
-  public void SetTurn(int currentPlayerId)
-  {
-    bool myTurn = currentPlayerId == _myPlayerId;
-    if (_myTurnIndicator) _myTurnIndicator.SetActive(myTurn);
-
-    foreach (var (pid, view) in _playerViews)
-      view.SetTurnHighlight(pid == currentPlayerId);
-  }
-
-  // ─── Waiting for players ─────────────────────────────────────
-
-  public void ShowWaitingForPlayers()
-  {
-    if (_waitingForPlayers) _waitingForPlayers.SetActive(true);
-  }
-
-  public void HideWaitingForPlayers()
-  {
-    if (_waitingForPlayers) _waitingForPlayers.SetActive(false);
-  }
-
-  // ─── Reveal all (game end) ───────────────────────────────────
-
-  public void RevealAll(PlayerState[] players, DealerState dealer)
-  {
-    _dealerHand.RevealAll();
-    if (dealer != null) SetScore(_dealerScoreLabel, dealer.score);
-
-    if (players == null) return;
-    foreach (var p in players)
-    {
-      if (p.playerId == _myPlayerId) continue;
-      if (_playerViews.TryGetValue(p.playerId, out var view))
-        view.RevealAll(p.score);
-    }
-  }
-  public void ResetWhenReady(Action onDone = null)
-  {
-    if (_isAnimating)
-    {
-      _pendingStateChange = () => {
-        ResetTable();
-        onDone?.Invoke();
-      };
-    }
-    else
-    {
-      ResetTable();
-      onDone?.Invoke();
-    }
-  }
-
-  // ─── Action buttons ──────────────────────────────────────────
-
-  public void ShowActionButtons()
-  {
-    SetActionButtons(true);
-    if (_myTurnIndicator) _myTurnIndicator.SetActive(true);
-  }
-
-  public void HideActionButtons()
-  {
-    SetActionButtons(false);
-    if (_myTurnIndicator) _myTurnIndicator.SetActive(false);
-  }
-
-  public void ShowResult(int playerId, string result)
-  {
-    // ── บน HandView ──
-    if (playerId == _myPlayerId)
-    {
-      if (_myResultLabel)
-      {
-        _myResultLabel.text = result;
-        _myResultLabel.color = ResultColor(result);
-        _myResultLabel.gameObject.SetActive(true);
-      }
-
-      // ── popup กลางจอ ──
-      if (_resultPopupPanel) _resultPopupPanel.SetActive(true);
-      if (_resultPopupLabel)
-      {
-        _resultPopupLabel.text = result;
-        _resultPopupLabel.color = ResultColor(result);
-      }
-    }
-    else if (_playerViews.TryGetValue(playerId, out var view))
-    {
-      view.ShowResult(result);
-    }
-  }
-
-  public void HideResult()
-  {
-    if (_myResultLabel) _myResultLabel.gameObject.SetActive(false);
-    if (_resultPopupPanel) _resultPopupPanel.SetActive(false);
-  }
-
-  private Color ResultColor(string result) => result switch
-  {
-    "WIN" => new Color(0.2f, 0.85f, 0.2f),   // เขียว
-    "LOSE" => new Color(0.9f, 0.2f, 0.2f),    // แดง
-    "DRAW" => new Color(0.9f, 0.75f, 0.1f),   // เหลือง
-    _ => Color.white,
-  };
+  // ─── Panels ───────────────────────────────────────────
 
   public void ShowLobby()
   {
     _lobbyPanel.SetActive(true);
     _gameplayPanel.SetActive(false);
-    _resultPopupPanel.SetActive(false);
+    _result.HideResult();
   }
 
   public void ShowGameplay()
   {
     _lobbyPanel.SetActive(false);
     _gameplayPanel.SetActive(true);
-    _resultPopupPanel.SetActive(false);
+    _result.HideResult();
   }
 
-  // ─── Reset ───────────────────────────────────────────────────
+  // ─── Cards ────────────────────────────────────────────
 
-  public void ResetTable()
-  {
-    _animator.StopAll();
-    ClearAll();
-    HideResult();
-    _resultPopupPanel.SetActive(false);
-    SetScore(_myScoreLabel, 0);
-    SetScore(_dealerScoreLabel, 0, hidden: true);
-    HideActionButtons();
-    HideWaitingForPlayers();
-    _btnStart.interactable = true;
-    foreach (var slot in _otherSlots) slot.gameObject.SetActive(false);
-    _playerViews.Clear();
-  }
+  public void DealInitialCards(PlayerState[] players, DealerState dealer, int myPlayerId, Action onComplete)
+      => _cardDeal.DealInitialCards(players, dealer, myPlayerId, onComplete);
 
-  // ─── Helpers ─────────────────────────────────────────────────
+  public void AddCard(CardDataRes card, int newScore, int playerId)
+      => _cardDeal.AddCard(card, newScore, playerId);
 
-  private void OnClickStart()
-  {
-    _btnStart.interactable = false;
-    NetworkHelper.RequestStartGame();
-  }
+  public void RevealDealerAndShowResult(DealerState dealer, PlayerState[] players,
+      PlayerRoundResult[] results, int myPlayerId, Action<PlayerRoundResult[]> onDone)
+      => _cardDeal.RevealDealerAndShowResult(dealer, players, results, myPlayerId, onDone);
 
-  private void OnClickPlayAgain()
-  {
-    OnPlayAgainPressed?.Invoke();
-  }
-
-  private void OnClickLeaveFromResult()
-  {
-    NetworkHelper.RequestLeaveRoom();
-    OnLeavePressed?.Invoke();
-  }
-
-  private void SetActionButtons(bool show)
-  {
-    _btnHit.gameObject.SetActive(show);
-    _btnStand.gameObject.SetActive(show);
-  }
-
-  private void SetScore(TextMeshProUGUI label, int score, bool hidden = false)
-      => label.text = hidden ? "?" : score > 0 ? score.ToString() : "";
+  public void RevealAll(PlayerState[] players, DealerState dealer)
+      => _cardDeal.RevealAll(players, dealer);
 
   public void RevealAllWhenReady(Action reveal)
   {
-    if (_isAnimating)
-      _pendingStateChange = reveal;
+    if (_cardDeal.IsAnimating)
+      _cardDeal.QueueAction(reveal);
     else
       reveal();
   }
 
-  private void ClearAll()
+  // ─── Turn ─────────────────────────────────────────────
+
+  public void SetTurn(int currentPlayerId) => _cardDeal.SetTurn(currentPlayerId);
+
+  // ─── Action buttons ───────────────────────────────────
+
+  public void ShowActionButtons() => _actionButtons.ShowActionButtons();
+  public void HideActionButtons() => _actionButtons.HideActionButtons();
+
+  // ─── Result ───────────────────────────────────────────
+
+  public void ShowResult(int playerId, string result)
   {
-    _myHand.Clear();
-    _dealerHand.Clear();
-    foreach (var (_, view) in _playerViews) view.Clear();
+    if (playerId == _cardDeal.MyPlayerId)
+      _result.ShowMyResult(result);
+    else
+      _cardDeal.ShowOtherPlayerResult(playerId, result);
+  }
+
+  public void HideResult() => _result.HideResult();
+  public void HideResultButtons() => _result.HideAllButtons();
+
+  // ─── Room info ────────────────────────────────────────
+
+  public void UpdateMyChip(int chip) => _roomInfo.UpdateMyChip(chip);
+  public void UpdateBetAmount(int bet) => _roomInfo.UpdateBetAmount(bet);
+  public void UpdateMinChipLabel(int min) => _roomInfo.UpdateMinChipLabel(min);
+  public void UpdateHostUI(bool isHost)
+  {
+    _roomInfo.UpdateHostUI(isHost);
+    _result.SetPlayAgainVisible(isHost);
+  }
+  public void ShowKickedPanel(string reason) => _roomInfo.ShowKickedPanel(reason);
+  public void ShowWaitingForPlayers() => _roomInfo.ShowWaitingForPlayers();
+  public void HideWaitingForPlayers() => _roomInfo.HideWaitingForPlayers();
+
+  // ─── Reset ────────────────────────────────────────────
+
+  public void ResetTable()
+  {
+    _cardDeal.Reset();
+    _actionButtons.HideActionButtons();
+    _result.HideResult();
+    _roomInfo.HideWaitingForPlayers();
+    _roomInfo.ResetStartButton();
+  }
+
+  public void ResetWhenReady(Action onDone = null)
+  {
+    if (_cardDeal.IsAnimating)
+      _cardDeal.QueueAction(() => { ResetTable(); onDone?.Invoke(); });
+    else
+    {
+      ResetTable();
+      onDone?.Invoke();
+    }
   }
 }
