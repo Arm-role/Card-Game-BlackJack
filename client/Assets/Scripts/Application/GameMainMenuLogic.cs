@@ -1,82 +1,62 @@
-using System;
 using UnityEngine;
 
 public class GameMainMenuLogic
 {
-  private int _roomId;
-  private string _username;
-  private string _password;
+    private readonly INetworkSender _sender;
 
-  public void OnUsernameChange(string value)
-  {
-    _username = value;
-  }
+    private int _roomId;
+    private string _username;
+    private string _password;
 
-  public void OnPasswordChange(string value)
-  {
-    _password = value;
-  }
-
-  public void OnLogin()
-  {
-    if (string.IsNullOrWhiteSpace(_username) ||
-        string.IsNullOrWhiteSpace(_password))
+    public GameMainMenuLogic(INetworkSender sender)
     {
-      Debug.LogWarning("Username or Password empty");
-      return;
+        _sender = sender;
     }
 
-    NetworkHelper.RequestLogin(_username, _password);
-  }
+    public void OnUsernameChange(string value) => _username = value;
+    public void OnPasswordChange(string value) => _password = value;
 
-  public void OnRegister()
-  {
-    if (string.IsNullOrWhiteSpace(_username) ||
-        string.IsNullOrWhiteSpace(_password))
+    public void OnLogin()
     {
-      Debug.LogWarning("Username or Password empty");
-      return;
+        if (string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_password))
+        {
+            Debug.LogWarning("Username or Password empty");
+            return;
+        }
+        _sender.RequestLogin(_username, _password);
     }
 
-    NetworkHelper.RequestRegister(_username, _password);
-  }
-
-  public void OnRoomIDChange(string input)
-  {
-    if (int.TryParse(input, out int parsed))
+    public void OnRegister()
     {
-      _roomId = parsed;
-    }
-    else
-    {
-      _roomId = 0;
-    }
-  }
-
-  public void OnCreateRoom(int betAmount = GameConfig.BetAmount)
-  {
-    NetworkHelper.RequestCreateRoom(betAmount: betAmount);
-  }
-
-  public void OnJoinRoom()
-  {
-    if (!IsValidRoom())
-    {
-      Debug.LogWarning("Invalid Room ID");
-      return;
+        if (string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_password))
+        {
+            Debug.LogWarning("Username or Password empty");
+            return;
+        }
+        _sender.RequestRegister(_username, _password);
     }
 
-    NetworkHelper.RequestJoinRoom(_roomId);
-  }
+    public void OnRoomIDChange(string input)
+    {
+        _roomId = int.TryParse(input, out int parsed) ? parsed : 0;
+    }
 
-  public void OnQuickJoinRoom()
-  {
-    NetworkHelper.RequestQuickJoinRoom();
-  }
+    public void OnCreateRoom(int minChip = GameConfig.MinChip, int betAmount = GameConfig.BetAmount)
+    {
+        _sender.RequestCreateRoom(minChip, betAmount);
+    }
 
-  public bool IsValidRoom()
-  {
-    return _roomId >= 0 && _roomId <= 999999;
-  }
+    public void OnJoinRoom()
+    {
+        if (!IsValidRoom())
+        {
+            Debug.LogWarning("Invalid Room ID");
+            return;
+        }
+        _sender.RequestJoinRoom(_roomId);
+    }
 
+    public void OnQuickJoinRoom() => _sender.RequestQuickJoinRoom();
+
+    public bool IsValidRoom() => _roomId >= 0 && _roomId <= 999999;
 }

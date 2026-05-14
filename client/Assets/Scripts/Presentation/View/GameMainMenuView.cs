@@ -24,66 +24,59 @@ public class GameMainMenuView : MonoBehaviour
   [SerializeField] private Button _LoginUIButton;
   [SerializeField] private Button _CreateUIButton;
   [SerializeField] private Button _JoinUIButton;
+  [SerializeField] private Button _BackFromModeButton;
+  [SerializeField] private Button _BackFromJoinButton;
   [SerializeField] private TextMeshProUGUI _ErrorText;
 
   private GameMainMenuLogic _Logic;
 
-  private void Start()
+  private void Awake()
   {
-    _Logic = new GameMainMenuLogic();
-
-    _Username.onValueChanged.AddListener(OnUsernameChange);
-    _Password.onValueChanged.AddListener(OnPasswordChange);
-    _Login.onClick.AddListener(OnLogin);
-    _Register.onClick.AddListener(OnRegister);
-
-    _RoomIDField.onValueChanged.AddListener(OnRoomIDChange);
+    _Username.onValueChanged.AddListener(v => _Logic?.OnUsernameChange(v));
+    _Password.onValueChanged.AddListener(v => _Logic?.OnPasswordChange(v));
+    _Login.onClick.AddListener(() => _Logic?.OnLogin());
+    _Register.onClick.AddListener(() => _Logic?.OnRegister());
+    _RoomIDField.onValueChanged.AddListener(v => _Logic?.OnRoomIDChange(v));
 
     if (_createRoomPanel != null)
-      _createRoomPanel.OnConfirmed += bet => _Logic.OnCreateRoom(bet);
-    _JoinRoom.onClick.AddListener(OnJoinRoom);
-    _QuickJoinRoom.onClick.AddListener(OnQuickJoinRoom);
+      _createRoomPanel.OnConfirmed += bet => _Logic?.OnCreateRoom(betAmount: bet);
+    _JoinRoom.onClick.AddListener(() => _Logic?.OnJoinRoom());
+    _QuickJoinRoom.onClick.AddListener(() => _Logic?.OnQuickJoinRoom());
 
-    _RegisterUIButton.onClick.AddListener(OnGotoRegisterUI);
-    _LoginUIButton.onClick.AddListener(OnGotoLoginUI);
+    _RegisterUIButton.onClick.AddListener(() => _UISwip.ActiveUIOnly("Register"));
+    _LoginUIButton.onClick.AddListener(() => _UISwip.ActiveUIOnly("Login"));
     if (_CreateUIButton != null)
       _CreateUIButton.onClick.AddListener(OnCreateRoomClicked);
-    _JoinUIButton.onClick.AddListener(OnGotoJoinUI);
-
-    if (GameState.Instance.AccountUsername != null)
-    {
-      _UISwip.ActiveUIOnly("Mode");
-    }
-    else
-    {
-      _UISwip.ActiveUIOnly("Login");
-    }
+    _JoinUIButton.onClick.AddListener(() => _UISwip.ActiveUIOnly("Join"));
+    if (_BackFromModeButton != null)
+      _BackFromModeButton.onClick.AddListener(() =>
+      {
+        GameState.Instance.Logout();
+        _UISwip.ActiveUIOnly("Login");
+      });
+    if (_BackFromJoinButton != null)
+      _BackFromJoinButton.onClick.AddListener(() => _UISwip.ActiveUIOnly("Mode"));
   }
 
-
-  public void Initialze(IWSClient wSClient)
+  public void Initialze(IMessageRouter router, INetworkSender sender)
   {
-    wSClient.Dispatcher
-     .Register<RegisterResultMessage>("register_result", OnRegisterMessage);
-    wSClient.Dispatcher
-      .Register<LoginResultMessage>("login_result", OnLoginMessage);
-    wSClient.Dispatcher
-      .Register<RoomResultMessage>("room_result", OnRoomMessage);
+    _Logic = new GameMainMenuLogic(sender);
+
+    _UISwip.ActiveUIOnly(GameState.Instance.AccountUsername != null ? "Mode" : "Login");
+
+    router.OnRegisterResult += OnRegisterMessage;
+    router.OnLoginResult += OnLoginMessage;
+    router.OnRoomResult += OnRoomMessage;
   }
 
   private void OnRegisterMessage(RegisterResultMessage message)
   {
-    Debug.Log(message);
-    if (message.success)
-      _UISwip.ActiveUIOnly("Mode");
+    if (message.success) _UISwip.ActiveUIOnly("Mode");
   }
 
   private void OnLoginMessage(LoginResultMessage message)
   {
-    Debug.Log(message);
-
-    if (message.success)
-      _UISwip.ActiveUIOnly("Mode");
+    if (message.success) _UISwip.ActiveUIOnly("Mode");
   }
 
   private void OnRoomMessage(RoomResultMessage message)
@@ -93,7 +86,6 @@ public class GameMainMenuView : MonoBehaviour
       ShowError(message.reason);
       return;
     }
-
     switch (message.action)
     {
       case "create":
@@ -123,64 +115,9 @@ public class GameMainMenuView : MonoBehaviour
     if (_ErrorText) _ErrorText.text = "";
   }
 
-
-  private void OnUsernameChange(string value)
-  {
-    _Logic.OnUsernameChange(value);
-  }
-
-  private void OnPasswordChange(string value)
-  {
-    _Logic.OnPasswordChange(value);
-  }
-
-  private void OnLogin()
-  {
-    _Logic.OnLogin();
-  }
-
-  private void OnRegister()
-  {
-    _Logic.OnRegister();
-  }
-
-
-
-  private void OnRoomIDChange(string input)
-  {
-    _Logic.OnRoomIDChange(input);
-  }
-
   private void OnCreateRoomClicked()
   {
-    if (_createRoomPanel != null)
-      _createRoomPanel.Show();
-    else
-      _Logic.OnCreateRoom();
+    if (_createRoomPanel != null) _createRoomPanel.Show();
+    else _Logic?.OnCreateRoom();
   }
-  private void OnJoinRoom()
-  {
-    _Logic.OnJoinRoom();
-  }
-
-  private void OnQuickJoinRoom()
-  {
-    _Logic.OnQuickJoinRoom();
-  }
-
-
-  private void OnGotoRegisterUI()
-  {
-    _UISwip.ActiveUIOnly("Register");
-  }
-  private void OnGotoLoginUI()
-  {
-    _UISwip.ActiveUIOnly("Login");
-  }
-
-  private void OnGotoJoinUI()
-  {
-    _UISwip.ActiveUIOnly("Join");
-  }
-
 }

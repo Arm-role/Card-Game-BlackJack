@@ -48,8 +48,7 @@ public class ResultView : MonoBehaviour
 
   private void OnClickLeave()
   {
-    NetworkHelper.RequestLeaveRoom();
-    OnLeavePressed?.Invoke();
+    OnLeavePressed?.Invoke(); // GameplayLogic.OnLeaveRoom handles RequestLeaveRoom
   }
 
   private Color ResultColor(string result) => result switch

@@ -1,163 +1,98 @@
-﻿using System;
-using UnityEngine;
-public class NetworkHelper
+public class NetworkHelper : INetworkSender
 {
-  public static event Action<object> OnSend;
+    private readonly IWSClient _client;
 
-  public static void RequestLogin(string username, string password)
-  {
-    var request = new LoginRequest
+    public NetworkHelper(IWSClient client)
     {
-      type = "request_login",
-      data = new AuthData
-      {
-        username = username,
-        password = password
-      }
-    };
+        _client = client;
+    }
 
-    OnSend?.Invoke(request);
-  }
-
-  public static void RequestRegister(string username, string password)
-  {
-    var request = new RegisterRequest
+    public void RequestLogin(string username, string password)
     {
-      type = "request_register",
-      data = new AuthData
-      {
-        username = username,
-        password = password
-      }
-    };
+        _client.Send(new LoginRequest
+        {
+            type = "request_login",
+            data = new AuthData { username = username, password = password }
+        });
+    }
 
-    OnSend?.Invoke(request);
-  }
-
-  public static void RequestCreateRoom(int minChip = GameConfig.MinChip, int betAmount = GameConfig.BetAmount)
-  {
-    var request = new CreateRoomRequest
+    public void RequestRegister(string username, string password)
     {
-      type = "request_create_room",
-      data = new CreatRoomDataRequest
-      {
-        minChip = minChip,
-        betAmount = betAmount
-      }
-    };
-    OnSend?.Invoke(request);
-  }
+        _client.Send(new RegisterRequest
+        {
+            type = "request_register",
+            data = new AuthData { username = username, password = password }
+        });
+    }
 
-  public static void RequestJoinRoom(int roomId)
-  {
-    var request = new JoinRoomRequest
+    public void RequestCreateRoom(int minChip = GameConfig.MinChip, int betAmount = GameConfig.BetAmount)
     {
-      type = "request_join_room",
-      data = new RoomDataRequest
-      {
-        roomId = roomId.ToString()
-      }
-    };
+        _client.Send(new CreateRoomRequest
+        {
+            type = "request_create_room",
+            data = new CreatRoomDataRequest { minChip = minChip, betAmount = betAmount }
+        });
+    }
 
-    OnSend?.Invoke(request);
-  }
-
-  public static void RequestQuickJoinRoom()
-  {
-    var request = new QuickJoinRequest
+    public void RequestJoinRoom(int roomId)
     {
-      type = "request_quick_join_room"
-    };
+        _client.Send(new JoinRoomRequest
+        {
+            type = "request_join_room",
+            data = new RoomDataRequest { roomId = roomId.ToString() }
+        });
+    }
 
-    OnSend?.Invoke(request);
-  }
-
-  public static void RequestRoomSnapshot()
-  {
-    string msg = "{\"type\":\"request_room_snapshot\"}";
-    OnSend?.Invoke(msg);
-  }
-  public static void RequestLeaveRoom()
-  {
-    string msg = "{\"type\":\"request_leave_room\"}";
-    OnSend?.Invoke(msg);
-  }
-
-  public static void RequestSwapSeat(int fromSeat, int toSeat)
-  {
-    Debug.Log($"from: {fromSeat} to: {toSeat}");
-
-    var request = new SwapSeatRequest
+    public void RequestQuickJoinRoom()
     {
-      type = "request_swap_seat",
-      data = new SwapSeatData
-      {
-        fromSeat = fromSeat,
-        toSeat = toSeat
-      }
-    };
+        _client.Send(new QuickJoinRequest { type = "request_quick_join_room" });
+    }
 
-    OnSend?.Invoke(request);
-  }
-
-  public static void RequestSwapResponse(bool accept)
-  {
-    var request = new SwapResponseRequest
+    public void RequestLeaveRoom()
     {
-      type = "request_swap_response",
-      data = new SwapSeatResponsData()
-      {
-        accept = accept
-      }
-    };
+        _client.Send(new LeaveRoomRequest());
+    }
 
-    OnSend?.Invoke(request);
-  }
+    public void RequestSwapSeat(int fromSeat, int toSeat)
+    {
+        _client.Send(new SwapSeatRequest
+        {
+            type = "request_swap_seat",
+            data = new SwapSeatData { fromSeat = fromSeat, toSeat = toSeat }
+        });
+    }
 
-  public static void RequestStartGame()
-  {
-    //var request = new StartGameRequest()
-    //{
-    //  type = "request_start_game"
-    //};
+    public void RequestSwapResponse(bool accept)
+    {
+        _client.Send(new SwapResponseRequest
+        {
+            type = "request_swap_response",
+            data = new SwapSeatResponsData { accept = accept }
+        });
+    }
 
-    string msg = "{\"type\":\"request_start_game\"}";
-    OnSend?.Invoke(msg);
-  }
+    public void RequestStartGame()
+    {
+        _client.Send(new StartGameRequest());
+    }
 
-  public static void RequestPlayerReady()
-  {
-    string msg = "{\"type\":\"request_player_ready\"}";
-    OnSend?.Invoke(msg);
-  }
+    public void RequestPlayerReady()
+    {
+        _client.Send(new PlayerReadyRequest());
+    }
 
-  public static void RequestHit()
-  {
-    var request = new HitRequest();
-    OnSend?.Invoke(request);
-  }
+    public void RequestHit()
+    {
+        _client.Send(new HitRequest());
+    }
 
-  public static void RequestStand()
-  {
-    var request = new StandRequest();
-    OnSend?.Invoke(request);
-  }
+    public void RequestStand()
+    {
+        _client.Send(new StandRequest());
+    }
 
-  public static void RequestClaimChip()
-  {
-    string msg = "{\"type\":\"request_claim_chip\"}";
-    OnSend?.Invoke(msg);
-  }
-
-  public static void SendPlayCard(string cardId)
-  {
-    string msg = "{\"type\":\"play_card\",\"cardId\":\"" + cardId + "\"}";
-    OnSend?.Invoke(msg);
-  }
-
-  public static void SendNameChange(string newName)
-  {
-    string msg = "{\"type\":\"name_change\",\"newName\":\"" + newName + "\"}";
-    OnSend?.Invoke(msg);
-  }
+    public void RequestClaimChip()
+    {
+        _client.Send(new ClaimChipRequest());
+    }
 }

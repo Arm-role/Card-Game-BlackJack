@@ -5,7 +5,7 @@ using UnityEngine;
 public class LobbyService
 {
   private readonly LobbyDomain _domain;
-  private readonly IWSClient _client;
+  private readonly INetworkSender _sender;
 
   public event Action<IReadOnlyDictionary<int, SeatData>> OnSeatUpdated
   {
@@ -17,13 +17,12 @@ public class LobbyService
   public event Action<SeatSwapData> OnSwapRequest;
   public event Action OnRoomClosed;
 
-  public LobbyService(LobbyDomain domain, IWSClient client)
+  public LobbyService(LobbyDomain domain, IMessageRouter router, INetworkSender sender)
   {
     _domain = domain;
-    _client = client;
+    _sender = sender;
 
-    _client.Dispatcher.Register<RoomUpdateMessage>("room_update", OnRoomUpdate);
-    Debug.Log("LobbyServiec Register");
+    router.OnRoomUpdate += OnRoomUpdate;
   }
 
   //-----------Get----------//
@@ -69,18 +68,19 @@ public class LobbyService
       SyncFromServer(GameState.Instance.CurrentRoom);
   }
 
-  public void RequestSwapSeat(int selectedSeat, int index)
+  public void RequestSwapSeat(int fromSeat, int toSeat)
   {
-    NetworkHelper.RequestSwapSeat(selectedSeat, index);
+    _sender.RequestSwapSeat(fromSeat, toSeat);
   }
 
   public void StartGame()
   {
     if (_domain.CanStartGame())
-      NetworkHelper.RequestStartGame();
+      _sender.RequestStartGame();
   }
+
   public void LeaveRoom()
   {
-    NetworkHelper.RequestLeaveRoom();
+    _sender.RequestLeaveRoom();
   }
 }

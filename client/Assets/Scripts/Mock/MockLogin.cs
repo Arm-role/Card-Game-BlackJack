@@ -1,132 +1,102 @@
 using UnityEngine;
 
+// Dev-only: auto-authenticates and quick-joins without UI interaction.
+// Production scenes use LoginSceneInstaller + LobbySceneInstaller instead.
 public class MockLogin : MonoBehaviour
 {
-  private GameMainMenuLogic _Logic = new GameMainMenuLogic();
-  private GameplayLogic _gameplay;
+    private GameMainMenuLogic _logic;
+    private GameplayLogic _gameplay;
 
-  private string _username;
-  private string _password = "123456789";
+    private string _username;
+    private readonly string _password = "123456789";
 
-  [SerializeField] private GameTableView _table;
+    [SerializeField] private GameTableView _table;
 
-  [Header("Test Config")]
-  [SerializeField] private int _createRoomMinChip = 0;
-  [SerializeField] private int _createRoomBetAmount = 100;
+    [Header("Test Config")]
+    [SerializeField] private int _createRoomMinChip = 0;
+    [SerializeField] private int _createRoomBetAmount = 100;
 
-  private ClientGameState _state = ClientGameState.Disconnected;
-  private ClientGameState State
-  {
-    get => _state;
-    set { Debug.Log($"[State] {_state} → {value}"); _state = value; }
-  }
-
-  private void Start()
-  {
-    _username = "Player_" + Random.Range(1000, 9999);
-    _gameplay = new GameplayLogic(this, WSClient.Instance, _table);
-    _table.MarkGameplayWired(_gameplay);
-
-    var d = WSClient.Instance.Dispatcher;
-    WSClient.Instance.Dispatcher.OnWSConnected += OnRegister;
-
-    d.Register<RegisterResultMessage>("register_result", OnRegisterMessage);
-    d.Register<LoginResultMessage>("login_result", OnLoginMessage);
-    d.Register<RoomResultMessage>("room_result", OnRoomMessage);
-
-    _table.OnPlayAgainPressed += _gameplay.OnPlayAgain;
-    _table.OnLeavePressed += _gameplay.OnLeaveRoom;
-    _table.OnKickedDismissed += () => GameSceneManager.LoadScene("Login");
-  }
-
-  // ─── Auth ─────────────────────────────────────────────
-
-  private void OnRegisterMessage(RegisterResultMessage msg)
-  {
-    if (msg.success)
+    private void Start()
     {
-      Debug.Log($"[register] ✅ {msg.username}");
-      State = ClientGameState.Authenticated;
-      OnQuickJoinRoom();
+        _username = "Player_" + Random.Range(1000, 9999);
+
+        var router = WSClient.Instance.Router;
+        var sender = new NetworkHelper(WSClient.Instance);
+
+        if (!GameState.Instance.IsInitialze)
+            GameState.Instance.Initialze(router, GameInput.Instance);
+
+        _logic = new GameMainMenuLogic(sender);
+
+        _table.SetupNetworking(sender);
+        _gameplay = new GameplayLogic(_table, router, _table, sender);
+        _table.MarkGameplayWired(_gameplay);
+        _table.OnPlayAgainPressed += _gameplay.OnPlayAgain;
+        _table.OnLeavePressed += _gameplay.OnLeaveRoom;
+        _table.OnKickedDismissed += () => GameSceneManager.LoadScene("Login");
+
+        var d = WSClient.Instance.Dispatcher;
+        WSClient.Instance.Dispatcher.OnWSConnected += OnAutoRegister;
+        d.Register<RegisterResultMessage>("register_result", OnRegisterMessage);
+        d.Register<LoginResultMessage>("login_result", OnLoginMessage);
+        d.Register<RoomResultMessage>("room_result", OnRoomMessage);
     }
-    else
+
+    // ─── Dev automation ───────────────────────────────────
+
+    private void OnAutoRegister()
     {
-      Debug.LogWarning($"[register] ❌ {msg.reason}");
-      OnLogin();
+        _logic.OnUsernameChange(_username);
+        _logic.OnPasswordChange(_password);
+        _logic.OnRegister();
     }
-  }
 
-  private void OnLoginMessage(LoginResultMessage msg)
-  {
-    if (msg.success)
+    private void OnRegisterMessage(RegisterResultMessage msg)
     {
-      Debug.Log($"[login] ✅ {msg.username}");
-      State = ClientGameState.Authenticated;
-      OnQuickJoinRoom();
+        if (msg.success)
+            _logic.OnQuickJoinRoom();
+        else
+        {
+            _logic.OnUsernameChange(_username);
+            _logic.OnPasswordChange(_password);
+            _logic.OnLogin();
+        }
     }
-    else Debug.LogWarning($"[login] ❌ {msg.reason}");
-  }
 
-  // ─── Room Entry / Leave ───────────────────────────────
-
-  private void OnRoomMessage(RoomResultMessage msg)
-  {
-    if (msg.success)
+    private void OnLoginMessage(LoginResultMessage msg)
     {
-      switch (msg.action)
-      {
-        case "create":
-        case "join":
-        case "quick_join":
-          State = ClientGameState.InRoom;
-          Debug.Log($"[room] ✅ Entered | myId={msg.seat?.playerId}");
-          break;
-
-        case "leave":
-          _table.ShowLobby();
-          State = ClientGameState.Authenticated;
-          break;
-      }
+        if (msg.success) _logic.OnQuickJoinRoom();
     }
-    else
+
+    private void OnRoomMessage(RoomResultMessage msg)
     {
-      Debug.LogWarning($"[room] ❌ {msg.action} | reason={msg.reason}");
-      switch (msg.reason)
-      {
-        case "INSUFFICIENT_CHIP":
-          var needed = msg.action == "create" ? _createRoomBetAmount : _gameplay.MinChip;
-          _table.ShowKickedPanel($"chip ไม่ถึง {needed:N0} — เข้าห้องไม่ได้");
-          return;
-        case "NOT_HOST":
-          Debug.LogWarning("[room] คุณไม่ใช่ host");
-          break;
-      }
-      if (msg.action == "quick_join") OnCreateRoom();
+        if (!msg.success)
+        {
+            if (msg.reason == "INSUFFICIENT_CHIP")
+            {
+                var needed = msg.action == "create" ? _createRoomBetAmount : _gameplay.MinChip;
+                _table.ShowKickedPanel($"chip ไม่ถึง {needed:N0} — เข้าห้องไม่ได้");
+                return;
+            }
+            if (msg.action == "quick_join")
+                _logic.OnCreateRoom(_createRoomMinChip, _createRoomBetAmount);
+            return;
+        }
+
+        switch (msg.action)
+        {
+            case "create":
+            case "join":
+            case "quick_join":
+                _gameplay.SetMyPlayerId(msg.seat?.playerId ?? 0);
+                break;
+        }
     }
-  }
 
-  // ─── Debug / Helpers ──────────────────────────────────
+    // ─── Dev overlay ──────────────────────────────────────
 
-  private void OnGUI()
-  {
-    GUI.Label(new Rect(10, 10, 300, 25), $"State: {State}");
-    GUI.Label(new Rect(10, 35, 300, 25), $"Animating: {_table.IsAnimating}");
-  }
-
-  private void OnLogin()
-  {
-    _Logic.OnUsernameChange(_username);
-    _Logic.OnPasswordChange(_password);
-    _Logic.OnLogin();
-  }
-
-  private void OnRegister()
-  {
-    _Logic.OnUsernameChange(_username);
-    _Logic.OnPasswordChange(_password);
-    _Logic.OnRegister();
-  }
-
-  private void OnCreateRoom() => NetworkHelper.RequestCreateRoom(_createRoomMinChip, _createRoomBetAmount);
-  private void OnQuickJoinRoom() => _Logic.OnQuickJoinRoom();
+    private void OnGUI()
+    {
+        GUI.Label(new Rect(10, 10, 400, 25), $"[DEV] user={_username}  animating={_table.IsAnimating}");
+    }
 }

@@ -26,8 +26,16 @@ public class RoomInfoView : MonoBehaviour
 
   private void Awake()
   {
-    _btnStart.onClick.AddListener(OnClickStart);
     if (_waitingForPlayers) _waitingForPlayers.SetActive(false);
+  }
+
+  public void Init(INetworkSender sender)
+  {
+    _btnStart.onClick.AddListener(() =>
+    {
+      _btnStart.interactable = false;
+      sender.RequestStartGame();
+    });
   }
 
   public void UpdateMyChip(int chip)
@@ -76,9 +84,4 @@ public class RoomInfoView : MonoBehaviour
     if (_waitingForPlayers) _waitingForPlayers.SetActive(false);
   }
 
-  private void OnClickStart()
-  {
-    _btnStart.interactable = false;
-    NetworkHelper.RequestStartGame();
-  }
 }

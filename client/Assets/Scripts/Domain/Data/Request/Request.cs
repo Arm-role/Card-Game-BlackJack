@@ -84,7 +84,25 @@ public class SwapSeatResponsData
 [Serializable]
 public class StartGameRequest
 {
-  public string type;
+  public string type = "request_start_game";
+}
+
+[Serializable]
+public class LeaveRoomRequest
+{
+  public string type = "request_leave_room";
+}
+
+[Serializable]
+public class PlayerReadyRequest
+{
+  public string type = "request_player_ready";
+}
+
+[Serializable]
+public class ClaimChipRequest
+{
+  public string type = "request_claim_chip";
 }
 
 [Serializable]

@@ -11,15 +11,10 @@ public class ClaimChipHandler : MonoBehaviour
   public event Action<int> OnSuccess;
   public event Action<string> OnFailed;
 
-  public void Init(IWSClient client)
+  public void Init(IMessageRouter router, INetworkSender sender)
   {
-    client.Dispatcher.Register<ClaimChipResultMessage>("claim_chip_result", OnClaimChipResult);
-    _claimButton.onClick.AddListener(Claim);
-  }
-
-  private void Claim()
-  {
-    NetworkHelper.RequestClaimChip();
+    router.OnClaimChipResult += OnClaimChipResult;
+    _claimButton.onClick.AddListener(() => sender.RequestClaimChip());
   }
 
   private void OnClaimChipResult(ClaimChipResultMessage msg)

@@ -19,6 +19,7 @@ public class WSClient : MonoBehaviour, IWSClient
   private bool _isQuitting = false;
 
   public INetworkDispatcher Dispatcher { get; private set; }
+  public IMessageRouter Router { get; private set; }  // concrete only — not on IWSClient
 
   #region Unity Lifecycle
 
@@ -29,6 +30,7 @@ public class WSClient : MonoBehaviour, IWSClient
       Instance = this;
       DontDestroyOnLoad(gameObject);
       Dispatcher = new NetworkDispatcher();
+      Router = new MessageRouter(Dispatcher);
     }
     else
     {
@@ -39,7 +41,6 @@ public class WSClient : MonoBehaviour, IWSClient
 
   private async void Start()
   {
-    NetworkHelper.OnSend += Send;
     await Connect();
   }
 
@@ -51,8 +52,6 @@ public class WSClient : MonoBehaviour, IWSClient
 
   private async void OnDestroy()
   {
-    NetworkHelper.OnSend -= Send;
-
     if (Instance == this)
       Instance = null;
 

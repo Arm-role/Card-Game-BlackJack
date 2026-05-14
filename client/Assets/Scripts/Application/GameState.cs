@@ -21,12 +21,12 @@ public class GameState : MonoBehaviour
     DontDestroyOnLoad(gameObject);
   }
 
-  public void Initialze(IWSClient client, IGameInput gameInput)
+  public void Initialze(IMessageRouter router, IGameInput gameInput)
   {
-    client.Dispatcher.Register<RegisterResultMessage>("register_result", OnRegisterResult);
-    client.Dispatcher.Register<LoginResultMessage>("login_result", OnLoginResult);
-    client.Dispatcher.Register<RoomResultMessage>("room_result", OnRoomResult);
-    client.Dispatcher.Register<RoomUpdateMessage>("room_update", OnRoomUpdate);
+    router.OnRegisterResult += OnRegisterResult;
+    router.OnLoginResult += OnLoginResult;
+    router.OnRoomResult += OnRoomResult;
+    router.OnRoomUpdate += OnRoomUpdate;
 
     IsInitialze = true;
   }
@@ -89,6 +89,7 @@ public class GameState : MonoBehaviour
     }
   }
 
+  // Canonical owner for room_closed navigation — do NOT call LoadScene("Login") elsewhere for this event
   private void OnRoomUpdate(RoomUpdateMessage message)
   {
     Debug.LogWarning(message.action);
@@ -104,6 +105,12 @@ public class GameState : MonoBehaviour
         GameSceneManager.LoadScene("Login");
         break;
     }
+  }
+
+  public void Logout()
+  {
+    AccountUsername = null;
+    ClearRoom();
   }
 
   public void ClearRoom()

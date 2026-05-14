@@ -14,9 +14,13 @@ public class ActionButtonsView : MonoBehaviour
 
   private void Awake()
   {
-    _btnHit.onClick.AddListener(() => NetworkHelper.RequestHit());
-    _btnStand.onClick.AddListener(() => NetworkHelper.RequestStand());
     HideActionButtons();
+  }
+
+  public void Init(INetworkSender sender)
+  {
+    _btnHit.onClick.AddListener(() => sender.RequestHit());
+    _btnStand.onClick.AddListener(() => sender.RequestStand());
   }
 
   public void ShowActionButtons()

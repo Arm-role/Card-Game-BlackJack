@@ -9,31 +9,21 @@ public class SeatSwapViewUI : MonoBehaviour
   [SerializeField] private Button _AcceptButton;
   [SerializeField] private Button _CancelButton;
 
-  private void Start()
+  private void Awake()
   {
-    _AcceptButton.onClick.AddListener(OnAccept);
-    _CancelButton.onClick.AddListener(OnCancel);
-
     _SeatSwapRoot.SetActive(false);
+  }
+
+  public void Init(INetworkSender sender)
+  {
+    _AcceptButton.onClick.AddListener(() => { sender.RequestSwapResponse(true);  _SeatSwapRoot.SetActive(false); });
+    _CancelButton.onClick.AddListener(() => { sender.RequestSwapResponse(false); _SeatSwapRoot.SetActive(false); });
   }
 
   public void Setup(SeatSwapData data)
   {
     _Description.text = $"{data.fromPlayerName} Request Swap";
     _SeatSwapRoot.SetActive(true);
-  }
-
-  private void OnAccept()
-  {
-    NetworkHelper.RequestSwapResponse(true);
-    _SeatSwapRoot.SetActive(false);
-
-  }
-
-  private void OnCancel()
-  {
-    NetworkHelper.RequestSwapResponse(false);
-    _SeatSwapRoot.SetActive(false);
   }
 
 }

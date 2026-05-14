@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class GameTableView : MonoBehaviour, IGameTableView
+public class GameTableView : MonoBehaviour, IGameTableView, ICoroutineRunner
 {
   [Header("Sub-views")]
   [SerializeField] private CardDealView _cardDeal;
@@ -30,6 +30,12 @@ public class GameTableView : MonoBehaviour, IGameTableView
   }
 
   // ─── Setup ────────────────────────────────────────────
+
+  public void SetupNetworking(INetworkSender sender)
+  {
+    _actionButtons.Init(sender);
+    _roomInfo.Init(sender);
+  }
 
   public void MarkGameplayWired(GameplayLogic gameplay = null)
   {

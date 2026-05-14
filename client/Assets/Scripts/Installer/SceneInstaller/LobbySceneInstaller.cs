@@ -8,20 +8,21 @@ public class LobbySceneInstaller : SceneInstaller
 
   protected override void Initialize(DIContainerBase global)
   {
-    var container = new DIContainerBase(global);
-
     if (!GameState.Instance.IsInitialze)
-      GameState.Instance.Initialze(WSClient.Instance, GameInput.Instance);
+      GameState.Instance.Initialze(WSClient.Instance.Router, GameInput.Instance);
 
-    var spawner = container.Get<ISpawnerHandle>();
+    var router = WSClient.Instance.Router;
+    var sender = new NetworkHelper(WSClient.Instance);
 
     var lobbyDomain = new LobbyDomain();
-    var lobbySystem = new LobbyService(lobbyDomain, WSClient.Instance);
-    gameLobbyView.Initialze(lobbySystem);
+    var lobbySystem = new LobbyService(lobbyDomain, router, sender);
+    gameLobbyView.Initialze(lobbySystem, sender);
 
     if (gameTableView != null && !gameTableView.IsGameplayWired)
     {
-      var gameplay = new GameplayLogic(gameTableView, WSClient.Instance, gameTableView);
+      gameTableView.SetupNetworking(sender);
+
+      var gameplay = new GameplayLogic(gameTableView, router, gameTableView, sender);
       if (GameState.Instance.MySeatData != null)
         gameplay.SetMyPlayerId(GameState.Instance.MySeatData.playerId);
 

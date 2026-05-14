@@ -1,14 +1,13 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GameplayLogic
 {
-  private readonly MonoBehaviour _mono;
+  private readonly ICoroutineRunner _runner;
   private readonly IGameTableView _table;
-  private readonly INetworkDispatcher _dispatcher;
-  private readonly List<(string type, Action<string> token)> _tokens = new();
+  private readonly IMessageRouter _router;
+  private readonly INetworkSender _sender;
 
   private int _myPlayerId;
   private int _hostId;
@@ -16,34 +15,33 @@ public class GameplayLogic
   private int _betAmount;
   private int _minChip;
 
-  public ClientGameState State { get; private set; }
+  private readonly ClientSessionState _session = new();
+  public ClientGameState State => _session.Current;
   public int MinChip => _minChip;
 
-  public GameplayLogic(MonoBehaviour mono, IWSClient client, IGameTableView table)
+  public GameplayLogic(ICoroutineRunner runner, IMessageRouter router, IGameTableView table, INetworkSender sender)
   {
-    _mono = mono;
+    _runner = runner;
     _table = table;
-    _dispatcher = client.Dispatcher;
+    _router = router;
+    _sender = sender;
 
-    Reg<RoomResultMessage>("room_result", OnRoomResult);
-    Reg<RoomUpdateMessage>("room_update", OnRoomUpdate);
-    Reg<GameResultMessage>("game_result", OnGameResult);
-    Reg<GameUpdateMessage>("game_update", OnGameUpdate);
-    Reg<GameEventMessage>("game_event", OnGameEvent);
-    Reg<ErrorMessage>("error", OnError);
-  }
-
-  private void Reg<T>(string type, Action<T> handler)
-  {
-    var token = _dispatcher.Register<T>(type, handler);
-    _tokens.Add((type, token));
+    _router.OnRoomResult += OnRoomResult;
+    _router.OnRoomUpdate += OnRoomUpdate;
+    _router.OnGameResult += OnGameResult;
+    _router.OnGameUpdate += OnGameUpdate;
+    _router.OnGameEvent += OnGameEvent;
+    _router.OnError += OnError;
   }
 
   public void Dispose()
   {
-    foreach (var (type, token) in _tokens)
-      _dispatcher.Unregister(type, token);
-    _tokens.Clear();
+    _router.OnRoomResult -= OnRoomResult;
+    _router.OnRoomUpdate -= OnRoomUpdate;
+    _router.OnGameResult -= OnGameResult;
+    _router.OnGameUpdate -= OnGameUpdate;
+    _router.OnGameEvent -= OnGameEvent;
+    _router.OnError -= OnError;
   }
 
   public void SetMyPlayerId(int id) => _myPlayerId = id;
@@ -69,24 +67,11 @@ public class GameplayLogic
 
   private void OnRoomResult(RoomResultMessage msg)
   {
-    if (!msg.success)
+    if (!msg.success && msg.action == "kicked" && msg.reason == "OUT_OF_CHIP")
     {
-      if (msg.action == "kicked" && msg.reason == "OUT_OF_CHIP")
-      {
-        _table.HideResultButtons();
-        State = ClientGameState.Authenticated;
-        _mono.StartCoroutine(ShowKickedAfterDelay());
-      }
-      return;
-    }
-    switch (msg.action)
-    {
-      case "create":
-      case "join":
-      case "quick_join":
-        _myPlayerId = msg.seat?.playerId ?? 0;
-        State = ClientGameState.InRoom;
-        break;
+      _table.HideResultButtons();
+      _session.ToAuthenticated();
+      _runner.StartCoroutine(ShowKickedAfterDelay());
     }
   }
 
@@ -104,23 +89,8 @@ public class GameplayLogic
     switch (msg.action)
     {
       case "snapshot":
-        var r = msg.room;
-        _hostId = r.hostId;
-        _minChip = r.minChip;
-        _betAmount = r.betAmount;
-        Debug.Log($"[room_update] roomId={r.roomId} host={r.hostId} minChip={r.minChip:N0} bet={r.betAmount:N0} {r.player_count}/{r.max_player_count}");
-        _table.UpdateHostUI(_myPlayerId == _hostId);
-        _table.UpdateMinChipLabel(_minChip);
-        _table.UpdateBetAmount(_betAmount);
-        if (r.seats != null)
-        {
-          var mySeat = r.seats.Find(s => s.playerId == _myPlayerId);
-          if (mySeat != null)
-          {
-            _myChip = mySeat.chip;
-            _table.UpdateMyChip(_myChip);
-          }
-        }
+        Debug.Log($"[room_update] snapshot roomId={msg.room?.roomId} {msg.room?.player_count}/{msg.room?.max_player_count}");
+        SyncRoomData(msg.room);
         break;
 
       case "host_changed":
@@ -152,17 +122,6 @@ public class GameplayLogic
   private void OnError(ErrorMessage msg) =>
       Debug.LogError($"[error] {msg.reason}");
 
-  private void OnClaimChipResult(ClaimChipResultMessage msg)
-  {
-    if (!msg.success)
-    {
-      Debug.LogWarning($"[claim_chip] ❌ {msg.reason}");
-      return;
-    }
-    Debug.Log($"[claim_chip] ✅ +{msg.chip:N0}");
-    _table.UpdateMyChip(msg.chip);
-  }
-
   // ─── Game Update ──────────────────────────────────────
 
   private void OnGameUpdate(GameUpdateMessage msg)
@@ -177,7 +136,7 @@ public class GameplayLogic
         break;
       case "ready_to_act":
         _table.HideWaitingForPlayers();
-        State = ClientGameState.WaitingTurn;
+        _session.ToWaitingTurn();
         Debug.Log("[game_update] ready_to_act");
         break;
       case "turn_changed":
@@ -195,15 +154,15 @@ public class GameplayLogic
     {
       case "DEALING":
         if (p.players == null || p.dealer == null) return;
-        State = ClientGameState.Dealing;
+        _session.ToDealing();
         _table.ShowGameplay();
         _table.SetMyPlayerId(_myPlayerId);
         _table.SetMyName(GameState.Instance.AccountUsername ?? "");
-        _mono.StartCoroutine(DealAfterFrame(p));
+        _runner.StartCoroutine(DealAfterFrame(p));
         break;
 
       case "WAITING":
-        State = ClientGameState.GameOver;
+        _session.ToGameOver();
         _table.HideActionButtons();
         var snapshot = p;
         _table.RevealAllWhenReady(() =>
@@ -235,13 +194,13 @@ public class GameplayLogic
     _table.SetTurn(currentPlayer);
     if (currentPlayer == _myPlayerId)
     {
-      State = ClientGameState.MyTurn;
+      _session.ToMyTurn();
       _table.ShowActionButtons();
       Debug.Log("⭐ YOUR TURN");
     }
     else
     {
-      State = ClientGameState.WaitingTurn;
+      _session.ToWaitingTurn();
       _table.HideActionButtons();
     }
   }
@@ -284,17 +243,17 @@ public class GameplayLogic
 
   public void OnPlayAgain()
   {
-    State = ClientGameState.InRoom;
+    _session.ToInRoom();
     _table.ResetWhenReady(() =>
     {
       if (_myPlayerId == _hostId)
-        NetworkHelper.RequestStartGame();
+        _sender.RequestStartGame();
     });
   }
 
   public void OnLeaveRoom()
   {
-    _table.ResetWhenReady(() => NetworkHelper.RequestLeaveRoom());
+    _table.ResetWhenReady(() => _sender.RequestLeaveRoom());
   }
 
   // ─── Coroutines ───────────────────────────────────────
@@ -306,7 +265,7 @@ public class GameplayLogic
     {
       Debug.Log("[deal] done → RequestPlayerReady");
       _table.ShowWaitingForPlayers();
-      NetworkHelper.RequestPlayerReady();
+      _sender.RequestPlayerReady();
     });
   }
 }

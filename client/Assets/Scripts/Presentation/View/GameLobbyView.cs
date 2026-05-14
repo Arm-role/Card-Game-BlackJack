@@ -18,9 +18,10 @@ public class GameLobbyView : MonoBehaviour
 
   private LobbyService _Serviec;
 
-  public void Initialze(LobbyService lobbySystem)
+  public void Initialze(LobbyService lobbySystem, INetworkSender sender)
   {
     _Serviec = lobbySystem;
+    _swapView.Init(sender);
 
     foreach (var leaveButton in _LeaveButtons)
       leaveButton.onClick.AddListener(OnLeaveClicked);
@@ -41,7 +42,8 @@ public class GameLobbyView : MonoBehaviour
 
   private void HandleRoomClosed()
   {
-    GameSceneManager.LoadScene("Login");
+    // Navigation is owned by GameState.OnRoomUpdate → ClearRoom + LoadScene("Login")
+    // Nothing to do here — kept for future UI feedback (popup/animation) before navigation
   }
 
   private void HandleRoomUpdated(RoomData room)

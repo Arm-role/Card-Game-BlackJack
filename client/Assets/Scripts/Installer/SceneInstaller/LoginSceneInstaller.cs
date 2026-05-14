@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 public class LoginSceneInstaller : SceneInstaller
@@ -9,14 +8,14 @@ public class LoginSceneInstaller : SceneInstaller
 
   protected override void Initialize(DIContainerBase global)
   {
-    var container = new DIContainerBase(global);
+    var router = WSClient.Instance.Router;
+    var sender = new NetworkHelper(WSClient.Instance);
 
-    GameState.Instance.Initialze(WSClient.Instance, GameInput.Instance);
-
-    gameMainMenuView.Initialze(WSClient.Instance);
+    GameState.Instance.Initialze(router, GameInput.Instance);
+    gameMainMenuView.Initialze(router, sender);
 
     if (claimChipHandler != null)
-      claimChipHandler.Init(WSClient.Instance);
+      claimChipHandler.Init(router, sender);
 
     Destroy(gameObject);
   }
