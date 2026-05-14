@@ -10,8 +10,8 @@ public class CreateRoomPanel : MonoBehaviour
   [SerializeField] private Button _backButton;
   [SerializeField] private Button _bet100;
   [SerializeField] private Button _bet1k;
+  [SerializeField] private Button _bet5k;
   [SerializeField] private Button _bet10k;
-  [SerializeField] private Button _bet100k;
 
   [Header("Display")]
   [SerializeField] private TextMeshProUGUI _betAmountText;
@@ -26,8 +26,8 @@ public class CreateRoomPanel : MonoBehaviour
     _backButton.onClick.AddListener(Hide);
     _bet100.onClick.AddListener(() => SetBet(100));
     _bet1k.onClick.AddListener(() => SetBet(1_000));
+    _bet5k.onClick.AddListener(() => SetBet(5_000));
     _bet10k.onClick.AddListener(() => SetBet(10_000));
-    _bet100k.onClick.AddListener(() => SetBet(100_000));
   }
 
   public void Show()

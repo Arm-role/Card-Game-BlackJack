@@ -1,584 +1,148 @@
-2026-05-13T20:33:08.873Z [RECEIVE from=session:815b20e5-6d1f-4128-abb5-d02cfd645264] type=request_register data={"username":"Player_6430","password":"123456789"}
-2026-05-13T20:33:09.039Z [RECEIVE from=user:1] type=request_quick_join_room
-2026-05-13T20:33:09.055Z [RECEIVE from=user:1] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T20:33:09.058Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T20:33:10.481Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T20:33:10.486Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T20:33:10.489Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"9"},{"suit":"♥","rank":"10"}],"score":19,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"A"},{"suit":"♥","rank":"8"}],"score":19}}
-2026-05-13T20:33:12.049Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T20:33:12.052Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T20:33:12.052Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T20:33:12.513Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T20:33:12.516Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♥","rank":"3"},"status":"BUST","score":22}
-2026-05-13T20:33:12.516Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T20:33:12.517Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"9"},{"suit":"♥","rank":"10"},{"suit":"♥","rank":"3"}],"score":22,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"A"},{"suit":"♥","rank":"8"}],"score":19},"results":[{"playerId":1,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T20:33:13.840Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T20:33:13.842Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T20:33:13.842Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"Q"},{"suit":"♥","rank":"7"}],"score":17,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"K"},{"suit":"♥","rank":"8"}],"score":18}}
-2026-05-13T20:33:15.348Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T20:33:15.349Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T20:33:15.350Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T20:33:35.358Z [RECEIVE from=session:9de49e95-0457-47cf-95c9-cd92b06262f6] type=request_register data={"username":"wfqfq","password":"wdefaedf"}
-2026-05-13T20:33:37.430Z [RECEIVE from=user:2] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T20:33:37.432Z [BROADCAST room=2] type=room_update action=snapshot
-2026-05-13T20:33:39.722Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T20:33:39.723Z [BROADCAST room=2] type=game_update action=start payload={"roomId":2}
-2026-05-13T20:33:39.723Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♦","rank":"4"},{"suit":"♣","rank":"Q"}],"score":14,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"3"},{"suit":"♦","rank":"J"}],"score":13}}
-2026-05-13T20:33:41.221Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T20:33:41.225Z [BROADCAST room=2] type=game_update action=ready_to_act
-2026-05-13T20:33:41.225Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T20:33:41.883Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T20:33:41.885Z [BROADCAST room=2] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♥","rank":"7"},"status":"PLAYING","score":21}
-2026-05-13T20:33:42.679Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T20:33:42.685Z [BROADCAST room=2] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♣","rank":"A"},"status":"BUST","score":22}
-2026-05-13T20:33:42.686Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T20:33:42.688Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♦","rank":"4"},{"suit":"♣","rank":"Q"},{"suit":"♥","rank":"7"},{"suit":"♣","rank":"A"}],"score":22,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"3"},{"suit":"♦","rank":"J"}],"score":13},"results":[{"playerId":2,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T20:33:45.363Z [BROADCAST room=1] type=game_event action=player_stand payload={"player_id":1,"status":"STAND"}
-2026-05-13T20:33:45.363Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T20:33:45.364Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"Q"},{"suit":"♥","rank":"7"}],"score":17,"status":"STAND","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"K"},{"suit":"♥","rank":"8"}],"score":18},"results":[{"playerId":1,"result":"LOSE","chipAfter":0}]}
-2026-05-13T20:33:45.364Z [BROADCAST room=1] type=room_update action=players_kicked payload={"kickedIds":[1],"reason":"OUT_OF_CHIP"}
-2026-05-13T21:37:58.802Z [RECEIVE from=session:1684554a-20ad-412f-a3c4-cbf99ee037fc] type=request_register data={"username":"wefwefwe","password":"12345"}
-2026-05-13T21:38:01.580Z [RECEIVE from=user:1] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T21:38:01.583Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T21:38:03.358Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T21:38:03.362Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T21:38:03.364Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"J"},{"suit":"♦","rank":"6"}],"score":16,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"9"},{"suit":"♥","rank":"4"}],"score":13}}
-2026-05-13T21:38:04.878Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T21:38:04.881Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T21:38:04.881Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T21:38:05.562Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:38:05.566Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♥","rank":"10"},"status":"BUST","score":26}
-2026-05-13T21:38:05.566Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:38:05.567Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"J"},{"suit":"♦","rank":"6"},{"suit":"♥","rank":"10"}],"score":26,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"9"},{"suit":"♥","rank":"4"}],"score":13},"results":[{"playerId":1,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T21:38:20.711Z [RECEIVE from=session:3888f509-28ef-458f-bf5a-58ce40ae501e] type=request_register data={"username":"Player_3739","password":"123456789"}
-2026-05-13T21:38:20.892Z [RECEIVE from=user:2] type=request_quick_join_room
-2026-05-13T21:38:20.895Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T21:38:30.871Z [RECEIVE from=session:ac6778ab-1f91-4d6f-8c63-116c2e335bda] type=request_register data={"username":"Player_8276","password":"123456789"}
-2026-05-13T21:38:31.009Z [RECEIVE from=user:3] type=request_quick_join_room
-2026-05-13T21:38:31.012Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T21:38:38.269Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T21:38:38.270Z [BROADCAST room=1] type=room_update action=host_changed payload={"hostId":2}
-2026-05-13T21:39:06.069Z [RECEIVE from=session:0fad984a-656e-4e2d-951b-a9ff961e1bcf] type=request_register data={"username":"Player_8735","password":"123456789"}
-2026-05-13T21:39:06.469Z [RECEIVE from=user:1] type=request_quick_join_room
-2026-05-13T21:39:06.542Z [RECEIVE from=user:1] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T21:39:06.551Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T21:39:07.423Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T21:39:07.428Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T21:39:07.429Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"5"},{"suit":"♣","rank":"5"}],"score":10,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"9"},{"suit":"♠","rank":"J"}],"score":19}}
-2026-05-13T21:39:09.020Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T21:39:09.021Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T21:39:09.022Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T21:39:09.864Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:39:09.866Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♣","rank":"6"},"status":"PLAYING","score":16}
-2026-05-13T21:39:10.672Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:39:10.675Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♣","rank":"K"},"status":"BUST","score":26}
-2026-05-13T21:39:10.676Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:39:10.677Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"5"},{"suit":"♣","rank":"5"},{"suit":"♣","rank":"6"},{"suit":"♣","rank":"K"}],"score":26,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"9"},{"suit":"♠","rank":"J"}],"score":19},"results":[{"playerId":1,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T21:39:11.683Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T21:39:11.686Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T21:39:11.687Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"K"},{"suit":"♦","rank":"10"}],"score":20,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"4"},{"suit":"♦","rank":"5"}],"score":9}}
-2026-05-13T21:39:13.187Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T21:39:13.190Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T21:39:13.190Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T21:39:13.636Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:39:13.637Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♥","rank":"5"},"status":"BUST","score":25}
-2026-05-13T21:39:13.638Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:39:13.638Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"K"},{"suit":"♦","rank":"10"},{"suit":"♥","rank":"5"}],"score":25,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"4"},{"suit":"♦","rank":"5"}],"score":9},"results":[{"playerId":1,"result":"LOSE","chipAfter":0}]}
-2026-05-13T21:39:13.639Z [BROADCAST room=1] type=room_update action=players_kicked payload={"kickedIds":[1],"reason":"OUT_OF_CHIP"}
-2026-05-13T21:39:22.676Z [RECEIVE from=user:1] type=request_claim_chip
-2026-05-13T21:39:25.246Z [RECEIVE from=user:1] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T21:39:25.248Z [BROADCAST room=2] type=room_update action=snapshot
-2026-05-13T21:39:27.316Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T21:39:27.318Z [BROADCAST room=2] type=game_update action=start payload={"roomId":2}
-2026-05-13T21:39:27.318Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"4"},{"suit":"♣","rank":"5"}],"score":9,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"2"},{"suit":"♠","rank":"9"}],"score":11}}
-2026-05-13T21:39:28.814Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T21:39:28.815Z [BROADCAST room=2] type=game_update action=ready_to_act
-2026-05-13T21:39:28.816Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T21:39:55.438Z [RECEIVE from=session:1be6b8bf-8e09-4765-b268-724f1aeb93b6] type=request_register data={"username":"qwqwd","password":"23454q"}
-2026-05-13T21:39:57.308Z [RECEIVE from=user:2] type=request_create_room data={"isShowCard":false,"minChip":0,"betAmount":5000}
-2026-05-13T21:39:57.310Z [BROADCAST room=3] type=room_update action=snapshot
-2026-05-13T21:39:58.831Z [BROADCAST room=2] type=game_event action=player_stand payload={"player_id":1,"status":"STAND"}
-2026-05-13T21:39:58.833Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:39:58.834Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"4"},{"suit":"♣","rank":"5"}],"score":9,"status":"STAND","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"2"},{"suit":"♠","rank":"9"},{"suit":"♠","rank":"4"},{"suit":"♦","rank":"5"}],"score":20},"results":[{"playerId":1,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T21:39:59.095Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T21:39:59.096Z [BROADCAST room=3] type=game_update action=start payload={"roomId":3}
-2026-05-13T21:39:59.097Z [BROADCAST room=3] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♦","rank":"4"},{"suit":"♣","rank":"Q"}],"score":14,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"2"},{"suit":"♠","rank":"2"}],"score":4}}
-2026-05-13T21:40:00.601Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T21:40:00.605Z [BROADCAST room=3] type=game_update action=ready_to_act
-2026-05-13T21:40:00.605Z [BROADCAST room=3] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T21:40:01.728Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T21:40:01.730Z [BROADCAST room=3] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♠","rank":"K"},"status":"BUST","score":24}
-2026-05-13T21:40:01.730Z [BROADCAST room=3] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:40:01.730Z [BROADCAST room=3] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♦","rank":"4"},{"suit":"♣","rank":"Q"},{"suit":"♠","rank":"K"}],"score":24,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"2"},{"suit":"♠","rank":"2"}],"score":4},"results":[{"playerId":2,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T21:55:41.630Z [RECEIVE from=session:8c42d388-80cc-4307-a103-65c7e62315ce] type=request_register data={"username":"wefwef","password":"2345"}
-2026-05-13T21:55:41.912Z [RECEIVE from=user:1] type=request_quick_join_room
-2026-05-13T21:55:47.816Z [RECEIVE from=user:1] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T21:55:47.819Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T21:55:52.602Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T21:55:52.606Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T21:55:52.606Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"8"},{"suit":"♥","rank":"4"}],"score":12,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"Q"},{"suit":"♦","rank":"3"}],"score":13}}
-2026-05-13T21:55:54.094Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T21:55:54.096Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T21:55:54.097Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T21:55:55.126Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:55:55.130Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"10"},"status":"BUST","score":22}
-2026-05-13T21:55:55.131Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:55:55.132Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"8"},{"suit":"♥","rank":"4"},{"suit":"♠","rank":"10"}],"score":22,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"Q"},{"suit":"♦","rank":"3"}],"score":13},"results":[{"playerId":1,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T21:55:56.278Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T21:55:56.280Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T21:55:56.282Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"Q"},{"suit":"♥","rank":"9"}],"score":19,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"2"},{"suit":"♥","rank":"7"}],"score":9}}
-2026-05-13T21:55:57.774Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T21:55:57.778Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T21:55:57.778Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T21:55:58.458Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:55:58.463Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"5"},"status":"BUST","score":24}
-2026-05-13T21:55:58.464Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:55:58.465Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"Q"},{"suit":"♥","rank":"9"},{"suit":"♠","rank":"5"}],"score":24,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"2"},{"suit":"♥","rank":"7"}],"score":9},"results":[{"playerId":1,"result":"LOSE","chipAfter":0}]}
-2026-05-13T21:55:58.466Z [BROADCAST room=1] type=room_update action=players_kicked payload={"kickedIds":[1],"reason":"OUT_OF_CHIP"}
-2026-05-13T21:56:06.906Z [RECEIVE from=user:1] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T21:56:06.907Z [BROADCAST room=2] type=room_update action=snapshot
-2026-05-13T21:56:11.711Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T21:56:11.712Z [BROADCAST room=2] type=game_update action=start payload={"roomId":2}
-2026-05-13T21:56:11.712Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"K"},{"suit":"♦","rank":"5"}],"score":15,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"K"},{"suit":"♣","rank":"K"}],"score":20}}
-2026-05-13T21:56:13.241Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T21:56:13.242Z [BROADCAST room=2] type=game_update action=ready_to_act
-2026-05-13T21:56:13.242Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T21:56:14.471Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:56:14.472Z [BROADCAST room=2] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♦","rank":"J"},"status":"BUST","score":25}
-2026-05-13T21:56:14.473Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:56:14.473Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"K"},{"suit":"♦","rank":"5"},{"suit":"♦","rank":"J"}],"score":25,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"K"},{"suit":"♣","rank":"K"}],"score":20},"results":[{"playerId":1,"result":"LOSE","chipAfter":0}]}
-2026-05-13T21:56:14.474Z [BROADCAST room=2] type=room_update action=players_kicked payload={"kickedIds":[1],"reason":"OUT_OF_CHIP"}
-2026-05-13T21:56:28.517Z [RECEIVE from=user:1] type=request_claim_chip
-2026-05-13T21:56:30.605Z [RECEIVE from=user:1] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T21:56:30.606Z [BROADCAST room=3] type=room_update action=snapshot
-2026-05-13T21:56:32.441Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T21:56:32.443Z [BROADCAST room=3] type=game_update action=start payload={"roomId":3}
-2026-05-13T21:56:32.444Z [BROADCAST room=3] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"3"},{"suit":"♦","rank":"7"}],"score":10,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"J"},{"suit":"♣","rank":"J"}],"score":20}}
-2026-05-13T21:56:33.957Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T21:56:33.960Z [BROADCAST room=3] type=game_update action=ready_to_act
-2026-05-13T21:56:33.961Z [BROADCAST room=3] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T21:56:35.392Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:56:35.396Z [BROADCAST room=3] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♥","rank":"J"},"status":"PLAYING","score":20}
-2026-05-13T21:56:36.917Z [RECEIVE from=user:1] type=request_stand
-2026-05-13T21:56:36.919Z [BROADCAST room=3] type=game_event action=player_stand payload={"player_id":1,"status":"STAND"}
-2026-05-13T21:56:36.920Z [BROADCAST room=3] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:56:36.920Z [BROADCAST room=3] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"3"},{"suit":"♦","rank":"7"},{"suit":"♥","rank":"J"}],"score":20,"status":"STAND","result":"DRAW"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"J"},{"suit":"♣","rank":"J"}],"score":20},"results":[{"playerId":1,"result":"DRAW","chipAfter":10000}]}
-2026-05-13T21:56:37.835Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T21:56:37.837Z [BROADCAST room=3] type=game_update action=start payload={"roomId":3}
-2026-05-13T21:56:37.837Z [BROADCAST room=3] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"K"},{"suit":"♦","rank":"J"}],"score":20,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"10"},{"suit":"♣","rank":"8"}],"score":18}}
-2026-05-13T21:56:39.319Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T21:56:39.322Z [BROADCAST room=3] type=game_update action=ready_to_act
-2026-05-13T21:56:39.322Z [BROADCAST room=3] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T21:56:39.817Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:56:39.818Z [BROADCAST room=3] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♦","rank":"7"},"status":"BUST","score":27}
-2026-05-13T21:56:39.819Z [BROADCAST room=3] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:56:39.819Z [BROADCAST room=3] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"K"},{"suit":"♦","rank":"J"},{"suit":"♦","rank":"7"}],"score":27,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"10"},{"suit":"♣","rank":"8"}],"score":18},"results":[{"playerId":1,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T21:56:40.915Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T21:56:40.917Z [BROADCAST room=3] type=game_update action=start payload={"roomId":3}
-2026-05-13T21:56:40.918Z [BROADCAST room=3] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"3"},{"suit":"♣","rank":"9"}],"score":12,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"6"},{"suit":"♣","rank":"4"}],"score":10}}
-2026-05-13T21:56:42.401Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T21:56:42.402Z [BROADCAST room=3] type=game_update action=ready_to_act
-2026-05-13T21:56:42.403Z [BROADCAST room=3] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T21:56:42.873Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:56:42.875Z [BROADCAST room=3] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"3"},"status":"PLAYING","score":15}
-2026-05-13T21:56:44.234Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:56:44.235Z [BROADCAST room=3] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"2"},"status":"PLAYING","score":17}
-2026-05-13T21:56:45.924Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T21:56:45.926Z [BROADCAST room=3] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"8"},"status":"BUST","score":25}
-2026-05-13T21:56:45.926Z [BROADCAST room=3] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T21:56:45.927Z [BROADCAST room=3] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"3"},{"suit":"♣","rank":"9"},{"suit":"♠","rank":"3"},{"suit":"♠","rank":"2"},{"suit":"♠","rank":"8"}],"score":25,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"6"},{"suit":"♣","rank":"4"}],"score":10},"results":[{"playerId":1,"result":"LOSE","chipAfter":0}]}
-2026-05-13T21:56:45.927Z [BROADCAST room=3] type=room_update action=players_kicked payload={"kickedIds":[1],"reason":"OUT_OF_CHIP"}
-2026-05-13T22:10:00.669Z [RECEIVE from=session:f24ff0a1-9b71-4cb1-9e22-1b544880335c] type=request_register data={"username":"wdewf","password":"1234"}
-2026-05-13T22:10:05.944Z [RECEIVE from=user:1] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T22:10:05.948Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T22:10:07.370Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T22:10:07.374Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:10:07.376Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"K"},{"suit":"♦","rank":"Q"}],"score":20,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"5"},{"suit":"♠","rank":"9"}],"score":14}}
-2026-05-13T22:10:08.905Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T22:10:08.908Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:10:08.909Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T22:10:09.580Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T22:10:09.584Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♣","rank":"K"},"status":"BUST","score":30}
-2026-05-13T22:10:09.585Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:10:09.587Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"K"},{"suit":"♦","rank":"Q"},{"suit":"♣","rank":"K"}],"score":30,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"5"},{"suit":"♠","rank":"9"}],"score":14},"results":[{"playerId":1,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T22:10:10.999Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T22:10:11.001Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:10:11.002Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"3"},{"suit":"♥","rank":"K"}],"score":13,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"Q"},{"suit":"♣","rank":"K"}],"score":20}}
-2026-05-13T22:10:12.506Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T22:10:12.508Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:10:12.509Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T22:10:12.903Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T22:10:12.904Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"K"},"status":"BUST","score":23}
-2026-05-13T22:10:12.905Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:10:12.905Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"3"},{"suit":"♥","rank":"K"},{"suit":"♠","rank":"K"}],"score":23,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"Q"},{"suit":"♣","rank":"K"}],"score":20},"results":[{"playerId":1,"result":"LOSE","chipAfter":0}]}
-2026-05-13T22:10:12.906Z [BROADCAST room=1] type=room_update action=players_kicked payload={"kickedIds":[1],"reason":"OUT_OF_CHIP"}
-2026-05-13T22:10:22.660Z [RECEIVE from=user:1] type=request_quick_join_room
-2026-05-13T22:10:26.918Z [RECEIVE from=user:1] type=request_quick_join_room
-2026-05-13T22:10:29.534Z [RECEIVE from=user:1] type=request_join_room data={"roomId":"0"}
-2026-05-13T22:10:45.839Z [RECEIVE from=session:5e00ced5-ba04-4c18-884b-b3ae02b1373d] type=request_register data={"username":"wqwdq3","password":"12345"}
-2026-05-13T22:10:47.819Z [RECEIVE from=user:2] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T22:10:47.820Z [BROADCAST room=2] type=room_update action=snapshot
-2026-05-13T22:10:49.252Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:10:49.254Z [BROADCAST room=2] type=game_update action=start payload={"roomId":2}
-2026-05-13T22:10:49.255Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♦","rank":"8"},{"suit":"♣","rank":"J"}],"score":18,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"K"},{"suit":"♦","rank":"2"}],"score":12}}
-2026-05-13T22:10:50.762Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:10:50.766Z [BROADCAST room=2] type=game_update action=ready_to_act
-2026-05-13T22:10:50.767Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:10:51.425Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:10:51.429Z [BROADCAST room=2] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♣","rank":"A"},"status":"PLAYING","score":19}
-2026-05-13T22:10:52.318Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:10:52.320Z [BROADCAST room=2] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♠","rank":"3"},"status":"BUST","score":22}
-2026-05-13T22:10:52.320Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:10:52.321Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♦","rank":"8"},{"suit":"♣","rank":"J"},{"suit":"♣","rank":"A"},{"suit":"♠","rank":"3"}],"score":22,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"K"},{"suit":"♦","rank":"2"}],"score":12},"results":[{"playerId":2,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T22:10:53.498Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:10:53.500Z [BROADCAST room=2] type=game_update action=start payload={"roomId":2}
-2026-05-13T22:10:53.502Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"J"},{"suit":"♣","rank":"6"}],"score":16,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"2"},{"suit":"♠","rank":"9"}],"score":11}}
-2026-05-13T22:10:55.013Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:10:55.015Z [BROADCAST room=2] type=game_update action=ready_to_act
-2026-05-13T22:10:55.015Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:10:55.906Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:10:55.907Z [BROADCAST room=2] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♣","rank":"4"},"status":"PLAYING","score":20}
-2026-05-13T22:10:56.545Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:10:56.548Z [BROADCAST room=2] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♥","rank":"8"},"status":"BUST","score":28}
-2026-05-13T22:10:56.549Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:10:56.550Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"J"},{"suit":"♣","rank":"6"},{"suit":"♣","rank":"4"},{"suit":"♥","rank":"8"}],"score":28,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"2"},{"suit":"♠","rank":"9"}],"score":11},"results":[{"playerId":2,"result":"LOSE","chipAfter":0}]}
-2026-05-13T22:10:56.552Z [BROADCAST room=2] type=room_update action=players_kicked payload={"kickedIds":[2],"reason":"OUT_OF_CHIP"}
-2026-05-13T22:11:04.250Z [RECEIVE from=user:2] type=request_quick_join_room
-2026-05-13T22:11:06.207Z [RECEIVE from=user:2] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T22:11:07.211Z [RECEIVE from=user:2] type=request_create_room data={"isShowCard":false,"minChip":0,"betAmount":5000}
-2026-05-13T22:11:07.800Z [RECEIVE from=user:2] type=request_create_room data={"isShowCard":false,"minChip":0,"betAmount":5000}
-2026-05-13T22:11:08.298Z [RECEIVE from=user:2] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T22:11:09.237Z [RECEIVE from=user:2] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T22:11:09.447Z [RECEIVE from=user:2] type=request_create_room data={"isShowCard":true,"minChip":0,"betAmount":5000}
-2026-05-13T22:53:55.556Z [RECEIVE from=session:2fb8080a-65aa-4d7b-82bf-46b778458919] type=request_register data={"username":"rvgerg","password":"23456"}
-2026-05-13T22:55:18.039Z [RECEIVE from=session:1374f419-d038-44e0-8d51-ab6b368fe6e8] type=request_login data={"username":"qwedqw","password":"12345"}
-2026-05-13T22:55:19.310Z [RECEIVE from=session:1374f419-d038-44e0-8d51-ab6b368fe6e8] type=request_register data={"username":"qwedqw","password":"12345"}
-2026-05-13T22:55:33.544Z [RECEIVE from=user:2] type=request_create_room data={"minChip":0,"betAmount":1000}
-2026-05-13T22:55:33.548Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T22:55:39.986Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:55:39.990Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:55:39.991Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"7"},{"suit":"♠","rank":"3"}],"score":10,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"K"},{"suit":"♣","rank":"4"}],"score":14}}
-2026-05-13T22:55:41.524Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:55:41.533Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:55:41.534Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:55:44.460Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:55:44.463Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♦","rank":"Q"},"status":"PLAYING","score":20}
-2026-05-13T22:55:44.920Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:55:44.922Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♥","rank":"6"},"status":"BUST","score":26}
-2026-05-13T22:55:44.922Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:55:44.923Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"7"},{"suit":"♠","rank":"3"},{"suit":"♦","rank":"Q"},{"suit":"♥","rank":"6"}],"score":26,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"K"},{"suit":"♣","rank":"4"}],"score":14},"results":[{"playerId":2,"result":"LOSE","chipAfter":9000}]}
-2026-05-13T22:55:46.497Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:55:46.500Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:55:46.501Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"3"},{"suit":"♣","rank":"J"}],"score":13,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"Q"},{"suit":"♥","rank":"2"}],"score":12}}
-2026-05-13T22:55:48.014Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:55:48.016Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:55:48.017Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:55:48.787Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:55:48.788Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♥","rank":"6"},"status":"PLAYING","score":19}
-2026-05-13T22:55:49.779Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:55:49.781Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♦","rank":"10"},"status":"BUST","score":29}
-2026-05-13T22:55:49.782Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:55:49.782Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"3"},{"suit":"♣","rank":"J"},{"suit":"♥","rank":"6"},{"suit":"♦","rank":"10"}],"score":29,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"Q"},{"suit":"♥","rank":"2"}],"score":12},"results":[{"playerId":2,"result":"LOSE","chipAfter":8000}]}
-2026-05-13T22:55:51.175Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:55:51.177Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:55:51.177Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"8"},{"suit":"♥","rank":"J"}],"score":18,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"K"},{"suit":"♣","rank":"A"}],"score":21}}
-2026-05-13T22:55:52.700Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:55:52.702Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:55:52.703Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:55:53.191Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:55:53.193Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♦","rank":"3"},"status":"STAND","score":21}
-2026-05-13T22:55:53.193Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:55:53.194Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"8"},{"suit":"♥","rank":"J"},{"suit":"♦","rank":"3"}],"score":21,"status":"STAND","result":"DRAW"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"K"},{"suit":"♣","rank":"A"}],"score":21},"results":[{"playerId":2,"result":"DRAW","chipAfter":8000}]}
-2026-05-13T22:55:54.551Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:55:54.552Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:55:54.553Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♠","rank":"7"},{"suit":"♣","rank":"10"}],"score":17,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"6"},{"suit":"♦","rank":"8"}],"score":14}}
-2026-05-13T22:55:56.053Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:55:56.056Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:55:56.057Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:55:56.559Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:55:56.561Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♠","rank":"6"},"status":"BUST","score":23}
-2026-05-13T22:55:56.561Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:55:56.562Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♠","rank":"7"},{"suit":"♣","rank":"10"},{"suit":"♠","rank":"6"}],"score":23,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"6"},{"suit":"♦","rank":"8"}],"score":14},"results":[{"playerId":2,"result":"LOSE","chipAfter":7000}]}
-2026-05-13T22:55:57.484Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:55:57.487Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:55:57.488Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"6"},{"suit":"♥","rank":"J"}],"score":16,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"A"},{"suit":"♠","rank":"Q"}],"score":21}}
-2026-05-13T22:55:59.006Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:55:59.009Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:55:59.010Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:55:59.549Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:55:59.552Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♥","rank":"7"},"status":"BUST","score":23}
-2026-05-13T22:55:59.553Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:55:59.553Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"6"},{"suit":"♥","rank":"J"},{"suit":"♥","rank":"7"}],"score":23,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"A"},{"suit":"♠","rank":"Q"}],"score":21},"results":[{"playerId":2,"result":"LOSE","chipAfter":6000}]}
-2026-05-13T22:56:00.502Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:56:00.503Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:56:00.504Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♦","rank":"10"},{"suit":"♠","rank":"9"}],"score":19,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"K"},{"suit":"♠","rank":"A"}],"score":21}}
-2026-05-13T22:56:01.999Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:56:02.001Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:56:02.001Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:56:02.469Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:56:02.470Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♥","rank":"3"},"status":"BUST","score":22}
-2026-05-13T22:56:02.470Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:56:02.470Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♦","rank":"10"},{"suit":"♠","rank":"9"},{"suit":"♥","rank":"3"}],"score":22,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"K"},{"suit":"♠","rank":"A"}],"score":21},"results":[{"playerId":2,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T22:56:03.373Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:56:03.375Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:56:03.375Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♥","rank":"6"},{"suit":"♣","rank":"2"}],"score":8,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"7"},{"suit":"♣","rank":"3"}],"score":10}}
-2026-05-13T22:56:04.898Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:56:04.905Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:56:04.907Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:56:05.394Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:56:05.396Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♣","rank":"Q"},"status":"PLAYING","score":18}
-2026-05-13T22:56:06.393Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:56:06.394Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♠","rank":"6"},"status":"BUST","score":24}
-2026-05-13T22:56:06.395Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:56:06.395Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♥","rank":"6"},{"suit":"♣","rank":"2"},{"suit":"♣","rank":"Q"},{"suit":"♠","rank":"6"}],"score":24,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"7"},{"suit":"♣","rank":"3"}],"score":10},"results":[{"playerId":2,"result":"LOSE","chipAfter":4000}]}
-2026-05-13T22:56:07.265Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:56:07.268Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:56:07.269Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"Q"},{"suit":"♠","rank":"10"}],"score":20,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"Q"},{"suit":"♦","rank":"4"}],"score":14}}
-2026-05-13T22:56:08.767Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:56:08.769Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:56:08.770Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:56:09.130Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:56:09.131Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♥","rank":"3"},"status":"BUST","score":23}
-2026-05-13T22:56:09.131Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:56:09.132Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"Q"},{"suit":"♠","rank":"10"},{"suit":"♥","rank":"3"}],"score":23,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"Q"},{"suit":"♦","rank":"4"}],"score":14},"results":[{"playerId":2,"result":"LOSE","chipAfter":3000}]}
-2026-05-13T22:56:10.399Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:56:10.402Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:56:10.403Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♥","rank":"5"},{"suit":"♣","rank":"2"}],"score":7,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"2"},{"suit":"♥","rank":"9"}],"score":11}}
-2026-05-13T22:56:11.896Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:56:11.897Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:56:11.898Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:56:12.370Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:56:12.371Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♣","rank":"10"},"status":"PLAYING","score":17}
-2026-05-13T22:56:13.338Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:56:13.340Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♣","rank":"6"},"status":"BUST","score":23}
-2026-05-13T22:56:13.340Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:56:13.341Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♥","rank":"5"},{"suit":"♣","rank":"2"},{"suit":"♣","rank":"10"},{"suit":"♣","rank":"6"}],"score":23,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"2"},{"suit":"♥","rank":"9"}],"score":11},"results":[{"playerId":2,"result":"LOSE","chipAfter":2000}]}
-2026-05-13T22:56:14.504Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:56:14.506Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:56:14.508Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"9"},{"suit":"♦","rank":"3"}],"score":12,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"7"},{"suit":"♥","rank":"3"}],"score":10}}
-2026-05-13T22:56:15.996Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:56:15.999Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:56:15.999Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:56:16.421Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:56:16.422Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♣","rank":"6"},"status":"PLAYING","score":18}
-2026-05-13T22:56:17.633Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:56:17.634Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♣","rank":"K"},"status":"BUST","score":28}
-2026-05-13T22:56:17.634Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:56:17.634Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"9"},{"suit":"♦","rank":"3"},{"suit":"♣","rank":"6"},{"suit":"♣","rank":"K"}],"score":28,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♠","rank":"7"},{"suit":"♥","rank":"3"}],"score":10},"results":[{"playerId":2,"result":"LOSE","chipAfter":1000}]}
-2026-05-13T22:56:18.438Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T22:56:18.439Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T22:56:18.440Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"6"},{"suit":"♦","rank":"4"}],"score":10,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"6"},{"suit":"♥","rank":"K"}],"score":16}}
-2026-05-13T22:56:19.924Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T22:56:19.926Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T22:56:19.927Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T22:56:20.409Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:56:20.412Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♣","rank":"Q"},"status":"PLAYING","score":20}
-2026-05-13T22:56:21.256Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T22:56:21.257Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♥","rank":"3"},"status":"BUST","score":23}
-2026-05-13T22:56:21.258Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T22:56:21.260Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♣","rank":"6"},{"suit":"♦","rank":"4"},{"suit":"♣","rank":"Q"},{"suit":"♥","rank":"3"}],"score":23,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"6"},{"suit":"♥","rank":"K"}],"score":16},"results":[{"playerId":2,"result":"LOSE","chipAfter":0}]}
-2026-05-13T22:56:21.261Z [BROADCAST room=1] type=room_update action=players_kicked payload={"kickedIds":[2],"reason":"OUT_OF_CHIP"}
-2026-05-13T22:56:48.446Z [RECEIVE from=user:2] type=request_register data={"username":"qwefe","password":"12345"}
-2026-05-13T23:00:53.160Z [RECEIVE from=session:e9169e13-733d-4a3d-86a2-eeb013e92dc4] type=request_register data={"username":"qrqw","password":"12345"}
-2026-05-13T23:01:13.994Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":10000}
-2026-05-13T23:01:13.998Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T23:01:17.162Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:01:17.165Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:01:17.166Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"A"},{"suit":"♠","rank":"6"}],"score":17,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"J"},{"suit":"♦","rank":"10"}],"score":20}}
-2026-05-13T23:01:18.657Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:01:18.662Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:01:18.663Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:01:20.661Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:01:20.663Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♥","rank":"Q"},"status":"PLAYING","score":17}
-2026-05-13T23:01:23.452Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:01:23.454Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♥","rank":"K"},"status":"BUST","score":27}
-2026-05-13T23:01:23.455Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:01:23.456Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"A"},{"suit":"♠","rank":"6"},{"suit":"♥","rank":"Q"},{"suit":"♥","rank":"K"}],"score":27,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"J"},{"suit":"♦","rank":"10"}],"score":20},"results":[{"playerId":1,"result":"LOSE","chipAfter":0}]}
-2026-05-13T23:01:23.457Z [BROADCAST room=1] type=room_update action=players_kicked payload={"kickedIds":[1],"reason":"OUT_OF_CHIP"}
-2026-05-13T23:01:35.598Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
-2026-05-13T23:01:37.794Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
-2026-05-13T23:01:41.824Z [RECEIVE from=user:1] type=request_claim_chip
-2026-05-13T23:01:43.319Z [RECEIVE from=user:1] type=request_claim_chip
-2026-05-13T23:01:48.405Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":10000}
-2026-05-13T23:01:48.406Z [BROADCAST room=2] type=room_update action=snapshot
-2026-05-13T23:01:50.676Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:01:50.678Z [BROADCAST room=2] type=game_update action=start payload={"roomId":2}
-2026-05-13T23:01:50.679Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♣","rank":"Q"},{"suit":"♦","rank":"6"}],"score":16,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"6"},{"suit":"♦","rank":"8"}],"score":14}}
-2026-05-13T23:01:52.184Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:01:52.188Z [BROADCAST room=2] type=game_update action=ready_to_act
-2026-05-13T23:01:52.190Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:01:53.344Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:01:53.347Z [BROADCAST room=2] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"K"},"status":"BUST","score":26}
-2026-05-13T23:01:53.347Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:01:53.348Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♣","rank":"Q"},{"suit":"♦","rank":"6"},{"suit":"♠","rank":"K"}],"score":26,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"6"},{"suit":"♦","rank":"8"}],"score":14},"results":[{"playerId":1,"result":"LOSE","chipAfter":0}]}
-2026-05-13T23:01:53.349Z [BROADCAST room=2] type=room_update action=players_kicked payload={"kickedIds":[1],"reason":"OUT_OF_CHIP"}
-2026-05-13T23:02:04.532Z [RECEIVE from=user:1] type=request_quick_join_room
-2026-05-13T23:02:05.761Z [RECEIVE from=user:1] type=request_quick_join_room
-2026-05-13T23:13:36.638Z [RECEIVE from=session:5493d074-6c9d-483f-81f3-fda4d5e83308] type=request_register data={"username":"3wefwe","password":"12345t"}
-2026-05-13T23:13:44.279Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":1000}
-2026-05-13T23:13:44.286Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T23:13:46.330Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:13:46.335Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:13:46.339Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♣","rank":"Q"},{"suit":"♣","rank":"J"}],"score":20,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"4"},{"suit":"♥","rank":"2"}],"score":6}}
-2026-05-13T23:13:47.824Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:13:47.829Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:13:47.830Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:13:48.980Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:13:48.982Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♥","rank":"3"},"status":"BUST","score":23}
-2026-05-13T23:13:48.983Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:13:48.985Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♣","rank":"Q"},{"suit":"♣","rank":"J"},{"suit":"♥","rank":"3"}],"score":23,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"4"},{"suit":"♥","rank":"2"}],"score":6},"results":[{"playerId":1,"result":"LOSE","chipAfter":9000}]}
-2026-05-13T23:13:50.821Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:13:50.825Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:13:50.826Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"Q"},{"suit":"♣","rank":"8"}],"score":18,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"J"},{"suit":"♠","rank":"5"}],"score":15}}
-2026-05-13T23:13:52.295Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:13:52.297Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:13:52.298Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:13:57.268Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:13:57.269Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"A"},"status":"PLAYING","score":19}
-2026-05-13T23:13:58.622Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:13:58.626Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♦","rank":"J"},"status":"BUST","score":29}
-2026-05-13T23:13:58.626Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:13:58.627Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"Q"},{"suit":"♣","rank":"8"},{"suit":"♠","rank":"A"},{"suit":"♦","rank":"J"}],"score":29,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"J"},{"suit":"♠","rank":"5"}],"score":15},"results":[{"playerId":1,"result":"LOSE","chipAfter":8000}]}
-2026-05-13T23:14:02.316Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:14:02.318Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:14:02.319Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"J"},{"suit":"♦","rank":"3"}],"score":13,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"Q"},{"suit":"♥","rank":"2"}],"score":12}}
-2026-05-13T23:14:03.811Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:14:03.812Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:14:03.813Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:14:04.648Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:04.650Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♣","rank":"J"},"status":"BUST","score":23}
-2026-05-13T23:14:04.651Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:14:04.652Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"J"},{"suit":"♦","rank":"3"},{"suit":"♣","rank":"J"}],"score":23,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"Q"},{"suit":"♥","rank":"2"}],"score":12},"results":[{"playerId":1,"result":"LOSE","chipAfter":7000}]}
-2026-05-13T23:14:06.602Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:14:06.604Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:14:06.606Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"9"},{"suit":"♠","rank":"8"}],"score":17,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"3"},{"suit":"♠","rank":"6"}],"score":9}}
-2026-05-13T23:14:08.088Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:14:08.090Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:14:08.091Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:14:08.996Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:08.997Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♣","rank":"8"},"status":"BUST","score":25}
-2026-05-13T23:14:08.998Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:14:08.998Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"9"},{"suit":"♠","rank":"8"},{"suit":"♣","rank":"8"}],"score":25,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"3"},{"suit":"♠","rank":"6"}],"score":9},"results":[{"playerId":1,"result":"LOSE","chipAfter":6000}]}
-2026-05-13T23:14:10.687Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:14:10.689Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:14:10.689Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♣","rank":"K"},{"suit":"♦","rank":"7"}],"score":17,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"2"},{"suit":"♣","rank":"3"}],"score":5}}
-2026-05-13T23:14:12.182Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:14:12.184Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:14:12.185Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:14:13.551Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:13.553Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♥","rank":"9"},"status":"BUST","score":26}
-2026-05-13T23:14:13.553Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:14:13.554Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♣","rank":"K"},{"suit":"♦","rank":"7"},{"suit":"♥","rank":"9"}],"score":26,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"2"},{"suit":"♣","rank":"3"}],"score":5},"results":[{"playerId":1,"result":"LOSE","chipAfter":5000}]}
-2026-05-13T23:14:15.077Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:14:15.079Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:14:15.079Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"A"},{"suit":"♦","rank":"8"}],"score":19,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"4"},{"suit":"♠","rank":"5"}],"score":9}}
-2026-05-13T23:14:16.557Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:14:16.559Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:14:16.559Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:14:17.532Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:17.535Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♣","rank":"K"},"status":"PLAYING","score":19}
-2026-05-13T23:14:18.949Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:18.953Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♣","rank":"J"},"status":"BUST","score":29}
-2026-05-13T23:14:18.954Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:14:18.954Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"A"},{"suit":"♦","rank":"8"},{"suit":"♣","rank":"K"},{"suit":"♣","rank":"J"}],"score":29,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"4"},{"suit":"♠","rank":"5"}],"score":9},"results":[{"playerId":1,"result":"LOSE","chipAfter":4000}]}
-2026-05-13T23:14:20.443Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:14:20.444Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:14:20.445Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"9"},{"suit":"♦","rank":"9"}],"score":18,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"8"},{"suit":"♣","rank":"6"}],"score":14}}
-2026-05-13T23:14:21.933Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:14:21.935Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:14:21.936Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:14:22.748Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:22.750Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"6"},"status":"BUST","score":24}
-2026-05-13T23:14:22.750Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:14:22.751Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"9"},{"suit":"♦","rank":"9"},{"suit":"♠","rank":"6"}],"score":24,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"8"},{"suit":"♣","rank":"6"}],"score":14},"results":[{"playerId":1,"result":"LOSE","chipAfter":3000}]}
-2026-05-13T23:14:24.406Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:14:24.411Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:14:24.411Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"9"},{"suit":"♠","rank":"4"}],"score":13,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"A"},{"suit":"♠","rank":"J"}],"score":21}}
-2026-05-13T23:14:25.897Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:14:25.898Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:14:25.900Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:14:26.588Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:26.590Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"Q"},"status":"BUST","score":23}
-2026-05-13T23:14:26.591Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:14:26.592Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"9"},{"suit":"♠","rank":"4"},{"suit":"♠","rank":"Q"}],"score":23,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"A"},{"suit":"♠","rank":"J"}],"score":21},"results":[{"playerId":1,"result":"LOSE","chipAfter":2000}]}
-2026-05-13T23:14:28.075Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:14:28.076Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:14:28.077Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"Q"},{"suit":"♣","rank":"Q"}],"score":20,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"6"},{"suit":"♣","rank":"9"}],"score":15}}
-2026-05-13T23:14:29.557Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:14:29.559Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:14:29.559Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:14:30.245Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:30.247Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"A"},"status":"STAND","score":21}
-2026-05-13T23:14:30.249Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:14:30.249Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"Q"},{"suit":"♣","rank":"Q"},{"suit":"♠","rank":"A"}],"score":21,"status":"STAND","result":"WIN"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"6"},{"suit":"♣","rank":"9"},{"suit":"♦","rank":"3"}],"score":18},"results":[{"playerId":1,"result":"WIN","chipAfter":3000}]}
-2026-05-13T23:14:33.649Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:14:33.653Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:14:33.654Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"9"},{"suit":"♠","rank":"7"}],"score":16,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"7"},{"suit":"♥","rank":"10"}],"score":17}}
-2026-05-13T23:14:35.143Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:14:35.145Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:14:35.145Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:14:35.861Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:35.863Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"4"},"status":"PLAYING","score":20}
-2026-05-13T23:14:37.077Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:37.079Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♠","rank":"10"},"status":"BUST","score":30}
-2026-05-13T23:14:37.079Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:14:37.080Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♠","rank":"9"},{"suit":"♠","rank":"7"},{"suit":"♠","rank":"4"},{"suit":"♠","rank":"10"}],"score":30,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"7"},{"suit":"♥","rank":"10"}],"score":17},"results":[{"playerId":1,"result":"LOSE","chipAfter":2000}]}
-2026-05-13T23:14:38.948Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:14:38.950Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:14:38.950Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"10"},{"suit":"♠","rank":"Q"}],"score":20,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"A"},{"suit":"♥","rank":"Q"}],"score":21}}
-2026-05-13T23:14:40.430Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:14:40.431Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:14:40.432Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:14:41.749Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:41.753Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♣","rank":"6"},"status":"BUST","score":26}
-2026-05-13T23:14:41.760Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:14:41.765Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♥","rank":"10"},{"suit":"♠","rank":"Q"},{"suit":"♣","rank":"6"}],"score":26,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♥","rank":"A"},{"suit":"♥","rank":"Q"}],"score":21},"results":[{"playerId":1,"result":"LOSE","chipAfter":1000}]}
-2026-05-13T23:14:43.426Z [RECEIVE from=user:1] type=request_start_game
-2026-05-13T23:14:43.428Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:14:43.428Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"8"},{"suit":"♦","rank":"4"}],"score":12,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"J"},{"suit":"♥","rank":"6"}],"score":16}}
-2026-05-13T23:14:44.937Z [RECEIVE from=user:1] type=request_player_ready
-2026-05-13T23:14:44.943Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:14:44.944Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":1}
-2026-05-13T23:14:45.724Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:45.725Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♣","rank":"3"},"status":"PLAYING","score":15}
-2026-05-13T23:14:46.854Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:46.858Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♣","rank":"2"},"status":"PLAYING","score":17}
-2026-05-13T23:14:49.273Z [RECEIVE from=user:1] type=request_hit
-2026-05-13T23:14:49.275Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":1,"card":{"suit":"♦","rank":"10"},"status":"BUST","score":27}
-2026-05-13T23:14:49.276Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:14:49.276Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":1,"players":[{"playerId":1,"hand":[{"suit":"♦","rank":"8"},{"suit":"♦","rank":"4"},{"suit":"♣","rank":"3"},{"suit":"♣","rank":"2"},{"suit":"♦","rank":"10"}],"score":27,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"J"},{"suit":"♥","rank":"6"}],"score":16},"results":[{"playerId":1,"result":"LOSE","chipAfter":0}]}
-2026-05-13T23:14:49.277Z [BROADCAST room=1] type=room_update action=players_kicked payload={"kickedIds":[1],"reason":"OUT_OF_CHIP"}
-2026-05-13T23:15:01.239Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
-2026-05-13T23:22:18.545Z [RECEIVE from=session:47021d69-f32d-44ed-824e-221cd41c3893] type=request_register data={"username":"rhfhj","password":"123456789"}
-2026-05-13T23:28:29.315Z [RECEIVE from=session:b9314ec1-247c-4786-a0d6-68c58f67b8b4] type=request_register data={"username":"sdawqdqv","password":"cwederbt"}
-2026-05-13T23:28:37.212Z [RECEIVE from=user:2] type=request_create_room data={"minChip":0,"betAmount":10000}
-2026-05-13T23:28:37.264Z [BROADCAST room=1] type=room_update action=snapshot
-2026-05-13T23:28:39.736Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T23:28:39.794Z [BROADCAST room=1] type=game_update action=start payload={"roomId":1}
-2026-05-13T23:28:39.806Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♥","rank":"Q"},{"suit":"♥","rank":"5"}],"score":15,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"8"},{"suit":"♥","rank":"2"}],"score":10}}
-2026-05-13T23:28:41.940Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T23:28:41.955Z [BROADCAST room=1] type=game_update action=ready_to_act
-2026-05-13T23:28:41.960Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T23:28:44.857Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T23:28:44.868Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♥","rank":"4"},"status":"PLAYING","score":19}
-2026-05-13T23:28:46.211Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T23:28:46.223Z [BROADCAST room=1] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♠","rank":"4"},"status":"BUST","score":23}
-2026-05-13T23:28:46.235Z [BROADCAST room=1] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:28:46.251Z [BROADCAST room=1] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♥","rank":"Q"},{"suit":"♥","rank":"5"},{"suit":"♥","rank":"4"},{"suit":"♠","rank":"4"}],"score":23,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♦","rank":"8"},{"suit":"♥","rank":"2"}],"score":10},"results":[{"playerId":2,"result":"LOSE","chipAfter":0}]}
-2026-05-13T23:28:46.268Z [BROADCAST room=1] type=room_update action=players_kicked payload={"kickedIds":[2],"reason":"OUT_OF_CHIP"}
-2026-05-13T23:28:57.514Z [RECEIVE from=user:2] type=request_claim_chip
-2026-05-13T23:29:02.753Z [RECEIVE from=user:2] type=request_create_room data={"minChip":0,"betAmount":10000}
-2026-05-13T23:29:02.779Z [BROADCAST room=2] type=room_update action=snapshot
-2026-05-13T23:29:04.948Z [RECEIVE from=user:2] type=request_start_game
-2026-05-13T23:29:04.960Z [BROADCAST room=2] type=game_update action=start payload={"roomId":2}
-2026-05-13T23:29:04.994Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"DEALING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♠","rank":"4"},{"suit":"♠","rank":"8"}],"score":12,"status":"PLAYING","result":"PENDING"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"6"},{"suit":"♣","rank":"A"}],"score":17}}
-2026-05-13T23:29:07.081Z [RECEIVE from=user:2] type=request_player_ready
-2026-05-13T23:29:07.091Z [BROADCAST room=2] type=game_update action=ready_to_act
-2026-05-13T23:29:07.097Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":2}
-2026-05-13T23:29:09.718Z [RECEIVE from=user:2] type=request_hit
-2026-05-13T23:29:09.733Z [BROADCAST room=2] type=game_event action=player_hit payload={"player_id":2,"card":{"suit":"♦","rank":"Q"},"status":"BUST","score":22}
-2026-05-13T23:29:09.744Z [BROADCAST room=2] type=game_update action=turn_changed payload={"currentPlayer":null}
-2026-05-13T23:29:09.758Z [BROADCAST room=2] type=game_update action=state_changed payload={"state":"WAITING","currentPlayer":2,"players":[{"playerId":2,"hand":[{"suit":"♠","rank":"4"},{"suit":"♠","rank":"8"},{"suit":"♦","rank":"Q"}],"score":22,"status":"BUST","result":"LOSE"}],"dealer":{"dealerId":-1,"hand":[{"suit":"♣","rank":"6"},{"suit":"♣","rank":"A"}],"score":17},"results":[{"playerId":2,"result":"LOSE","chipAfter":0}]}
-2026-05-13T23:29:09.793Z [BROADCAST room=2] type=room_update action=players_kicked payload={"kickedIds":[2],"reason":"OUT_OF_CHIP"}
-2026-05-13T23:29:29.141Z [RECEIVE from=user:2] type=request_create_room data={"minChip":0,"betAmount":100000}
-2026-05-13T23:29:32.600Z [RECEIVE from=user:2] type=request_quick_join_room
+2026-05-14T16:36:29.587Z [RECEIVE from=session:d1547765-aa73-4121-943d-09235a1b8c00] type=request_register data={"username":"slef","password":"12451324"}
+2026-05-14T16:36:41.359Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-14T16:36:48.360Z [RECEIVE from=session:90166971-da54-475f-9d90-9d3d988cc9b3] type=request_register data={"username":"qwe","password":"12345"}
+2026-05-14T16:36:49.751Z [RECEIVE from=user:2] type=request_quick_join_room
+2026-05-14T16:36:57.880Z [RECEIVE from=session:861ed6ef-a495-41fd-8543-9e3d61f68eb6] type=request_register data={"username":"ergwe","password":"2345"}
+2026-05-14T16:36:59.526Z [RECEIVE from=user:3] type=request_quick_join_room
+2026-05-14T16:37:08.502Z [RECEIVE from=session:37eca69d-01cd-48d7-86da-ba4f4136779d] type=request_register data={"username":"ew23r3","password":"12345"}
+2026-05-14T16:37:10.330Z [RECEIVE from=user:4] type=request_quick_join_room
+2026-05-14T16:43:43.411Z [RECEIVE from=user:4] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-14T16:43:46.829Z [RECEIVE from=user:2] type=request_quick_join_room
+2026-05-14T16:43:49.045Z [RECEIVE from=user:3] type=request_quick_join_room
+2026-05-14T16:43:50.797Z [RECEIVE from=user:1] type=request_quick_join_room
+2026-05-14T16:43:54.157Z [RECEIVE from=user:4] type=request_start_game
+2026-05-14T16:43:57.885Z [RECEIVE from=user:4] type=request_player_ready
+2026-05-14T16:44:02.896Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T16:44:07.367Z [RECEIVE from=user:3] type=request_player_ready
+2026-05-14T16:44:11.792Z [RECEIVE from=user:2] type=request_player_ready
+2026-05-14T16:44:15.312Z [RECEIVE from=user:4] type=request_hit
+2026-05-14T16:44:16.449Z [RECEIVE from=user:4] type=request_hit
+2026-05-14T16:44:17.744Z [RECEIVE from=user:4] type=request_hit
+2026-05-14T16:44:21.213Z [RECEIVE from=user:2] type=request_hit
+2026-05-14T16:44:25.550Z [RECEIVE from=user:3] type=request_hit
+2026-05-14T16:44:39.331Z [RECEIVE from=user:4] type=request_start_game
+2026-05-14T16:44:44.152Z [RECEIVE from=user:4] type=request_player_ready
+2026-05-14T16:44:48.556Z [RECEIVE from=user:3] type=request_player_ready
+2026-05-14T16:44:53.126Z [RECEIVE from=user:2] type=request_player_ready
+2026-05-14T16:44:57.281Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T16:44:59.746Z [RECEIVE from=user:4] type=request_hit
+2026-05-14T16:45:00.952Z [RECEIVE from=user:4] type=request_stand
+2026-05-14T16:45:05.244Z [RECEIVE from=user:2] type=request_hit
+2026-05-14T16:45:06.244Z [RECEIVE from=user:2] type=request_stand
+2026-05-14T16:45:08.356Z [RECEIVE from=user:3] type=request_hit
+2026-05-14T16:45:13.372Z [RECEIVE from=user:1] type=request_stand
+2026-05-14T16:45:27.991Z [RECEIVE from=user:4] type=request_start_game
+2026-05-14T16:45:31.007Z [RECEIVE from=user:4] type=request_player_ready
+2026-05-14T16:45:35.038Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T16:45:38.858Z [RECEIVE from=user:2] type=request_player_ready
+2026-05-14T16:45:55.015Z [RECEIVE from=user:4] type=request_stand
+2026-05-14T16:45:57.485Z [RECEIVE from=user:2] type=request_hit
+2026-05-14T16:45:58.940Z [RECEIVE from=user:2] type=request_stand
+2026-05-14T16:46:07.222Z [RECEIVE from=user:4] type=request_start_game
+2026-05-14T16:46:10.227Z [RECEIVE from=user:4] type=request_player_ready
+2026-05-14T16:46:13.863Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T16:46:17.527Z [RECEIVE from=user:2] type=request_player_ready
+2026-05-14T16:46:20.226Z [RECEIVE from=user:4] type=request_hit
+2026-05-14T16:46:22.572Z [RECEIVE from=user:2] type=request_hit
+2026-05-14T16:46:24.886Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T16:46:26.012Z [RECEIVE from=user:1] type=request_leave_room
+2026-05-14T16:46:26.015Z [RECEIVE from=user:1] type=request_leave_room
+2026-05-14T16:46:30.112Z [RECEIVE from=user:4] type=request_start_game
+2026-05-14T16:46:32.358Z [RECEIVE from=user:4] type=request_player_ready
+2026-05-14T16:46:35.193Z [RECEIVE from=user:2] type=request_player_ready
+2026-05-14T16:46:42.287Z [RECEIVE from=user:4] type=request_stand
+2026-05-14T16:46:44.837Z [RECEIVE from=user:2] type=request_stand
+2026-05-14T16:46:50.212Z [RECEIVE from=user:2] type=request_leave_room
+2026-05-14T16:46:50.214Z [RECEIVE from=user:2] type=request_leave_room
+2026-05-14T16:46:52.165Z [RECEIVE from=user:4] type=request_start_game
+2026-05-14T16:46:53.703Z [RECEIVE from=user:4] type=request_player_ready
+2026-05-14T16:46:54.773Z [RECEIVE from=user:4] type=request_hit
+2026-05-14T16:46:56.344Z [RECEIVE from=user:4] type=request_leave_room
+2026-05-14T16:46:56.345Z [RECEIVE from=user:4] type=request_leave_room
+2026-05-14T18:11:31.065Z [RECEIVE from=session:1bbda7d3-8fe5-4125-8190-dd7d817cd1a0] type=request_register data={"username":"aw3wr","password":"12345"}
+2026-05-14T18:11:35.380Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-14T18:11:39.047Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:11:40.742Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:11:41.712Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:11:46.355Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:11:47.795Z [RECEIVE from=user:1] type=request_stand
+2026-05-14T18:11:49.922Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:11:51.457Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:11:52.017Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:11:53.008Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:11:54.148Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:11:55.680Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:11:56.118Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:11:57.404Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:11:59.173Z [RECEIVE from=user:1] type=request_stand
+2026-05-14T18:12:00.282Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:12:01.808Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:12:02.384Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:02.973Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:04.317Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:16.630Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:12:18.346Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:12:19.053Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:20.250Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:21.479Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:12:22.995Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:12:23.332Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:24.483Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:12:26.000Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:12:26.552Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:27.979Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:12:29.476Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:12:29.845Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:30.638Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:31.792Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:33.994Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:12:35.495Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:12:35.806Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:12:37.151Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:12:38.653Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:12:39.451Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:20:26.078Z [RECEIVE from=session:ea0f86a1-4789-4176-b252-fc383a4241e9] type=request_register data={"username":"qfwqef","password":"21345"}
+2026-05-14T18:20:40.199Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-14T18:20:42.021Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:20:43.551Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:20:44.182Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:20:45.414Z [RECEIVE from=user:1] type=request_stand
+2026-05-14T18:20:48.577Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:20:50.060Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:20:50.799Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:20:52.028Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:20:53.498Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:20:54.394Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:20:55.878Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:20:56.813Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:20:58.281Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:20:58.655Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:31:27.680Z [RECEIVE from=session:efceeca4-899c-44fa-aa09-07573b1559ac] type=request_register data={"username":"wege","password":"123454"}
+2026-05-14T18:31:30.704Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-14T18:31:32.059Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:31:33.582Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:31:34.421Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:31:35.223Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:31:36.083Z [RECEIVE from=user:1] type=request_stand
+2026-05-14T18:31:36.864Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:31:38.382Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:31:39.137Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:31:40.184Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:31:41.703Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:31:42.042Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:31:42.973Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:31:44.514Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:31:44.870Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:31:53.954Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-14T18:31:55.232Z [RECEIVE from=user:1] type=request_claim_chip
+2026-05-14T18:31:57.964Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":10000}
+2026-05-14T18:31:59.799Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:32:01.356Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:32:01.893Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:32:03.062Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:32:05.002Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:32:06.562Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:32:06.936Z [RECEIVE from=user:1] type=request_hit
+2026-05-14T18:32:08.118Z [RECEIVE from=user:1] type=request_start_game
+2026-05-14T18:32:09.664Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-14T18:32:10.343Z [RECEIVE from=user:1] type=request_hit

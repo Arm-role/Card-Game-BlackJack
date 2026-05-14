@@ -865,7 +865,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 100K
+  m_text: 5K
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3122,8 +3122,8 @@ RectTransform:
   m_Children:
   - {fileID: 2082719264}
   - {fileID: 479593118}
-  - {fileID: 988489361}
   - {fileID: 1873059602}
+  - {fileID: 988489361}
   m_Father: {fileID: 222995505}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4778,7 +4778,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 600, y: -80}
+  m_AnchoredPosition: {x: 850, y: -80}
   m_SizeDelta: {x: 200, y: 80}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &988489362
@@ -7709,8 +7709,8 @@ MonoBehaviour:
   _backButton: {fileID: 1885444504}
   _bet100: {fileID: 2082719265}
   _bet1k: {fileID: 479593119}
+  _bet5k: {fileID: 1873059603}
   _bet10k: {fileID: 988489362}
-  _bet100k: {fileID: 1873059603}
   _betAmountText: {fileID: 584365418}
 --- !u!1 &1873059601
 GameObject:
@@ -7725,7 +7725,7 @@ GameObject:
   - component: {fileID: 1873059604}
   - component: {fileID: 1873059603}
   m_Layer: 5
-  m_Name: 100K
+  m_Name: 5K
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7748,7 +7748,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 850, y: -80}
+  m_AnchoredPosition: {x: 600, y: -80}
   m_SizeDelta: {x: 200, y: 80}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1873059603

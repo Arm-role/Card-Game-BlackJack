@@ -1,17 +1,7 @@
 import * as bcrypt from "bcrypt";
+import { UserAccount, IUserRepository } from "../domain/repositories/i-user-repository.js";
 
-// ─── Interfaces (single source of truth) ─────────────────────────────────────
-
-export interface UserAccount {
-  id:           number;
-  username:     string;
-  passwordHash: string;
-}
-
-export interface IUserRepository {
-  findByUsername(username: string): Promise<UserAccount | undefined>;
-  createUser(username: string, passwordHash: string): Promise<UserAccount>;
-}
+export type { UserAccount, IUserRepository };
 
 // ─── AuthService ──────────────────────────────────────────────────────────────
 

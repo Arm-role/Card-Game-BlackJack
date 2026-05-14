@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { GameServer } from "../src/server/game-server.js";
+import { GameController } from "../src/interface-adapters/controllers/game-controller.js";
+import { InMemoryChipRepository } from "../src/infrastructure/persistence/in-memory-chip-repository.js";
+import { InMemoryRoomRepository } from "../src/infrastructure/persistence/in-memory-room-repository.js";
+import { NullGameLogger } from "../src/infrastructure/logging/null-game-logger.js";
 import { RoomService } from "../src/service/room-service.js";
-import { UserSession, ISocket } from "../src/core/user-session.js";
-import { IDeck } from "../src/core/Deck.js";
-import { Room } from "../src/core/room.js";
-import { Card } from "../src/shared/types.js";
+import { UserSession, ISocket } from "../src/infrastructure/network/user-session.js";
+import { IDeck } from "../src/domain/entities/deck.js";
+import { Room } from "../src/domain/entities/room.js";
+import { Card } from "../src/domain/types.js";
 
 // ─── MockUserSession ──────────────────────────────────────────────────────────
 
@@ -33,7 +36,7 @@ class MockUserSession extends UserSession {
 // ─── GameClient ───────────────────────────────────────────────────────────────
 
 class GameClient {
-  constructor(public session: MockUserSession, private server: GameServer) { }
+  constructor(public session: MockUserSession, private server: GameController) { }
 
   async send(type: string, data: any = {}) {
     await this.server.handleMessage(this.session, { type, data });
@@ -155,13 +158,13 @@ function findLastMsg(session: MockUserSession, type: string, action?: string) {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe("GameServer – integration", () => {
-  let server: GameServer;
+  let server: GameController;
   let roomService: RoomService;
 
   // Always generate room ID 999 so tests can look it up predictably.
   beforeEach(() => {
-    roomService = new RoomService({ generate: () => 999 });
-    server = new GameServer({} as any, roomService);
+    roomService = new RoomService({ generate: () => 999 }, new InMemoryRoomRepository());
+    server = new GameController({} as any, roomService, new InMemoryChipRepository(), new NullGameLogger());
   });
 
   // ─── Lobby ────────────────────────────────────────────────────────────────
@@ -820,7 +823,15 @@ describe("GameServer – integration", () => {
       const c2 = new GameClient(p2, server);
 
       await c1.send("request_create_room", { minChip: 1000 });
-      injectDeck(roomService.getRoom(999)!, createGenericDeck());
+      // Dealer scores 17 (no bust) and beats both players → P2 (chip=0) gets kicked
+      injectDeck(roomService.getRoom(999)!, new ScriptedDeck([
+        { suit: "♠", rank: "5" }, // P1 r1
+        { suit: "♠", rank: "9" }, // P2 r1
+        { suit: "♠", rank: "8" }, // Dealer r1
+        { suit: "♥", rank: "6" }, // P1 r2 → 11
+        { suit: "♥", rank: "7" }, // P2 r2 → 16
+        { suit: "♥", rank: "9" }, // Dealer r2 → 17 (stop, no bust)
+      ]));
       await c2.send("request_join_room", { roomId: 999 });
 
       const room = roomService.getRoom(999)!;
@@ -963,8 +974,8 @@ describe("GameServer – integration", () => {
     it("chip is preserved after leave and rejoin another room", async () => {
       // ใช้ roomId generator ที่นับขึ้นเรื่อยๆ เพื่อให้แต่ละห้องได้ id ต่างกัน
       let nextRoomId = 100;
-      roomService = new RoomService({ generate: () => nextRoomId++ });
-      server = new GameServer({} as any, roomService);
+      roomService = new RoomService({ generate: () => nextRoomId++ }, new InMemoryRoomRepository());
+      server = new GameController({} as any, roomService, new InMemoryChipRepository(), new NullGameLogger());
 
       const p1 = new MockUserSession(1, "P1");
       const p2 = new MockUserSession(2, "P2");

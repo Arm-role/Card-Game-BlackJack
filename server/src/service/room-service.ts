@@ -1,19 +1,17 @@
-// RoomService.ts
-import { Room } from "../core/room.js";
+import { Room } from "../domain/entities/room.js";
+import { IRoomRepository } from "../domain/repositories/i-room-repository.js";
+import { IRoomIdGenerator } from "../domain/repositories/i-room-id-generator.js";
 
 export interface RoomConfig {
   minChip: number;
   betAmount: number;
 }
 
-export interface IRoomIdGenerator {
-  generate(): number;
-}
-
 export class RoomService {
-  private rooms = new Map<number, Room>();
-
-  constructor(private idGenerator: IRoomIdGenerator) { }
+  constructor(
+    private readonly idGenerator: IRoomIdGenerator,
+    private readonly roomRepo: IRoomRepository,
+  ) {}
 
   public createRoom(config: Partial<RoomConfig> = {}): Room {
     const fullConfig: RoomConfig = {
@@ -22,33 +20,30 @@ export class RoomService {
     };
     const roomId = this.idGenerator.generate();
     const room = new Room(roomId, fullConfig);
-    this.rooms.set(roomId, room);
+    this.roomRepo.save(room);
     return room;
   }
 
   public quickJoin(playerChip: number = 0): Room | undefined {
-    for (const room of this.rooms.values()) {
+    for (const room of this.roomRepo.getAll()) {
       if (room.canJoin(playerChip)) return room;
     }
     return undefined;
   }
 
   public getRoom(roomId: number): Room | undefined {
-    return this.rooms.get(roomId);
+    return this.roomRepo.findById(roomId);
   }
 
   public getAllRooms(): Room[] {
-    return Array.from(this.rooms.values());
+    return this.roomRepo.getAll();
   }
 
   public findRoomByPlayer(playerId: number): Room | undefined {
-    for (const room of this.rooms.values()) {
-      if (room.hasPlayer(playerId)) return room;
-    }
-    return undefined;
+    return this.roomRepo.findByPlayerId(playerId);
   }
 
-  public deleteRoom(roomId: number) {
-    this.rooms.delete(roomId);
+  public deleteRoom(roomId: number): void {
+    this.roomRepo.delete(roomId);
   }
 }

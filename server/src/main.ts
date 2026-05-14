@@ -1,18 +1,29 @@
 import { WebSocketServer } from "ws";
-import { UserSession } from "./core/user-session.js";
-import { GameServer } from "./server/game-server.js";
+import { UserSession } from "./infrastructure/network/user-session.js";
+import { GameController } from "./interface-adapters/controllers/game-controller.js";
 import { AuthService } from "./service/auth-service.js";
 import { RoomService } from "./service/room-service.js";
-import { RandomRoomIdGenerator } from "./models/roomId-generator.js";
-import { MemoryUserRepository } from "./models/memory-user-repository.js";
+import { RandomRoomIdGenerator } from "./infrastructure/persistence/room-id-generator.js";
+import { MemoryUserRepository } from "./infrastructure/persistence/memory-user-repository.js";
+import { InMemoryChipRepository } from "./infrastructure/persistence/in-memory-chip-repository.js";
+import { InMemoryRoomRepository } from "./infrastructure/persistence/in-memory-room-repository.js";
+import { ConsoleGameLogger } from "./infrastructure/logging/console-game-logger.js";
+import { FileGameLogger } from "./infrastructure/logging/file-game-logger.js";
+import { CompositeGameLogger } from "./infrastructure/logging/composite-game-logger.js";
 import { appendFileSync } from "fs";
 const wss = new WebSocketServer({ port: 2567 });
 
 const userRepo = new MemoryUserRepository();
 const authService = new AuthService(userRepo);
 const roomIdGen = new RandomRoomIdGenerator();
-const roomService = new RoomService(roomIdGen);
-const gameServer = new GameServer(authService, roomService);
+const roomRepo = new InMemoryRoomRepository();
+const roomService = new RoomService(roomIdGen, roomRepo);
+const chipRepo = new InMemoryChipRepository();
+const logger   = new CompositeGameLogger([
+  new ConsoleGameLogger(),
+  new FileGameLogger("game-events.jsonl"),
+]);
+const gameServer = new GameController(authService, roomService, chipRepo, logger);
 
 wss.on("connection", (ws: any) => {
   const session = new UserSession(ws);
