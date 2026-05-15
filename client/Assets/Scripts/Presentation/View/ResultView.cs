@@ -20,12 +20,12 @@ public class ResultView : MonoBehaviour
     HideResult();
   }
 
-  public void ShowMyResult(string result)
+  public void ShowMyResult(GameResult result)
   {
     if (_resultPopupPanel) _resultPopupPanel.SetActive(true);
     if (_resultPopupLabel)
     {
-      _resultPopupLabel.text = result;
+      _resultPopupLabel.text = result.ToString().ToUpper();
       _resultPopupLabel.color = ResultColor(result);
     }
   }
@@ -51,11 +51,11 @@ public class ResultView : MonoBehaviour
     OnLeavePressed?.Invoke(); // GameplayLogic.OnLeaveRoom handles RequestLeaveRoom
   }
 
-  private Color ResultColor(string result) => result switch
+  private Color ResultColor(GameResult result) => result switch
   {
-    "WIN" => new Color(0.2f, 0.85f, 0.2f),
-    "LOSE" => new Color(0.9f, 0.2f, 0.2f),
-    "DRAW" => new Color(0.9f, 0.75f, 0.1f),
-    _ => Color.white,
+    GameResult.Win  => new Color(0.2f, 0.85f, 0.2f),
+    GameResult.Lose => new Color(0.9f, 0.2f, 0.2f),
+    GameResult.Draw => new Color(0.9f, 0.75f, 0.1f),
+    _               => Color.white,
   };
 }

@@ -27,7 +27,7 @@ public interface IGameTableView
   void HideActionButtons();
 
   // Result
-  void ShowResult(int playerId, string result);
+  void ShowResult(int playerId, GameResult result);
   void HideResult();
   void HideResultButtons();
 

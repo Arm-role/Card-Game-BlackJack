@@ -23,7 +23,7 @@ public class LobbyDomain
     _seats[0] = new SeatData
     {
       seatIndex = 0,
-      role = "dealer"
+      role = (int)SeatRole.Dealer
     };
 
     // Players (1–4)
@@ -32,7 +32,7 @@ public class LobbyDomain
       _seats[i] = new SeatData
       {
         seatIndex = i,
-        role = "player"
+        role = (int)SeatRole.Player
       };
     }
   }

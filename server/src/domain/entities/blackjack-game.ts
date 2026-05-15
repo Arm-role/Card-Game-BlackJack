@@ -19,7 +19,7 @@ export class Hand {
         total += 11;
         aces += 1;
       } else {
-        total += parseInt(card.rank, 10);
+        total += card.rank + 2; // TWO=0→2, THREE=1→3, …, TEN=8→10
       }
     }
 

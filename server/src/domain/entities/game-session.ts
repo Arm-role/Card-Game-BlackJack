@@ -1,4 +1,4 @@
-import { ActionResult, Card, GameEvent, GameResult, GameState, PlayerAction, PlayerStatus } from "../types.js";
+import { ActionResult, Card, GameEvent, GameResult, GameState, PlayerStatus } from "../types.js";
 import { BlackjackGame } from "./blackjack-game.js";
 import { Deck, IDeck } from "./deck.js";
 import { TURN_TIMEOUT_MS } from "../../config/config.js";
@@ -182,13 +182,13 @@ export class GameSession {
     return this.dispatch(GameEvent.START);
   }
 
-  public applyAction(playerId: number, action: PlayerAction): ActionResult | undefined {
+  public applyAction(playerId: number, action: GameEvent): ActionResult | undefined {
     if (this.state !== GameState.PLAYER_TURN) return undefined;
     if (!this.isPlayerTurn(playerId)) return undefined;
-    if (action === PlayerAction.HIT && this.actionTakenThisTurn.has(playerId)) return undefined;
-    if (action === PlayerAction.HIT) this.actionTakenThisTurn.add(playerId);
+    if (action === GameEvent.HIT && this.actionTakenThisTurn.has(playerId)) return undefined;
+    if (action === GameEvent.HIT) this.actionTakenThisTurn.add(playerId);
     this.clearTurnTimer();
-    const result = this.dispatch(action as unknown as GameEvent, { playerId });
+    const result = this.dispatch(action, { playerId });
     return result;
   }
 
@@ -196,7 +196,7 @@ export class GameSession {
     this.clearTurnTimer();
     this._turnTimer = setTimeout(() => {
       this._turnTimer = undefined;
-      const result = this.applyAction(playerId, PlayerAction.STAND);
+      const result = this.applyAction(playerId, GameEvent.STAND);
       if (result) this.onTurnTimeout?.(playerId, result);
     }, TURN_TIMEOUT_MS);
   }

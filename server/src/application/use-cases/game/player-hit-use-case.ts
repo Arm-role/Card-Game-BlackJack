@@ -2,7 +2,10 @@ import { RoomService } from "../../../service/room-service.js";
 import { GameBroadcaster } from "../../services/game-broadcaster.js";
 import { UserSession } from "../../../infrastructure/network/user-session.js";
 import { IGameLogger } from "../../../domain/logging/i-game-logger.js";
-import { PlayerAction } from "../../../domain/types.js";
+import { GameEvent, PlayerStatus } from "../../../domain/types.js";
+
+const RANK_SYMBOLS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const SUIT_SYMBOLS = ['♣','♦','♥','♠'];
 
 export class PlayerHitUseCase {
   constructor(
@@ -31,15 +34,15 @@ export class PlayerHitUseCase {
       return;
     }
 
-    const result = room.applyAction(playerId, PlayerAction.HIT);
+    const result = room.applyAction(playerId, GameEvent.HIT);
     if (!result) {
       this.logger.log({ timestamp: new Date(), level: "SUSPICIOUS", event: { kind: "suspicious", playerId, roomId: room.getRoomId(), action: "hit", reason: "ACTION_UNDEFINED" } });
       session.send({ type: "error", reason: "ACTION_UNDEFINED" });
       return;
     }
 
-    const card = result.card ? `${result.card.rank}${result.card.suit}` : "?";
-    this.logger.log({ timestamp: new Date(), level: "INFO", event: { kind: "game_hit", playerId, roomId: room.getRoomId(), card, score: room.getPlayerScore(playerId), status: result.status } });
+    const card = result.card ? `${RANK_SYMBOLS[result.card.rank]}${SUIT_SYMBOLS[result.card.suit]}` : "?";
+    this.logger.log({ timestamp: new Date(), level: "INFO", event: { kind: "game_hit", playerId, roomId: room.getRoomId(), card, score: room.getPlayerScore(playerId), status: PlayerStatus[result.status] } });
 
     this.broadcaster.broadcastToRoom(room, {
       type: "game_event",

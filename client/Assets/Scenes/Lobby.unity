@@ -6953,7 +6953,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4566839017074116238, guid: 35110f5a22997a841820d207cdc16043, type: 3}
       propertyPath: m_ChildAlignment
-      value: 4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7871854694279304355, guid: 35110f5a22997a841820d207cdc16043, type: 3}
       propertyPath: m_Pivot.x

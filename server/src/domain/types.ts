@@ -1,24 +1,24 @@
 export enum Suit {
-  CLUBS    = '♣',
-  DIAMONDS = '♦',
-  HEARTS   = '♥',
-  SPADES   = '♠',
+  CLUBS,
+  DIAMONDS,
+  HEARTS,
+  SPADES,
 }
 
 export enum Rank {
-  TWO   = '2',
-  THREE = '3',
-  FOUR  = '4',
-  FIVE  = '5',
-  SIX   = '6',
-  SEVEN = '7',
-  EIGHT = '8',
-  NINE  = '9',
-  TEN   = '10',
-  JACK  = 'J',
-  QUEEN = 'Q',
-  KING  = 'K',
-  ACE   = 'A',
+  TWO,
+  THREE,
+  FOUR,
+  FIVE,
+  SIX,
+  SEVEN,
+  EIGHT,
+  NINE,
+  TEN,
+  JACK,
+  QUEEN,
+  KING,
+  ACE,
 }
 
 export interface Card {
@@ -27,48 +27,43 @@ export interface Card {
 }
 
 export enum PlayerStatus {
-  PLAYING   = 'PLAYING',
-  STAND     = 'STAND',
-  BUST      = 'BUST',
-  BLACKJACK = 'BLACKJACK',
+  PLAYING,
+  STAND,
+  BUST,
+  BLACKJACK,
 }
 
 export enum GameResult {
-  WIN     = 'WIN',
-  LOSE    = 'LOSE',
-  DRAW    = 'DRAW',
-  PENDING = 'PENDING',
+  WIN,
+  LOSE,
+  DRAW,
+  PENDING,
 }
 
 export enum GameState {
-  WAITING     = 'WAITING',
-  DEALING     = 'DEALING',
-  PLAYER_TURN = 'PLAYER_TURN',
-  DEALER_TURN = 'DEALER_TURN',
-  RESOLVING   = 'RESOLVING',
+  WAITING,
+  DEALING,
+  PLAYER_TURN,
+  DEALER_TURN,
+  RESOLVING,
 }
 
 export enum RoomState {
-  WAITING = 'WAITING',
-  PLAYING = 'PLAYING',
+  WAITING,
+  PLAYING,
 }
 
 export enum GameEvent {
-  START        = 'START',
-  PLAYER_READY = 'PLAYER_READY',
-  ALL_READY    = 'ALL_READY',
-  HIT          = 'HIT',
-  STAND        = 'STAND',
-}
-
-export enum PlayerAction {
-  HIT   = 'HIT',
-  STAND = 'STAND',
+  START,
+  PLAYER_READY,
+  ALL_READY,
+  HIT,
+  STAND,
 }
 
 export enum SeatRole {
-  DEALER = 'dealer',
-  PLAYER = 'player',
+  DEALER,
+  PLAYER,
 }
 
 export type ActionResult = {

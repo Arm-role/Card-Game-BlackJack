@@ -3,7 +3,7 @@ import { IChipRepository } from "../ports/i-chip-repository.js";
 import { IGameLogger } from "../../domain/logging/i-game-logger.js";
 import { RoomService } from "../../service/room-service.js";
 import { Room } from "../../domain/entities/room.js";
-import { GameState, PlayerStatus } from "../../domain/types.js";
+import { GameResult, GameState, PlayerStatus } from "../../domain/types.js";
 import { STARTING_CHIPS } from "../../config/config.js";
 
 export class GameBroadcaster {
@@ -42,7 +42,7 @@ export class GameBroadcaster {
             kind: "game_result",
             playerId: r.playerId,
             roomId: room.getRoomId(),
-            result: r.result,
+            result: GameResult[r.result],
             chipAfter: chipAfter.get(r.playerId) ?? 0,
           },
         });

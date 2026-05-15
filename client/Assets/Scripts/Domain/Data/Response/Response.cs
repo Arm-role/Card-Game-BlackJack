@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 // =====================================================
-// Enums  (wire values stay as string; use these for comparisons)
+// Enums  (wire values are numeric integers — order must match server types.ts)
 // =====================================================
 
 public enum SeatRole        { Dealer, Player }
@@ -92,10 +92,10 @@ public class RoomData
   public int max_player_count;
   public int player_count;
   public int user_count;
-  public string state;       // "WAITING" | "PLAYING"
+  public int state;          // 0=Waiting 1=Playing
   public List<SeatData> seats;
 
-  public RoomState State => state == "PLAYING" ? RoomState.Playing : RoomState.Waiting;
+  public RoomState State => (RoomState)state;
 }
 
 [Serializable]
@@ -115,12 +115,12 @@ public class PlayersKickedData
 public class SeatData
 {
   public int seatIndex;
-  public string role;        // "player" | "dealer"
+  public int role;           // 0=Dealer 1=Player
   public int playerId;
   public string username;
   public int chip;
 
-  public SeatRole Role    => role == "dealer" ? SeatRole.Dealer : SeatRole.Player;
+  public SeatRole Role    => (SeatRole)role;
   public bool IsDealer   => Role == SeatRole.Dealer;
   public bool IsPlayer   => Role == SeatRole.Player;
   public bool IsEmpty    => playerId == 0;
@@ -189,16 +189,10 @@ public class GameUpdatePayload
   public int roomId;
 
   // "state_changed" + "turn_changed"
-  public string state;           // "WAITING" | "DEALING" | "PLAYER_TURN" | "DEALER_TURN" | "RESOLVING"
+  public int state;              // 0=Waiting 1=Dealing 2=PlayerTurn 3=DealerTurn 4=Resolving
   public int currentPlayer;      // playerId ที่เป็น turn ปัจจุบัน (0 = dealer)
 
-  public ServerGameState State => state switch {
-    "DEALING"     => ServerGameState.Dealing,
-    "PLAYER_TURN" => ServerGameState.PlayerTurn,
-    "DEALER_TURN" => ServerGameState.DealerTurn,
-    "RESOLVING"   => ServerGameState.Resolving,
-    _             => ServerGameState.Waiting,
-  };
+  public ServerGameState State => (ServerGameState)state;
 
   // "state_changed"
   public PlayerState[] players;
@@ -212,21 +206,11 @@ public class PlayerState
   public int playerId;
   public CardDataRes[] hand;
   public int score;
-  public string status;          // "PLAYING" | "STAND" | "BUST" | "BLACKJACK"
-  public string result;          // "PENDING" | "WIN" | "LOSE" | "DRAW"
+  public int status;             // 0=Playing 1=Stand 2=Bust 3=Blackjack
+  public int result;             // 0=Win 1=Lose 2=Draw 3=Pending
 
-  public PlayerStatus Status => status switch {
-    "STAND"     => PlayerStatus.Stand,
-    "BUST"      => PlayerStatus.Bust,
-    "BLACKJACK" => PlayerStatus.Blackjack,
-    _           => PlayerStatus.Playing,
-  };
-  public GameResult Result => result switch {
-    "WIN"  => GameResult.Win,
-    "LOSE" => GameResult.Lose,
-    "DRAW" => GameResult.Draw,
-    _      => GameResult.Pending,
-  };
+  public PlayerStatus Status => (PlayerStatus)status;
+  public GameResult   Result => (GameResult)result;
 }
 
 [Serializable]
@@ -240,15 +224,10 @@ public class DealerState
 public class PlayerRoundResult
 {
   public int playerId;
-  public string result;          // "WIN" | "LOSE" | "DRAW" | "PENDING"
+  public int result;             // 0=Win 1=Lose 2=Draw 3=Pending
   public int chipAfter;
 
-  public GameResult Result => result switch {
-    "WIN"  => GameResult.Win,
-    "LOSE" => GameResult.Lose,
-    "DRAW" => GameResult.Draw,
-    _      => GameResult.Pending,
-  };
+  public GameResult Result => (GameResult)result;
 }
 
 // =====================================================
@@ -275,16 +254,11 @@ public class GameEventMessage
 public class GameEventPayload
 {
   public int player_id;
-  public string status;          // "PLAYING" | "BUST" | "STAND" | "BLACKJACK"
+  public int status;             // 0=Playing 1=Stand 2=Bust 3=Blackjack
   public CardDataRes card;       // null เมื่อ stand
   public int score;
 
-  public PlayerStatus Status => status switch {
-    "STAND"     => PlayerStatus.Stand,
-    "BUST"      => PlayerStatus.Bust,
-    "BLACKJACK" => PlayerStatus.Blackjack,
-    _           => PlayerStatus.Playing,
-  };
+  public PlayerStatus Status => (PlayerStatus)status;
 }
 
 
@@ -295,11 +269,11 @@ public class GameEventPayload
 [Serializable]
 public class CardDataRes
 {
-  public string suit;            // "♣" | "♦" | "♥" | "♠"
-  public string rank;            // "2"-"10" | "J" | "Q" | "K" | "A"
+  public int suit;               // 0=♣ 1=♦ 2=♥ 3=♠
+  public int rank;               // 0=2 1=3 ... 8=10 9=J 10=Q 11=K 12=A
 
-  public int ToIndex() => CardIndex.ToIndex(suit, rank);
-  public override string ToString() => $"{suit}{rank}";
+  public int ToIndex() => suit * 13 + rank;
+  public override string ToString() => $"{CardIndex.SuitSymbol(suit)}{CardIndex.RankSymbol(rank)}";
 }
 
 // =====================================================
@@ -311,17 +285,14 @@ public static class CardIndex
   private static readonly string[] Suits = { "♣", "♦", "♥", "♠" };
   private static readonly string[] Ranks = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
 
-  public static int ToIndex(string suit, string rank)
-  {
-    int s = Array.IndexOf(Suits, suit);
-    int r = Array.IndexOf(Ranks, rank);
-    if (s == -1 || r == -1) throw new ArgumentException($"Invalid card: {rank}{suit}");
-    return s * 13 + r;
-  }
+  public static string SuitSymbol(int suit) => Suits[suit];
+  public static string RankSymbol(int rank) => Ranks[rank];
 
-  public static (string suit, string rank) FromIndex(int index)
+  public static int ToIndex(int suit, int rank) => suit * 13 + rank;
+
+  public static (int suit, int rank) FromIndex(int index)
   {
     if (index < 0 || index > 51) throw new ArgumentOutOfRangeException(nameof(index));
-    return (Suits[index / 13], Ranks[index % 13]);
+    return (index / 13, index % 13);
   }
 }

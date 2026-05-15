@@ -2,7 +2,7 @@ import { RoomService } from "../../../service/room-service.js";
 import { GameBroadcaster } from "../../services/game-broadcaster.js";
 import { UserSession } from "../../../infrastructure/network/user-session.js";
 import { IGameLogger } from "../../../domain/logging/i-game-logger.js";
-import { PlayerAction, PlayerStatus } from "../../../domain/types.js";
+import { GameEvent, PlayerStatus } from "../../../domain/types.js";
 
 export class PlayerStandUseCase {
   constructor(
@@ -28,7 +28,7 @@ export class PlayerStandUseCase {
       return;
     }
 
-    const result = room.applyAction(playerId, PlayerAction.STAND);
+    const result = room.applyAction(playerId, GameEvent.STAND);
     if (!result) {
       session.send({ type: "error", reason: "ACTION_UNDEFINED" });
       return;

@@ -1,4 +1,4 @@
-import { ActionResult, GameResult, PlayerAction, RoomState, Seat } from "../types.js";
+import { ActionResult, GameEvent, GameResult, RoomState, Seat } from "../types.js";
 import { GameSession } from "./game-session.js";
 import { IDeck } from "./deck.js";
 import { SeatManager, MAX_PLAYERS } from "./seat-manager.js";
@@ -188,7 +188,7 @@ export class Room {
 
   public resetReadyState() { this.readyPlayers.clear(); }
 
-  public applyAction(playerId: number, action: PlayerAction): ActionResult | null {
+  public applyAction(playerId: number, action: GameEvent): ActionResult | null {
     if (!this.gameSession) return null;
     const result = this.gameSession.applyAction(playerId, action) ?? null;
     if (result?.gameEnded) {

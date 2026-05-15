@@ -59,16 +59,16 @@ public class OtherPlayerView : MonoBehaviour
 
   public void UpdateScore(int score) =>
       _scoreLabel.text = score.ToString();
-  public void ShowResult(string result)
+  public void ShowResult(GameResult result)
   {
     if (!_resultLabel) return;
-    _resultLabel.text = result;
+    _resultLabel.text = result.ToString().ToUpper();
     _resultLabel.color = result switch
     {
-      "WIN" => new Color(0.2f, 0.85f, 0.2f),
-      "LOSE" => new Color(0.9f, 0.2f, 0.2f),
-      "DRAW" => new Color(0.9f, 0.75f, 0.1f),
-      _ => Color.white,
+      GameResult.Win  => new Color(0.2f, 0.85f, 0.2f),
+      GameResult.Lose => new Color(0.9f, 0.2f, 0.2f),
+      GameResult.Draw => new Color(0.9f, 0.75f, 0.1f),
+      _               => Color.white,
     };
     _resultLabel.gameObject.SetActive(true);
   }

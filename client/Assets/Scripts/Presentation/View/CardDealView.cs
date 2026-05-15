@@ -185,7 +185,7 @@ public class CardDealView : MonoBehaviour
       view.SetTurnHighlight(pid == currentPlayerId);
   }
 
-  public void ShowOtherPlayerResult(int playerId, string result)
+  public void ShowOtherPlayerResult(int playerId, GameResult result)
   {
     if (_playerViews.TryGetValue(playerId, out var view))
       view.ShowResult(result);

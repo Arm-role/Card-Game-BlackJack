@@ -180,7 +180,7 @@ public class GameplayLogic
           foreach (var r in results)
           {
             Debug.Log($"  player[{r.playerId}] → {r.result}  chip={r.chipAfter:N0}");
-            _table.ShowResult(r.playerId, r.result);
+            _table.ShowResult(r.playerId, r.Result);
             if (r.playerId == _myPlayerId)
             {
               _myChip = r.chipAfter;

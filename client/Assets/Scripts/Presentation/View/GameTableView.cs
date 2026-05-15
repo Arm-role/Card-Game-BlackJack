@@ -98,7 +98,7 @@ public class GameTableView : MonoBehaviour, IGameTableView, ICoroutineRunner
 
   // ─── Result ───────────────────────────────────────────
 
-  public void ShowResult(int playerId, string result)
+  public void ShowResult(int playerId, GameResult result)
   {
     if (playerId == _cardDeal.MyPlayerId)
       _result.ShowMyResult(result);
