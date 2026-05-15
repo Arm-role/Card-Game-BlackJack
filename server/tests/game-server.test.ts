@@ -7,7 +7,7 @@ import { RoomService } from "../src/service/room-service.js";
 import { UserSession, ISocket } from "../src/infrastructure/network/user-session.js";
 import { IDeck } from "../src/domain/entities/deck.js";
 import { Room } from "../src/domain/entities/room.js";
-import { Card } from "../src/domain/types.js";
+import { Card, GameState, Rank, Suit } from "../src/domain/types.js";
 
 // ─── MockUserSession ──────────────────────────────────────────────────────────
 
@@ -58,25 +58,24 @@ class ScriptedDeck implements IDeck {
 
 // ─── Rigged deck: 4-player deterministic scenario ────────────────────────────
 
-
 function createRiggedDeck(): ScriptedDeck {
   return new ScriptedDeck([
     // ── Round 1 ──────────────────────────────────────────────
-    { suit: "♠", rank: "10" }, // P1
-    { suit: "♠", rank: "9" }, // P2
-    { suit: "♠", rank: "10" }, // P3
-    { suit: "♠", rank: "10" }, // P4
-    { suit: "♠", rank: "9" }, // Dealer
+    { suit: Suit.SPADES,   rank: Rank.TEN   }, // P1
+    { suit: Suit.SPADES,   rank: Rank.NINE  }, // P2
+    { suit: Suit.SPADES,   rank: Rank.TEN   }, // P3
+    { suit: Suit.SPADES,   rank: Rank.TEN   }, // P4
+    { suit: Suit.SPADES,   rank: Rank.NINE  }, // Dealer
     // ── Round 2 ──────────────────────────────────────────────
-    { suit: "♥", rank: "10" }, // P1  → 20
-    { suit: "♥", rank: "7" }, // P2  → 16
-    { suit: "♥", rank: "7" }, // P3  → 17
-    { suit: "♥", rank: "6" }, // P4  → 16
-    { suit: "♥", rank: "6" }, // Dlr → 15
+    { suit: Suit.HEARTS,   rank: Rank.TEN   }, // P1  → 20
+    { suit: Suit.HEARTS,   rank: Rank.SEVEN }, // P2  → 16
+    { suit: Suit.HEARTS,   rank: Rank.SEVEN }, // P3  → 17
+    { suit: Suit.HEARTS,   rank: Rank.SIX   }, // P4  → 16
+    { suit: Suit.HEARTS,   rank: Rank.SIX   }, // Dlr → 15
     // ── Action ───────────────────────────────────────────────
-    { suit: "♦", rank: "K" }, // P2 hit → BUST (26)
+    { suit: Suit.DIAMONDS, rank: Rank.KING  }, // P2 hit → BUST (26)
     // ── Dealer draw ──────────────────────────────────────────
-    { suit: "♣", rank: "3" }, // Dlr → 18 (stop)
+    { suit: Suit.CLUBS,    rank: Rank.THREE }, // Dlr → 18 (stop)
   ]);
 }
 
@@ -84,14 +83,14 @@ function createRiggedDeck(): ScriptedDeck {
 
 function createSafeDeck(): ScriptedDeck {
   return new ScriptedDeck([
-    { suit: "♠", rank: "2" }, // P1 r1
-    { suit: "♠", rank: "3" }, // P2 r1
-    { suit: "♠", rank: "9" }, // Dealer r1
-    { suit: "♥", rank: "3" }, // P1 r2 → 5
-    { suit: "♥", rank: "2" }, // P2 r2 → 5
-    { suit: "♥", rank: "4" }, // Dealer r2 → 13
-    { suit: "♦", rank: "2" }, // P1 hit → 7  (safe)
-    { suit: "♣", rank: "K" }, // dealer potential draw
+    { suit: Suit.SPADES,   rank: Rank.TWO   }, // P1 r1
+    { suit: Suit.SPADES,   rank: Rank.THREE }, // P2 r1
+    { suit: Suit.SPADES,   rank: Rank.NINE  }, // Dealer r1
+    { suit: Suit.HEARTS,   rank: Rank.THREE }, // P1 r2 → 5
+    { suit: Suit.HEARTS,   rank: Rank.TWO   }, // P2 r2 → 5
+    { suit: Suit.HEARTS,   rank: Rank.FOUR  }, // Dealer r2 → 13
+    { suit: Suit.DIAMONDS, rank: Rank.TWO   }, // P1 hit → 7  (safe)
+    { suit: Suit.CLUBS,    rank: Rank.KING  }, // dealer potential draw
   ]);
 }
 
@@ -99,22 +98,22 @@ function createSafeDeck(): ScriptedDeck {
 
 function createGenericDeck(): ScriptedDeck {
   return new ScriptedDeck([
-    { suit: "♠", rank: "5" }, // P1 r1
-    { suit: "♠", rank: "6" }, // P2 r1 (unused in 1p)
-    { suit: "♠", rank: "7" }, // P3 r1 (unused in 1-2p)
-    { suit: "♠", rank: "8" }, // Dealer r1
-    { suit: "♥", rank: "6" }, // P1 r2 → 11
-    { suit: "♥", rank: "5" }, // P2 r2 → 11 (unused in 1p)
-    { suit: "♥", rank: "4" }, // P3 r2 → 11 (unused in 1-2p)
-    { suit: "♥", rank: "7" }, // Dealer r2 → 15
+    { suit: Suit.SPADES,   rank: Rank.FIVE  }, // P1 r1
+    { suit: Suit.SPADES,   rank: Rank.SIX   }, // P2 r1 (unused in 1p)
+    { suit: Suit.SPADES,   rank: Rank.SEVEN }, // P3 r1 (unused in 1-2p)
+    { suit: Suit.SPADES,   rank: Rank.EIGHT }, // Dealer r1
+    { suit: Suit.HEARTS,   rank: Rank.SIX   }, // P1 r2 → 11
+    { suit: Suit.HEARTS,   rank: Rank.FIVE  }, // P2 r2 → 11 (unused in 1p)
+    { suit: Suit.HEARTS,   rank: Rank.FOUR  }, // P3 r2 → 11 (unused in 1-2p)
+    { suit: Suit.HEARTS,   rank: Rank.SEVEN }, // Dealer r2 → 15
     // Extra action cards (safe hits)
-    { suit: "♦", rank: "2" },
-    { suit: "♦", rank: "3" },
-    { suit: "♦", rank: "4" },
-    { suit: "♦", rank: "5" },
-    { suit: "♦", rank: "6" },
-    { suit: "♣", rank: "2" },
-    { suit: "♣", rank: "3" },
+    { suit: Suit.DIAMONDS, rank: Rank.TWO   },
+    { suit: Suit.DIAMONDS, rank: Rank.THREE },
+    { suit: Suit.DIAMONDS, rank: Rank.FOUR  },
+    { suit: Suit.DIAMONDS, rank: Rank.FIVE  },
+    { suit: Suit.DIAMONDS, rank: Rank.SIX   },
+    { suit: Suit.CLUBS,    rank: Rank.TWO   },
+    { suit: Suit.CLUBS,    rank: Rank.THREE },
   ]);
 }
 
@@ -122,12 +121,12 @@ function createGenericDeck(): ScriptedDeck {
 
 function createDisconnectDeck(): ScriptedDeck {
   return new ScriptedDeck([
-    { suit: "♠", rank: "5" }, // P1 r1
-    { suit: "♠", rank: "6" }, // P2 r1
-    { suit: "♠", rank: "8" }, // Dealer r1
-    { suit: "♥", rank: "6" }, // P1 r2 → 11
-    { suit: "♥", rank: "5" }, // P2 r2 → 11
-    { suit: "♥", rank: "7" }, // Dealer r2 → 15
+    { suit: Suit.SPADES,   rank: Rank.FIVE  }, // P1 r1
+    { suit: Suit.SPADES,   rank: Rank.SIX   }, // P2 r1
+    { suit: Suit.SPADES,   rank: Rank.EIGHT }, // Dealer r1
+    { suit: Suit.HEARTS,   rank: Rank.SIX   }, // P1 r2 → 11
+    { suit: Suit.HEARTS,   rank: Rank.FIVE  }, // P2 r2 → 11
+    { suit: Suit.HEARTS,   rank: Rank.SEVEN }, // Dealer r2 → 15
   ]);
 }
 
@@ -426,9 +425,6 @@ describe("GameServer – integration", () => {
       await clients[0].send("request_start_game");
       for (const c of clients) await c.send("request_player_ready");
 
-      // FIX: use findLastMsg — after ready, a turn_changed is broadcast.
-      // After each stand/hit, another turn_changed is broadcast.
-      // We want the LATEST turn_changed at each checkpoint.
       const getLastTurn = (s: MockUserSession) =>
         findLastMsg(s, "game_update", "turn_changed");
 
@@ -451,7 +447,7 @@ describe("GameServer – integration", () => {
       // Game must have resolved
       const stateMsg = findLastMsg(p1, "game_update", "state_changed");
       expect(stateMsg).toBeDefined();
-      expect(stateMsg.payload).toMatchObject({ state: "WAITING" });
+      expect(stateMsg.payload).toMatchObject({ state: GameState.WAITING });
     });
 
     it("user who joins last plays last in turn order", async () => {
@@ -480,7 +476,6 @@ describe("GameServer – integration", () => {
       await c1.send("request_stand");   // P1 done → P2
       await c2.send("request_stand");   // P2 done → Last
 
-      // FIX: use findLastMsg to get the most recent turn_changed
       const lastTurn = findLastMsg(last, "game_update", "turn_changed");
       expect(lastTurn?.payload.currentPlayer).toBe(99);
     });
@@ -518,7 +513,6 @@ describe("GameServer – integration", () => {
       await c1.send("request_stand");
 
       const state = findMsg(p1, "game_update", "state_changed");
-      // Dealer either drew to ≥17 or didn't draw at all (all busted → still ≥ initial deal)
       expect(state.payload.dealer.score).toBeGreaterThanOrEqual(0);
     });
   });
@@ -547,8 +541,6 @@ describe("GameServer – integration", () => {
       vi.advanceTimersByTime(30_001); // fire reconnect timer only (idle timer is 300_000)
       vi.useRealTimers();
 
-      // After ready_to_act, turn_changed(P1) was sent.
-      // After disconnect, turn_changed(P2) is sent. We want the last one.
       const turnMsg = findLastMsg(p2, "game_update", "turn_changed");
       expect(turnMsg?.payload.currentPlayer).toBe(2);
     });
@@ -585,9 +577,7 @@ describe("GameServer – integration", () => {
       server.addSession(p1);
       server.addSession(p2);
 
-      // p1 create ห้อง minChip=500
       await new GameClient(p1, server).send("request_create_room", { minChip: 500 });
-      // p2 chip default = 1_000_000 ผ่านแน่นอน
       await new GameClient(p2, server).send("request_join_room", { roomId: 999 });
 
       expect(findMsg(p2, "room_result", "join")?.success).toBe(true);
@@ -613,9 +603,7 @@ describe("GameServer – integration", () => {
       server.addSession(p1);
       server.addSession(p2);
 
-      // p1 สร้างห้อง minChip สูงมาก
       await new GameClient(p1, server).send("request_create_room", { minChip: 2_000_000 });
-      // p2 quick_join → ไม่ควร join ได้
       await new GameClient(p2, server).send("request_quick_join_room");
 
       const msg = findMsg(p2, "room_result", "quick_join");
@@ -629,7 +617,6 @@ describe("GameServer – integration", () => {
       server.addSession(p1);
       server.addSession(p2);
 
-      // minChip = 0 (default) → ทุกคนเข้าได้
       await new GameClient(p1, server).send("request_create_room", { minChip: 0 });
       await new GameClient(p2, server).send("request_quick_join_room");
 
@@ -653,7 +640,6 @@ describe("GameServer – integration", () => {
 
   describe("kick broke players after game end", () => {
 
-    // helper: จบเกมแบบเร็ว (p1 stand → dealer resolves)
     async function runFullGame(
       c1: GameClient, p1: MockUserSession,
       extraClients: GameClient[] = [],
@@ -675,26 +661,20 @@ describe("GameServer – integration", () => {
       await c1.send("request_create_room");
       await runFullGame(c1, p1);
 
-      // chip ยังเหลือ (ยังไม่มีระบบหัก) → ไม่ควรได้รับ kicked message
       const kicked = findMsg(p1, "room_result", "kicked");
       expect(kicked).toBeUndefined();
     });
 
-    // deck พิเศษสำหรับ kick test: P2 ได้ไพ่สูงแล้ว bust ทันทีตอน stand ไม่ได้
-    // P1=10+6=16 STAND, P2=10+9=19 STAND, Dealer=8+7=15 จั่ว→ K=25 BUST
-    // ผล: P1 WIN, P2 WIN → ใช้ไม่ได้
-    // ต้องการ P2 LOSE → ให้ P2 bust: P2=10+6=16 hit→K=26 BUST
-    // deck: P1r1=5, P2r1=10, Dr1=8, P1r2=6→11, P2r2=6→16, Dr2=7→15, P2hit=K→BUST, Ddraw=4→19
     function createP2LosesDeck(): ScriptedDeck {
       return new ScriptedDeck([
-        { suit: "♠", rank: "5" },  // P1 r1
-        { suit: "♠", rank: "10" }, // P2 r1
-        { suit: "♠", rank: "8" },  // Dealer r1
-        { suit: "♥", rank: "6" },  // P1 r2 → 11
-        { suit: "♥", rank: "6" },  // P2 r2 → 16
-        { suit: "♥", rank: "7" },  // Dealer r2 → 15
-        { suit: "♦", rank: "K" },  // P2 hit → 26 BUST
-        { suit: "♣", rank: "4" },  // Dealer draw → 19
+        { suit: Suit.SPADES,   rank: Rank.FIVE  }, // P1 r1
+        { suit: Suit.SPADES,   rank: Rank.TEN   }, // P2 r1
+        { suit: Suit.SPADES,   rank: Rank.EIGHT }, // Dealer r1
+        { suit: Suit.HEARTS,   rank: Rank.SIX   }, // P1 r2 → 11
+        { suit: Suit.HEARTS,   rank: Rank.SIX   }, // P2 r2 → 16
+        { suit: Suit.HEARTS,   rank: Rank.SEVEN }, // Dealer r2 → 15
+        { suit: Suit.DIAMONDS, rank: Rank.KING  }, // P2 hit → 26 BUST
+        { suit: Suit.CLUBS,    rank: Rank.FOUR  }, // Dealer draw → 19
       ]);
     }
 
@@ -710,8 +690,7 @@ describe("GameServer – integration", () => {
       injectDeck(roomService.getRoom(999)!, createP2LosesDeck());
       await c2.send("request_join_room", { roomId: 999 });
 
-      await c1.send("request_start_game"); // placeBets() หัก 100 ไปแล้ว
-      // force chip = 0 ทันทีหลัง placeBets → LOSE → payout=0 → ยังคง 0
+      await c1.send("request_start_game");
       const room = roomService.getRoom(999)!;
       const seat = room.getSeatByPlayerId(2);
       if (seat) seat.chip = 0;
@@ -719,7 +698,7 @@ describe("GameServer – integration", () => {
       await c1.send("request_player_ready");
       await c2.send("request_player_ready");
       await c1.send("request_stand");
-      await c2.send("request_hit"); // P2 BUST → LOSE → payout=0 → chip=0 → kicked
+      await c2.send("request_hit");
 
       const kickedMsg = findMsg(p2, "room_result", "kicked");
       expect(kickedMsg).toBeDefined();
@@ -746,7 +725,7 @@ describe("GameServer – integration", () => {
       await c1.send("request_player_ready");
       await c2.send("request_player_ready");
       await c1.send("request_stand");
-      await c2.send("request_hit"); // P2 BUST → chip=0 → kicked
+      await c2.send("request_hit");
 
       expect(room.hasPlayer(2)).toBe(false);
     });
@@ -773,7 +752,7 @@ describe("GameServer – integration", () => {
       await c1.send("request_player_ready");
       await c2.send("request_player_ready");
       await c1.send("request_stand");
-      await c2.send("request_hit"); // P2 BUST → chip=0 → kicked
+      await c2.send("request_hit");
 
       const kickBroadcast = findMsg(p1, "room_update", "players_kicked");
       expect(kickBroadcast).toBeDefined();
@@ -796,7 +775,6 @@ describe("GameServer – integration", () => {
       await c2.send("request_join_room", { roomId: 999 });
       await c3.send("request_join_room", { roomId: 999 });
 
-      // เฉพาะ p2 chip = 0
       const room = roomService.getRoom(999)!;
       const seat2 = room.getSeatByPlayerId(2);
       if (seat2) seat2.chip = 0;
@@ -809,9 +787,9 @@ describe("GameServer – integration", () => {
       await c2.send("request_stand");
       await c3.send("request_stand");
 
-      expect(room.hasPlayer(1)).toBe(true);  // p1 ยังอยู่
-      expect(room.hasPlayer(2)).toBe(false); // p2 ถูก kick
-      expect(room.hasPlayer(3)).toBe(true);  // p3 ยังอยู่
+      expect(room.hasPlayer(1)).toBe(true);
+      expect(room.hasPlayer(2)).toBe(false);
+      expect(room.hasPlayer(3)).toBe(true);
     });
 
     it("broke player kicked from room cannot rejoin if minChip not met", async () => {
@@ -823,14 +801,13 @@ describe("GameServer – integration", () => {
       const c2 = new GameClient(p2, server);
 
       await c1.send("request_create_room", { minChip: 1000 });
-      // Dealer scores 17 (no bust) and beats both players → P2 (chip=0) gets kicked
       injectDeck(roomService.getRoom(999)!, new ScriptedDeck([
-        { suit: "♠", rank: "5" }, // P1 r1
-        { suit: "♠", rank: "9" }, // P2 r1
-        { suit: "♠", rank: "8" }, // Dealer r1
-        { suit: "♥", rank: "6" }, // P1 r2 → 11
-        { suit: "♥", rank: "7" }, // P2 r2 → 16
-        { suit: "♥", rank: "9" }, // Dealer r2 → 17 (stop, no bust)
+        { suit: Suit.SPADES,   rank: Rank.FIVE  }, // P1 r1
+        { suit: Suit.SPADES,   rank: Rank.NINE  }, // P2 r1
+        { suit: Suit.SPADES,   rank: Rank.EIGHT }, // Dealer r1
+        { suit: Suit.HEARTS,   rank: Rank.SIX   }, // P1 r2 → 11
+        { suit: Suit.HEARTS,   rank: Rank.SEVEN }, // P2 r2 → 16
+        { suit: Suit.HEARTS,   rank: Rank.NINE  }, // Dealer r2 → 17 (stop, no bust)
       ]));
       await c2.send("request_join_room", { roomId: 999 });
 
@@ -844,7 +821,6 @@ describe("GameServer – integration", () => {
       await c1.send("request_stand");
       await c2.send("request_stand");
 
-      // p2 ถูก kick แล้ว พยายาม rejoin
       p2.clear();
       await c2.send("request_join_room", { roomId: 999 });
 
@@ -882,19 +858,18 @@ describe("GameServer – integration", () => {
 
   describe("nextTurn pointer fix", () => {
     it("game resolves correctly when last player busts (all players done after one action)", async () => {
-      // P1 bust ทันที → ไม่มีใคร PLAYING → dealer ต้องเล่นต่อได้โดยไม่ค้าง
       const p1 = new MockUserSession(1, "P1");
       server.addSession(p1);
       const c1 = new GameClient(p1, server);
 
       await c1.send("request_create_room");
       injectDeck(roomService.getRoom(999)!, new ScriptedDeck([
-        { suit: "♠", rank: "10" }, // P1 r1
-        { suit: "♠", rank: "8" },  // Dealer r1
-        { suit: "♥", rank: "10" }, // P1 r2 → 20
-        { suit: "♥", rank: "7" },  // Dealer r2 → 15
-        { suit: "♦", rank: "5" },  // P1 hit → 25 BUST
-        { suit: "♣", rank: "3" },  // Dealer draw → 18
+        { suit: Suit.SPADES,   rank: Rank.TEN   }, // P1 r1
+        { suit: Suit.SPADES,   rank: Rank.EIGHT }, // Dealer r1
+        { suit: Suit.HEARTS,   rank: Rank.TEN   }, // P1 r2 → 20
+        { suit: Suit.HEARTS,   rank: Rank.SEVEN }, // Dealer r2 → 15
+        { suit: Suit.DIAMONDS, rank: Rank.FIVE  }, // P1 hit → 25 BUST
+        { suit: Suit.CLUBS,    rank: Rank.THREE }, // Dealer draw → 18
       ]));
       await c1.send("request_start_game");
       await c1.send("request_player_ready");
@@ -902,7 +877,7 @@ describe("GameServer – integration", () => {
 
       const stateMsg = findLastMsg(p1, "game_update", "state_changed");
       expect(stateMsg).toBeDefined();
-      expect(stateMsg.payload.state).toBe("WAITING");
+      expect(stateMsg.payload.state).toBe(GameState.WAITING);
     });
   });
 
@@ -910,7 +885,6 @@ describe("GameServer – integration", () => {
 
   describe("blackjack skip turn", () => {
     it("player with blackjack is skipped — turn goes directly to next player", async () => {
-      // P1 Blackjack (A+10), P2 normal → turn ต้องเริ่มที่ P2 ทันที ไม่ใช่ P1
       const p1 = new MockUserSession(1, "P1");
       const p2 = new MockUserSession(2, "P2");
       server.addSession(p1);
@@ -920,26 +894,24 @@ describe("GameServer – integration", () => {
 
       await c1.send("request_create_room");
       injectDeck(roomService.getRoom(999)!, new ScriptedDeck([
-        { suit: "♠", rank: "A" },  // P1 r1
-        { suit: "♠", rank: "6" },  // P2 r1
-        { suit: "♠", rank: "8" },  // Dealer r1
-        { suit: "♥", rank: "10" }, // P1 r2 → BLACKJACK (21)
-        { suit: "♥", rank: "5" },  // P2 r2 → 11
-        { suit: "♥", rank: "7" },  // Dealer r2 → 15
-        { suit: "♦", rank: "3" },  // Dealer draw → 18
+        { suit: Suit.SPADES,   rank: Rank.ACE   }, // P1 r1
+        { suit: Suit.SPADES,   rank: Rank.SIX   }, // P2 r1
+        { suit: Suit.SPADES,   rank: Rank.EIGHT }, // Dealer r1
+        { suit: Suit.HEARTS,   rank: Rank.TEN   }, // P1 r2 → BLACKJACK (21)
+        { suit: Suit.HEARTS,   rank: Rank.FIVE  }, // P2 r2 → 11
+        { suit: Suit.HEARTS,   rank: Rank.SEVEN }, // Dealer r2 → 15
+        { suit: Suit.DIAMONDS, rank: Rank.THREE }, // Dealer draw → 18
       ]));
       await c2.send("request_join_room", { roomId: 999 });
       await c1.send("request_start_game");
       await c1.send("request_player_ready");
       await c2.send("request_player_ready");
 
-      // turn_changed ต้องชี้ไปที่ P2 (id=2) ไม่ใช่ P1 (id=1)
       const turnMsg = findLastMsg(p1, "game_update", "turn_changed");
       expect(turnMsg?.payload.currentPlayer).toBe(2);
     });
 
     it("all players blackjack → game resolves immediately after ready", async () => {
-      // P1 และ P2 ได้ Blackjack ทั้งคู่ → เกมจบทันทีโดยไม่ต้องรอ HIT/STAND
       const p1 = new MockUserSession(1, "P1");
       const p2 = new MockUserSession(2, "P2");
       server.addSession(p1);
@@ -949,13 +921,13 @@ describe("GameServer – integration", () => {
 
       await c1.send("request_create_room");
       injectDeck(roomService.getRoom(999)!, new ScriptedDeck([
-        { suit: "♠", rank: "A" },  // P1 r1
-        { suit: "♥", rank: "A" },  // P2 r1
-        { suit: "♠", rank: "8" },  // Dealer r1
-        { suit: "♣", rank: "10" }, // P1 r2 → BLACKJACK
-        { suit: "♦", rank: "10" }, // P2 r2 → BLACKJACK
-        { suit: "♥", rank: "7" },  // Dealer r2 → 15
-        { suit: "♣", rank: "3" },  // Dealer draw → 18
+        { suit: Suit.SPADES,   rank: Rank.ACE   }, // P1 r1
+        { suit: Suit.HEARTS,   rank: Rank.ACE   }, // P2 r1
+        { suit: Suit.SPADES,   rank: Rank.EIGHT }, // Dealer r1
+        { suit: Suit.CLUBS,    rank: Rank.TEN   }, // P1 r2 → BLACKJACK
+        { suit: Suit.DIAMONDS, rank: Rank.TEN   }, // P2 r2 → BLACKJACK
+        { suit: Suit.HEARTS,   rank: Rank.SEVEN }, // Dealer r2 → 15
+        { suit: Suit.CLUBS,    rank: Rank.THREE }, // Dealer draw → 18
       ]));
       await c2.send("request_join_room", { roomId: 999 });
       await c1.send("request_start_game");
@@ -964,7 +936,7 @@ describe("GameServer – integration", () => {
 
       const stateMsg = findLastMsg(p1, "game_update", "state_changed");
       expect(stateMsg).toBeDefined();
-      expect(stateMsg.payload.state).toBe("WAITING");
+      expect(stateMsg.payload.state).toBe(GameState.WAITING);
     });
   });
 
@@ -972,7 +944,6 @@ describe("GameServer – integration", () => {
 
   describe("chip persistence across rooms", () => {
     it("chip is preserved after leave and rejoin another room", async () => {
-      // ใช้ roomId generator ที่นับขึ้นเรื่อยๆ เพื่อให้แต่ละห้องได้ id ต่างกัน
       let nextRoomId = 100;
       roomService = new RoomService({ generate: () => nextRoomId++ }, new InMemoryRoomRepository());
       server = new GameController({} as any, roomService, new InMemoryChipRepository(), new NullGameLogger());
@@ -994,17 +965,14 @@ describe("GameServer – integration", () => {
       await c1.send("request_stand");
       await c2.send("request_stand");
 
-      // อ่าน chip ของ p2 หลังเกมจบ (หลัง settleBets แล้ว)
       const chipAfterGame = roomService.getRoom(100)?.getSeatByPlayerId(2)?.chip ?? 0;
 
-      // p2 leave ห้องแรก → server จะ save chip ลง playerChips map
       await c2.send("request_leave_room");
 
       // ── ห้องสอง ──────────────────────────────────────────────────────────
       await c1.send("request_create_room"); // roomId = 101
       await c2.send("request_join_room", { roomId: 101 });
 
-      // chip ใน seat ของ p2 ในห้องใหม่ต้องตรงกับที่ leave ออกมา
       const seat = roomService.getRoom(101)?.getSeatByPlayerId(2);
       expect(seat?.chip).toBe(chipAfterGame);
     });
@@ -1027,7 +995,6 @@ describe("GameServer – integration", () => {
       await c1.send("request_player_ready");
       await c1.send("request_stand"); // game จบ → roomState ต้อง sync เป็น WAITING ทันที
 
-      // P3 ที่ยังไม่ได้อยู่ในห้อง ควร join ได้ทันทีโดยไม่ต้องรอ getGameState()
       await c3.send("request_join_room", { roomId: 999 });
 
       const joinMsg = findMsg(p3, "room_result", "join");

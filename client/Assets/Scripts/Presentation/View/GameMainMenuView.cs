@@ -29,6 +29,7 @@ public class GameMainMenuView : MonoBehaviour
   [SerializeField] private TextMeshProUGUI _ErrorText;
 
   private GameMainMenuLogic _Logic;
+  private IMessageRouter _router;
 
   private void Awake()
   {
@@ -61,12 +62,21 @@ public class GameMainMenuView : MonoBehaviour
   public void Initialze(IMessageRouter router, INetworkSender sender)
   {
     _Logic = new GameMainMenuLogic(sender);
+    _router = router;
 
     _UISwip.ActiveUIOnly(GameState.Instance.AccountUsername != null ? "Mode" : "Login");
 
-    router.OnRegisterResult += OnRegisterMessage;
-    router.OnLoginResult += OnLoginMessage;
-    router.OnRoomResult += OnRoomMessage;
+    _router.OnRegisterResult += OnRegisterMessage;
+    _router.OnLoginResult    += OnLoginMessage;
+    _router.OnRoomResult     += OnRoomMessage;
+  }
+
+  private void OnDestroy()
+  {
+    if (_router == null) return;
+    _router.OnRegisterResult -= OnRegisterMessage;
+    _router.OnLoginResult    -= OnLoginMessage;
+    _router.OnRoomResult     -= OnRoomMessage;
   }
 
   private void OnRegisterMessage(RegisterResultMessage message)

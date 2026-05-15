@@ -216,3 +216,128 @@
 2026-05-14T22:49:48.689Z [RECEIVE from=user:2] type=request_start_game
 2026-05-14T22:49:50.195Z [RECEIVE from=user:2] type=request_player_ready
 2026-05-14T22:49:50.492Z [RECEIVE from=user:2] type=request_stand
+2026-05-15T04:39:50.462Z [RECEIVE from=session:87c77c13-d657-45e1-834b-f6971d24e561] type=request_register data={"username":"qwdef","password":"12345"}
+2026-05-15T04:40:05.010Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-15T04:40:09.037Z [RECEIVE from=user:1] type=request_swap_seat data={"fromSeat":1,"toSeat":2}
+2026-05-15T04:40:10.092Z [RECEIVE from=user:1] type=request_swap_seat data={"fromSeat":2,"toSeat":0}
+2026-05-15T04:40:11.139Z [RECEIVE from=user:1] type=request_swap_seat data={"fromSeat":0,"toSeat":1}
+2026-05-15T04:40:14.168Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T04:40:15.699Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T04:40:23.552Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T04:40:26.401Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T04:40:29.988Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T04:40:31.554Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T04:40:33.779Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T04:40:35.328Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T04:40:37.155Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T04:40:39.466Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T04:40:41.658Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T04:40:43.209Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T04:40:44.018Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T04:40:45.087Z [RECEIVE from=user:1] type=request_leave_room
+2026-05-15T04:41:29.999Z [RECEIVE from=user:1] type=request_register data={"username":"Arm","password":"123"}
+2026-05-15T04:41:35.174Z [RECEIVE from=user:2] type=request_register data={"username":"Arm","password":"123456"}
+2026-05-15T04:41:37.337Z [RECEIVE from=user:2] type=request_register data={"username":"Arm","password":"123456"}
+2026-05-15T04:41:39.911Z [RECEIVE from=user:2] type=request_register data={"username":"Arm","password":"123456"}
+2026-05-15T04:41:40.246Z [RECEIVE from=user:2] type=request_register data={"username":"Arm","password":"123456"}
+2026-05-15T04:41:51.159Z [RECEIVE from=user:2] type=request_register data={"username":"Arqwqwdqefwef","password":"123456"}
+2026-05-15T04:42:08.874Z [RECEIVE from=user:3] type=request_login data={"username":"Arqwqwdqefwef","password":"123456"}
+2026-05-15T04:42:09.655Z [RECEIVE from=user:3] type=request_login data={"username":"Arqwqwdqefwef","password":"123456"}
+2026-05-15T04:42:31.607Z [RECEIVE from=session:c80cf28e-061f-49d8-816c-48f5f9f9b160] type=request_register data={"username":"arm","password":"123456"}
+2026-05-15T04:42:39.439Z [RECEIVE from=user:4] type=request_register data={"username":"arme","password":"123456"}
+2026-05-15T04:42:42.210Z [RECEIVE from=user:5] type=request_login data={"username":"arme","password":"123456"}
+2026-05-15T04:42:46.800Z [RECEIVE from=user:5] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-15T04:42:48.350Z [RECEIVE from=user:5] type=request_start_game
+2026-05-15T04:42:49.944Z [RECEIVE from=user:5] type=request_player_ready
+2026-05-15T04:42:51.059Z [RECEIVE from=user:5] type=request_hit
+2026-05-15T04:42:52.303Z [RECEIVE from=user:5] type=request_leave_room
+2026-05-15T04:43:00.775Z [RECEIVE from=user:5] type=request_login data={"username":"arm","password":"123456"}
+2026-05-15T04:43:09.809Z [RECEIVE from=user:4] type=request_register data={"username":"arm","password":"123456"}
+2026-05-15T04:43:12.017Z [RECEIVE from=user:4] type=request_register data={"username":"arm","password":"123456"}
+2026-05-15T09:13:12.732Z [RECEIVE from=session:acf56cd7-d373-4154-b3ba-0edd966c10cd] type=request_register data={"username":"qwer","password":"12345"}
+2026-05-15T09:13:16.273Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-15T09:13:18.953Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:20.467Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:21.915Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:13:23.718Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:25.224Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:27.929Z [RECEIVE from=user:1] type=request_stand
+2026-05-15T09:13:29.129Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:30.621Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:30.887Z [RECEIVE from=user:1] type=request_stand
+2026-05-15T09:13:32.865Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:34.376Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:34.654Z [RECEIVE from=user:1] type=request_stand
+2026-05-15T09:13:35.927Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:37.439Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:37.872Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:13:39.449Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:40.961Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:41.290Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:13:42.109Z [RECEIVE from=user:1] type=request_stand
+2026-05-15T09:13:42.998Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:44.494Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:44.823Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:13:45.870Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:47.358Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:47.835Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:49.344Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:50.333Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:51.836Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:53.150Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:13:54.051Z [RECEIVE from=user:1] type=request_stand
+2026-05-15T09:13:55.112Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:13:56.614Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:13:56.960Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:13:58.550Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:14:00.052Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:14:00.913Z [RECEIVE from=user:1] type=request_stand
+2026-05-15T09:14:02.572Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:14:04.058Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:14:04.803Z [RECEIVE from=user:1] type=request_stand
+2026-05-15T09:14:06.048Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:14:07.536Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:14:08.327Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:14:12.009Z [RECEIVE from=user:1] type=request_stand
+2026-05-15T09:14:12.714Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:14:14.203Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:14:14.705Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:14:15.744Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:14:16.831Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:14:18.327Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:14:18.888Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:14:19.810Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:14:21.295Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:14:21.669Z [RECEIVE from=user:1] type=request_stand
+2026-05-15T09:14:22.606Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:14:24.094Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:14:24.481Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:14:24.922Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:14:26.026Z [RECEIVE from=user:1] type=request_leave_room
+2026-05-15T09:14:32.077Z [RECEIVE from=user:1] type=request_register data={"username":"q3ew","password":"1234"}
+2026-05-15T09:14:32.862Z [RECEIVE from=user:2] type=request_register data={"username":"q3ew","password":"1234"}
+2026-05-15T09:19:23.002Z [RECEIVE from=session:a33d19ee-289f-41fc-95ae-bbb7b40f33e5] type=request_register data={"username":"qwertt","password":"1345"}
+2026-05-15T09:19:25.062Z [RECEIVE from=user:1] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-15T09:19:26.051Z [RECEIVE from=user:1] type=request_start_game
+2026-05-15T09:19:27.541Z [RECEIVE from=user:1] type=request_player_ready
+2026-05-15T09:19:28.890Z [RECEIVE from=user:1] type=request_hit
+2026-05-15T09:19:30.442Z [RECEIVE from=user:1] type=request_leave_room
+2026-05-15T09:19:39.870Z [RECEIVE from=user:1] type=request_register data={"username":"qwefrn","password":"13456rf"}
+2026-05-15T09:19:42.096Z [RECEIVE from=user:2] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-15T09:19:43.140Z [RECEIVE from=user:2] type=request_start_game
+2026-05-15T09:19:44.622Z [RECEIVE from=user:2] type=request_player_ready
+2026-05-15T09:19:45.376Z [RECEIVE from=user:2] type=request_hit
+2026-05-15T09:19:46.594Z [RECEIVE from=user:2] type=request_leave_room
+2026-05-15T09:19:49.151Z [RECEIVE from=user:2] type=request_create_room data={"minChip":0,"betAmount":10000}
+2026-05-15T09:19:51.064Z [RECEIVE from=user:2] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-15T09:19:52.829Z [RECEIVE from=user:2] type=request_start_game
+2026-05-15T09:19:54.301Z [RECEIVE from=user:2] type=request_player_ready
+2026-05-15T09:19:56.950Z [RECEIVE from=user:2] type=request_hit
+2026-05-15T09:19:59.036Z [RECEIVE from=user:2] type=request_hit
+2026-05-15T09:20:07.339Z [RECEIVE from=user:2] type=request_claim_chip
+2026-05-15T09:20:12.687Z [RECEIVE from=user:2] type=request_create_room data={"minChip":0,"betAmount":5000}
+2026-05-15T09:20:14.637Z [RECEIVE from=user:2] type=request_start_game
+2026-05-15T09:20:16.126Z [RECEIVE from=user:2] type=request_player_ready
+2026-05-15T09:20:16.854Z [RECEIVE from=user:2] type=request_hit
+2026-05-15T09:20:17.656Z [RECEIVE from=user:2] type=request_hit
+2026-05-15T09:20:18.768Z [RECEIVE from=user:2] type=request_leave_room

@@ -3,6 +3,7 @@ import { IChipRepository } from "../ports/i-chip-repository.js";
 import { IGameLogger } from "../../domain/logging/i-game-logger.js";
 import { RoomService } from "../../service/room-service.js";
 import { Room } from "../../domain/entities/room.js";
+import { GameState, PlayerStatus } from "../../domain/types.js";
 import { STARTING_CHIPS } from "../../config/config.js";
 
 export class GameBroadcaster {
@@ -30,7 +31,7 @@ export class GameBroadcaster {
     if (!gameState) return;
 
     let chipAfter: Map<number, number> | undefined;
-    if (gameState.state === "WAITING" && gameState.results) {
+    if (gameState.state === GameState.WAITING && gameState.results) {
       chipAfter = room.settleBets(gameState.results);
 
       for (const r of gameState.results) {
@@ -64,7 +65,7 @@ export class GameBroadcaster {
       payload,
     });
 
-    if (gameState.state === "WAITING") {
+    if (gameState.state === GameState.WAITING) {
       this.kickBrokePlayers(room);
     }
   }
@@ -125,7 +126,7 @@ export class GameBroadcaster {
       this.broadcastToRoom(room, {
         type: "game_event",
         action: "player_stand",
-        payload: { player_id: playerId, status: "STAND" },
+        payload: { player_id: playerId, status: PlayerStatus.STAND },
       });
       if (result.turnChanged) {
         this.broadcastToRoom(room, {

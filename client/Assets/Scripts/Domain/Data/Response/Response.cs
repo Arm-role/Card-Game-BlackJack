@@ -2,6 +2,16 @@
 using System.Collections.Generic;
 
 // =====================================================
+// Enums  (wire values stay as string; use these for comparisons)
+// =====================================================
+
+public enum SeatRole        { Dealer, Player }
+public enum PlayerStatus    { Playing, Stand, Bust, Blackjack }
+public enum GameResult      { Win, Lose, Draw, Pending }
+public enum ServerGameState { Waiting, Dealing, PlayerTurn, DealerTurn, Resolving }
+public enum RoomState       { Waiting, Playing }
+
+// =====================================================
 // Base
 // =====================================================
 
@@ -84,6 +94,8 @@ public class RoomData
   public int user_count;
   public string state;       // "WAITING" | "PLAYING"
   public List<SeatData> seats;
+
+  public RoomState State => state == "PLAYING" ? RoomState.Playing : RoomState.Waiting;
 }
 
 [Serializable]
@@ -108,9 +120,10 @@ public class SeatData
   public string username;
   public int chip;
 
-  public bool IsDealer => role == "dealer";
-  public bool IsPlayer => role == "player";
-  public bool IsEmpty => playerId == 0;
+  public SeatRole Role    => role == "dealer" ? SeatRole.Dealer : SeatRole.Player;
+  public bool IsDealer   => Role == SeatRole.Dealer;
+  public bool IsPlayer   => Role == SeatRole.Player;
+  public bool IsEmpty    => playerId == 0;
 }
 
 [Serializable]
@@ -179,6 +192,14 @@ public class GameUpdatePayload
   public string state;           // "WAITING" | "DEALING" | "PLAYER_TURN" | "DEALER_TURN" | "RESOLVING"
   public int currentPlayer;      // playerId ที่เป็น turn ปัจจุบัน (0 = dealer)
 
+  public ServerGameState State => state switch {
+    "DEALING"     => ServerGameState.Dealing,
+    "PLAYER_TURN" => ServerGameState.PlayerTurn,
+    "DEALER_TURN" => ServerGameState.DealerTurn,
+    "RESOLVING"   => ServerGameState.Resolving,
+    _             => ServerGameState.Waiting,
+  };
+
   // "state_changed"
   public PlayerState[] players;
   public DealerState dealer;
@@ -192,7 +213,20 @@ public class PlayerState
   public CardDataRes[] hand;
   public int score;
   public string status;          // "PLAYING" | "STAND" | "BUST" | "BLACKJACK"
-  public string result;          // "PENDING" | "WIN" | "LOSE" | "DRAW" | "BLACKJACK"
+  public string result;          // "PENDING" | "WIN" | "LOSE" | "DRAW"
+
+  public PlayerStatus Status => status switch {
+    "STAND"     => PlayerStatus.Stand,
+    "BUST"      => PlayerStatus.Bust,
+    "BLACKJACK" => PlayerStatus.Blackjack,
+    _           => PlayerStatus.Playing,
+  };
+  public GameResult Result => result switch {
+    "WIN"  => GameResult.Win,
+    "LOSE" => GameResult.Lose,
+    "DRAW" => GameResult.Draw,
+    _      => GameResult.Pending,
+  };
 }
 
 [Serializable]
@@ -206,8 +240,15 @@ public class DealerState
 public class PlayerRoundResult
 {
   public int playerId;
-  public string result;          // "WIN" | "LOSE" | "DRAW" | "BLACKJACK" | "PENDING"
+  public string result;          // "WIN" | "LOSE" | "DRAW" | "PENDING"
   public int chipAfter;
+
+  public GameResult Result => result switch {
+    "WIN"  => GameResult.Win,
+    "LOSE" => GameResult.Lose,
+    "DRAW" => GameResult.Draw,
+    _      => GameResult.Pending,
+  };
 }
 
 // =====================================================
@@ -237,7 +278,15 @@ public class GameEventPayload
   public string status;          // "PLAYING" | "BUST" | "STAND" | "BLACKJACK"
   public CardDataRes card;       // null เมื่อ stand
   public int score;
+
+  public PlayerStatus Status => status switch {
+    "STAND"     => PlayerStatus.Stand,
+    "BUST"      => PlayerStatus.Bust,
+    "BLACKJACK" => PlayerStatus.Blackjack,
+    _           => PlayerStatus.Playing,
+  };
 }
+
 
 // =====================================================
 // Card

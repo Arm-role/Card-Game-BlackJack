@@ -13,16 +13,16 @@ export class SeatManager {
 
   private initSeats() {
     this.seats = [
-      { seatIndex: 0, role: "dealer" },
+      { seatIndex: 0, role: SeatRole.DEALER },
       ...Array.from({ length: MAX_PLAYERS }, (_, i) => ({
         seatIndex: i + 1,
-        role: "player" as SeatRole,
+        role: SeatRole.PLAYER,
       })),
     ];
   }
 
   public addPlayer(id: number, username: string, startingChip: number = STARTING_CHIPS): boolean {
-    const seat = this.seats.find(s => s.role === "player" && !s.playerId);
+    const seat = this.seats.find(s => s.role === SeatRole.PLAYER && !s.playerId);
     if (!seat) return false;
     seat.playerId = id;
     seat.username = username;
@@ -51,13 +51,13 @@ export class SeatManager {
       }
     }
     if (this.hostId !== playerId) return { hostChanged: false };
-    const next = this.seats.find(s => s.role === "player" && s.playerId && s.playerId !== -1);
+    const next = this.seats.find(s => s.role === SeatRole.PLAYER && s.playerId && s.playerId !== -1);
     this.hostId = next?.playerId;
     return { hostChanged: true, newHostId: this.hostId };
   }
 
   public getDealerId(): number | undefined {
-    return this.seats.find(s => s.role === "dealer")?.playerId;
+    return this.seats.find(s => s.role === SeatRole.DEALER)?.playerId;
   }
 
   public getHostId(): number | undefined { return this.hostId; }
@@ -76,7 +76,7 @@ export class SeatManager {
   }
 
   public ensureDealer() {
-    const dealerSeat = this.seats.find(s => s.role === "dealer");
+    const dealerSeat = this.seats.find(s => s.role === SeatRole.DEALER);
     if (!dealerSeat) return;
     if (dealerSeat.playerId) return;
     dealerSeat.playerId = -1;
@@ -92,15 +92,15 @@ export class SeatManager {
     return this.seats.some(s => s.playerId === playerId);
   }
   public isFull(): boolean {
-    return this.seats.filter(s => s.role === "player" && s.playerId).length >= MAX_PLAYERS;
+    return this.seats.filter(s => s.role === SeatRole.PLAYER && s.playerId).length >= MAX_PLAYERS;
   }
   public getPlayerIds(): number[] {
     return this.seats
-      .filter(s => s.role === "player" && s.playerId && s.playerId !== -1)
+      .filter(s => s.role === SeatRole.PLAYER && s.playerId && s.playerId !== -1)
       .map(s => s.playerId!);
   }
   public getPlayerCount(): number {
-    return this.seats.filter(s => s.role === "player" && s.playerId && s.playerId !== -1).length;
+    return this.seats.filter(s => s.role === SeatRole.PLAYER && s.playerId && s.playerId !== -1).length;
   }
   public getUserCount(): number {
     return this.seats.filter(s => s.playerId && s.playerId !== -1).length;

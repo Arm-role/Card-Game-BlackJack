@@ -4,8 +4,8 @@ export interface IDeck {
   draw(): Card;
 }
 
-const SUITS: Suit[] = ["♣", "♦", "♥", "♠"];
-const RANKS: Rank[] = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+const SUITS: Suit[] = [Suit.CLUBS, Suit.DIAMONDS, Suit.HEARTS, Suit.SPADES];
+const RANKS: Rank[] = [Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN, Rank.JACK, Rank.QUEEN, Rank.KING, Rank.ACE];
 
 export class Deck implements IDeck {
   private cards: Card[];

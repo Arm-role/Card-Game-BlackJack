@@ -1,33 +1,75 @@
-export type Suit = '♣' | '♦' | '♥' | '♠';
-export type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A';
+export enum Suit {
+  CLUBS    = '♣',
+  DIAMONDS = '♦',
+  HEARTS   = '♥',
+  SPADES   = '♠',
+}
+
+export enum Rank {
+  TWO   = '2',
+  THREE = '3',
+  FOUR  = '4',
+  FIVE  = '5',
+  SIX   = '6',
+  SEVEN = '7',
+  EIGHT = '8',
+  NINE  = '9',
+  TEN   = '10',
+  JACK  = 'J',
+  QUEEN = 'Q',
+  KING  = 'K',
+  ACE   = 'A',
+}
 
 export interface Card {
   suit: Suit;
   rank: Rank;
 }
 
-export type PlayerStatus = 'PLAYING' | 'STAND' | 'BUST' | 'BLACKJACK';
-export type GameResult = "WIN" | "LOSE" | "DRAW" | "PENDING";
+export enum PlayerStatus {
+  PLAYING   = 'PLAYING',
+  STAND     = 'STAND',
+  BUST      = 'BUST',
+  BLACKJACK = 'BLACKJACK',
+}
 
-export type GameState =
-  | "WAITING"
-  | "DEALING"
-  | "PLAYER_TURN"
-  | "DEALER_TURN"
-  | "RESOLVING";
+export enum GameResult {
+  WIN     = 'WIN',
+  LOSE    = 'LOSE',
+  DRAW    = 'DRAW',
+  PENDING = 'PENDING',
+}
 
-export type RoomState =
-  | "WAITING"
-  | "PLAYING";
+export enum GameState {
+  WAITING     = 'WAITING',
+  DEALING     = 'DEALING',
+  PLAYER_TURN = 'PLAYER_TURN',
+  DEALER_TURN = 'DEALER_TURN',
+  RESOLVING   = 'RESOLVING',
+}
 
-export type GameEvent =
-  | "START"
-  | "PLAYER_READY"
-  | "ALL_READY"
-  | "HIT"
-  | "STAND";
+export enum RoomState {
+  WAITING = 'WAITING',
+  PLAYING = 'PLAYING',
+}
 
-export type PlayerAction = "HIT" | "STAND";
+export enum GameEvent {
+  START        = 'START',
+  PLAYER_READY = 'PLAYER_READY',
+  ALL_READY    = 'ALL_READY',
+  HIT          = 'HIT',
+  STAND        = 'STAND',
+}
+
+export enum PlayerAction {
+  HIT   = 'HIT',
+  STAND = 'STAND',
+}
+
+export enum SeatRole {
+  DEALER = 'dealer',
+  PLAYER = 'player',
+}
 
 export type ActionResult = {
   card?: Card;
@@ -37,8 +79,6 @@ export type ActionResult = {
   gameEnded: boolean;
   results?: Array<{ playerId: number; result: GameResult }>;
 };
-
-export type SeatRole = "dealer" | "player";
 
 export type Seat = {
   seatIndex: number;

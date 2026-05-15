@@ -14,7 +14,7 @@ export class Room {
   private swapManager = new SwapManager();
   private gameSession: GameSession | null = null;
   private readyPlayers: Set<number> = new Set();
-  private roomState: RoomState = "WAITING";
+  private roomState: RoomState = RoomState.WAITING;
   private _idleTimer: ReturnType<typeof setTimeout> | null = null;
 
   public onIdleTimeout?: (roomId: number) => void;
@@ -132,8 +132,8 @@ export class Room {
     const chipAfter = new Map<number, number>();
     for (const { playerId, result } of results) {
       let payout = 0;
-      if (result === "WIN") payout = this.betAmount * 2;
-      if (result === "DRAW") payout = this.betAmount;
+      if (result === GameResult.WIN) payout = this.betAmount * 2;
+      if (result === GameResult.DRAW) payout = this.betAmount;
       const after = this.seatManager.adjustChip(playerId, payout);
       chipAfter.set(playerId, after);
     }
@@ -160,13 +160,13 @@ export class Room {
     this.gameSession = new GameSession(playerIds, dealerId, deck);
     this.gameSession.onTurnTimeout = (playerId, result) => {
       if (result.gameEnded) {
-        this.roomState = "WAITING";
+        this.roomState = RoomState.WAITING;
         this.startIdleTimer();
       }
       this.onTurnTimeout?.(playerId, result);
     };
     this.readyPlayers.clear();
-    this.roomState = "PLAYING";
+    this.roomState = RoomState.PLAYING;
     const result = this.gameSession.start();
     return result !== undefined;
   }
@@ -176,7 +176,7 @@ export class Room {
     this.readyPlayers.add(playerId);
     const allReady = this.gameSession.markPlayerReady(playerId);
     if (!this.gameSession.isPlaying()) {
-      this.roomState = "WAITING";
+      this.roomState = RoomState.WAITING;
       this.startIdleTimer();
     }
     return allReady;
@@ -192,7 +192,7 @@ export class Room {
     if (!this.gameSession) return null;
     const result = this.gameSession.applyAction(playerId, action) ?? null;
     if (result?.gameEnded) {
-      this.roomState = "WAITING";
+      this.roomState = RoomState.WAITING;
       this.startIdleTimer();
     }
     return result;

@@ -150,42 +150,45 @@ public class GameplayLogic
     if (p == null) return;
     Debug.Log($"[state_changed] {p.state}");
 
-    switch (p.state)
+    if (p.State == ServerGameState.Dealing)
     {
-      case "DEALING":
-        if (p.players == null || p.dealer == null) return;
-        _session.ToDealing();
-        _table.ShowGameplay();
-        _table.SetMyPlayerId(_myPlayerId);
-        _table.SetMyName(GameState.Instance.AccountUsername ?? "");
-        _runner.StartCoroutine(DealAfterFrame(p));
-        break;
-
-      case "WAITING":
-        _session.ToGameOver();
-        _table.HideActionButtons();
-        var snapshot = p;
-        _table.RevealAllWhenReady(() =>
-        {
-          _table.RevealDealerAndShowResult(
-            snapshot.dealer, snapshot.players, snapshot.results, _myPlayerId,
-            results =>
-            {
-              if (results == null) return;
-              foreach (var r in results)
-              {
-                Debug.Log($"  player[{r.playerId}] → {r.result}  chip={r.chipAfter:N0}");
-                _table.ShowResult(r.playerId, r.result);
-                if (r.playerId == _myPlayerId)
-                {
-                  _myChip = r.chipAfter;
-                  _table.UpdateMyChip(_myChip);
-                }
-              }
-            });
-        });
-        break;
+      if (p.players == null || p.dealer == null) return;
+      _session.ToDealing();
+      _table.ShowGameplay();
+      _table.SetMyPlayerId(_myPlayerId);
+      _table.SetMyName(GameState.Instance.AccountUsername ?? "");
+      _runner.StartCoroutine(DealAfterFrame(p));
     }
+    else if (p.State == ServerGameState.Waiting)
+    {
+      Waiting(p);
+    }
+  }
+
+  private void Waiting(GameUpdatePayload p)
+  {
+    _session.ToGameOver();
+    _table.HideActionButtons();
+    var snapshot = p;
+    _table.RevealAllWhenReady(() =>
+    {
+      _table.RevealDealerAndShowResult(
+        snapshot.dealer, snapshot.players, snapshot.results, _myPlayerId,
+        results =>
+        {
+          if (results == null) return;
+          foreach (var r in results)
+          {
+            Debug.Log($"  player[{r.playerId}] → {r.result}  chip={r.chipAfter:N0}");
+            _table.ShowResult(r.playerId, r.result);
+            if (r.playerId == _myPlayerId)
+            {
+              _myChip = r.chipAfter;
+              _table.UpdateMyChip(_myChip);
+            }
+          }
+        });
+    });
   }
 
   private void HandleTurnChanged(int currentPlayer)
@@ -218,7 +221,7 @@ public class GameplayLogic
         _table.AddCard(h.card, h.score, h.player_id);
         if (h.player_id == _myPlayerId)
         {
-          if (h.status == "BUST")
+          if (h.Status == PlayerStatus.Bust)
           {
             Debug.Log("💥 BUST");
             _table.HideActionButtons();

@@ -2,6 +2,7 @@ import { RoomService } from "../../../service/room-service.js";
 import { GameBroadcaster } from "../../services/game-broadcaster.js";
 import { UserSession } from "../../../infrastructure/network/user-session.js";
 import { IGameLogger } from "../../../domain/logging/i-game-logger.js";
+import { PlayerAction } from "../../../domain/types.js";
 
 export class PlayerHitUseCase {
   constructor(
@@ -30,7 +31,7 @@ export class PlayerHitUseCase {
       return;
     }
 
-    const result = room.applyAction(playerId, "HIT");
+    const result = room.applyAction(playerId, PlayerAction.HIT);
     if (!result) {
       this.logger.log({ timestamp: new Date(), level: "SUSPICIOUS", event: { kind: "suspicious", playerId, roomId: room.getRoomId(), action: "hit", reason: "ACTION_UNDEFINED" } });
       session.send({ type: "error", reason: "ACTION_UNDEFINED" });

@@ -4,7 +4,7 @@ import { Deck, IDeck } from "./deck.js";
 import { TURN_TIMEOUT_MS } from "../../config/config.js";
 
 export class GameSession {
-  private state: GameState = "WAITING";
+  private state: GameState = GameState.WAITING;
   private game: BlackjackGame;
   private players: number[];
   private dealerId: number;
@@ -12,7 +12,7 @@ export class GameSession {
   private turnOrder: number[] = [];
   private currentTurnIndex = 0;
   private actionTakenThisTurn = new Set<number>();
-  private _turnTimer: ReturnType<typeof setTimeout> | null = null;
+  private _turnTimer: ReturnType<typeof setTimeout> | undefined = undefined;
   public onTurnTimeout?: (playerId: number, result: ActionResult) => void;
 
   constructor(playerIds: number[], dealerId: number, deck?: IDeck) {
@@ -24,37 +24,37 @@ export class GameSession {
   private dispatch(event: GameEvent, payload?: any): any {
     console.log(`[GameSession] state=${this.state} event=${event}`);
     switch (this.state) {
-      case "WAITING": return this.handleWaiting(event);
-      case "DEALING": return this.handleDealing(event, payload);
-      case "PLAYER_TURN": return this.handlePlayerTurn(event, payload);
+      case GameState.WAITING:     return this.handleWaiting(event);
+      case GameState.DEALING:     return this.handleDealing(event, payload);
+      case GameState.PLAYER_TURN: return this.handlePlayerTurn(event, payload);
     }
   }
 
   private handleWaiting(event: GameEvent) {
-    if (event !== "START") return;
+    if (event !== GameEvent.START) return;
     this.game.startGame(this.players, this.dealerId);
     this.setupTurnOrder();
     this.readyPlayers.clear();
-    this.state = "DEALING";
+    this.state = GameState.DEALING;
     return { type: "GAME_STARTED", players: this.players };
   }
 
   private handleDealing(event: GameEvent, payload: any) {
-    if (event === "PLAYER_READY") {
+    if (event === GameEvent.PLAYER_READY) {
       this.readyPlayers.add(payload.playerId);
-      if (this.allPlayersReady()) return this.dispatch("ALL_READY");
+      if (this.allPlayersReady()) return this.dispatch(GameEvent.ALL_READY);
       return;
     }
-    if (event === "ALL_READY") {
-      this.state = "PLAYER_TURN";
+    if (event === GameEvent.ALL_READY) {
+      this.state = GameState.PLAYER_TURN;
 
       const firstId = this.getCurrentPlayerId();
       const firstStatus = firstId !== undefined ? this.game.getStatus(firstId) : undefined;
-      if (firstStatus !== "PLAYING") {
+      if (firstStatus !== PlayerStatus.PLAYING) {
         if (this.isDealerTurn()) {
           this.game.playDealerTurn();
           const results = this.buildResults();
-          this.state = "WAITING";
+          this.state = GameState.WAITING;
           return { type: "GAME_END", results };
         }
         this.nextTurn();
@@ -67,7 +67,7 @@ export class GameSession {
   }
 
   private handlePlayerTurn(event: GameEvent, payload: any): ActionResult | undefined {
-    if (event === "HIT") {
+    if (event === GameEvent.HIT) {
       const { playerId } = payload;
       if (!this.isPlayerTurn(playerId)) return undefined;
 
@@ -75,7 +75,7 @@ export class GameSession {
       const status = this.game.getStatus(playerId)!;
       if (!card) return undefined;
 
-      if (status === "BUST" || status === "STAND") {
+      if (status === PlayerStatus.BUST || status === PlayerStatus.STAND) {
         return this.buildNextTurnResult({ card, status });
       }
 
@@ -84,7 +84,7 @@ export class GameSession {
       return { card, status, turnChanged: false, gameEnded: false };
     }
 
-    if (event === "STAND") {
+    if (event === GameEvent.STAND) {
       const { playerId } = payload;
       if (!this.isPlayerTurn(playerId)) return undefined;
       this.game.stand(playerId);
@@ -100,7 +100,7 @@ export class GameSession {
     if (this.isDealerTurn()) {
       this.game.playDealerTurn();
       const results = this.buildResults();
-      this.state = "WAITING";
+      this.state = GameState.WAITING;
       return { ...partial, turnChanged: true, nextPlayerId: undefined, gameEnded: true, results };
     }
 
@@ -110,7 +110,7 @@ export class GameSession {
   }
 
   private buildResults(): Array<{ playerId: number; result: GameResult }> {
-    return this.players.map(id => ({ playerId: id, result: this.game.getResult(id) ?? "PENDING" }));
+    return this.players.map(id => ({ playerId: id, result: this.game.getResult(id) ?? GameResult.PENDING }));
   }
 
   private setupTurnOrder() {
@@ -133,14 +133,14 @@ export class GameSession {
       this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnOrder.length;
       const id = this.getCurrentPlayerId();
       const status = id !== undefined ? this.game.getStatus(id) : undefined;
-      if (status === "PLAYING") return;
+      if (status === PlayerStatus.PLAYING) return;
       attempts++;
     } while (attempts < this.turnOrder.length);
     this.currentTurnIndex = startIndex;
   }
 
   private isDealerTurn(): boolean {
-    return this.turnOrder.every(id => this.game.getStatus(id) !== "PLAYING");
+    return this.turnOrder.every(id => this.game.getStatus(id) !== PlayerStatus.PLAYING);
   }
 
   private allPlayersReady(): boolean {
@@ -148,7 +148,7 @@ export class GameSession {
   }
 
   public onPlayerLeave(playerId: number): { turnChanged: boolean; nextPlayerId?: number } {
-    if (this.state !== "PLAYER_TURN") {
+    if (this.state !== GameState.PLAYER_TURN) {
       this.turnOrder = this.turnOrder.filter(id => id !== playerId);
       return { turnChanged: false };
     }
@@ -162,54 +162,54 @@ export class GameSession {
     if (this.currentTurnIndex >= this.turnOrder.length) this.currentTurnIndex = 0;
     if (this.turnOrder.length === 0 || this.isDealerTurn()) {
       this.game.playDealerTurn();
-      this.state = "WAITING";
+      this.state = GameState.WAITING;
       return { turnChanged: true, nextPlayerId: undefined };
     }
     return { turnChanged: true, nextPlayerId: this.getCurrentPlayerId() };
   }
 
   public markPlayerReady(playerId: number): boolean {
-    if (this.state !== "DEALING") return false;
-    const result = this.dispatch("PLAYER_READY", { playerId });
-    return (this.state as GameState) === "PLAYER_TURN" || result?.type === "GAME_END";
+    if (this.state !== GameState.DEALING) return false;
+    const result = this.dispatch(GameEvent.PLAYER_READY, { playerId });
+    return (this.state as GameState) === GameState.PLAYER_TURN || result?.type === "GAME_END";
   }
 
   public isReadyToAct(): boolean {
-    return (this.state as GameState) === "PLAYER_TURN";
+    return this.state === GameState.PLAYER_TURN;
   }
 
   public start() {
-    return this.dispatch("START");
+    return this.dispatch(GameEvent.START);
   }
 
   public applyAction(playerId: number, action: PlayerAction): ActionResult | undefined {
-    if (this.state !== "PLAYER_TURN") return undefined;
+    if (this.state !== GameState.PLAYER_TURN) return undefined;
     if (!this.isPlayerTurn(playerId)) return undefined;
-    if (action === "HIT" && this.actionTakenThisTurn.has(playerId)) return undefined;
-    if (action === "HIT") this.actionTakenThisTurn.add(playerId);
+    if (action === PlayerAction.HIT && this.actionTakenThisTurn.has(playerId)) return undefined;
+    if (action === PlayerAction.HIT) this.actionTakenThisTurn.add(playerId);
     this.clearTurnTimer();
-    const result = this.dispatch(action, { playerId });
+    const result = this.dispatch(action as unknown as GameEvent, { playerId });
     return result;
   }
 
   private startTurnTimer(playerId: number): void {
     this.clearTurnTimer();
     this._turnTimer = setTimeout(() => {
-      this._turnTimer = null;
-      const result = this.applyAction(playerId, "STAND");
+      this._turnTimer = undefined;
+      const result = this.applyAction(playerId, PlayerAction.STAND);
       if (result) this.onTurnTimeout?.(playerId, result);
     }, TURN_TIMEOUT_MS);
   }
 
   private clearTurnTimer(): void {
-    if (this._turnTimer !== null) {
+    if (this._turnTimer !== undefined) {
       clearTimeout(this._turnTimer);
-      this._turnTimer = null;
+      this._turnTimer = undefined;
     }
   }
 
   public destroy(): void { this.clearTurnTimer(); }
-  public isPlaying(): boolean { return this.state !== "WAITING"; }
+  public isPlaying(): boolean { return this.state !== GameState.WAITING; }
   public getPlayerScore(playerId: number): number {
     return this.game.getHand(playerId)?.getScore() ?? 0;
   }
@@ -230,7 +230,7 @@ export class GameSession {
         hand: this.game.getDealerHand().cards,
         score: this.game.getDealerHand().getScore(),
       },
-      results: this.state === "WAITING" ? this.buildResults() : undefined,
+      results: this.state === GameState.WAITING ? this.buildResults() : undefined,
     };
   }
 }

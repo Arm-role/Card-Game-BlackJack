@@ -1,4 +1,4 @@
-import { Card, GameResult, GameState, PlayerStatus } from "../types.js";
+import { Card, GameResult, GameState, PlayerStatus, Rank } from "../types.js";
 import { Deck, IDeck } from "./deck.js";
 
 export class Hand {
@@ -13,9 +13,9 @@ export class Hand {
     let aces = 0;
 
     for (const card of this.cards) {
-      if (["J", "Q", "K"].includes(card.rank)) {
+      if ([Rank.JACK, Rank.QUEEN, Rank.KING].includes(card.rank)) {
         total += 10;
-      } else if (card.rank === "A") {
+      } else if (card.rank === Rank.ACE) {
         total += 11;
         aces += 1;
       } else {
@@ -40,13 +40,13 @@ export class BlackjackGame {
   private playerResults = new Map<number, GameResult>();
   private dealerHand = new Hand();
   private dealerId: number = -1;
-  public state: GameState = "WAITING";
+  public state: GameState = GameState.WAITING;
 
   constructor(private deck: IDeck = new Deck()) { }
 
   public startGame(playerIds: number[], dealerId: number = -1) {
     this.dealerId = dealerId;
-    this.state = "PLAYER_TURN";
+    this.state = GameState.PLAYER_TURN;
     this.dealerHand = new Hand();
     this.playersHands.clear();
     this.playerStatuses.clear();
@@ -54,8 +54,8 @@ export class BlackjackGame {
 
     for (const id of playerIds) {
       this.playersHands.set(id, new Hand());
-      this.playerStatuses.set(id, "PLAYING");
-      this.playerResults.set(id, "PENDING");
+      this.playerStatuses.set(id, PlayerStatus.PLAYING);
+      this.playerResults.set(id, GameResult.PENDING);
     }
 
     for (let i = 0; i < 2; i++) {
@@ -67,44 +67,44 @@ export class BlackjackGame {
 
     for (const id of playerIds) {
       if (this.playersHands.get(id)!.isBlackjack()) {
-        this.playerStatuses.set(id, "BLACKJACK");
+        this.playerStatuses.set(id, PlayerStatus.BLACKJACK);
       }
     }
   }
 
   public hit(playerId: number): Card | undefined {
-    if (this.state !== "PLAYER_TURN") return undefined;
+    if (this.state !== GameState.PLAYER_TURN) return undefined;
     const hand = this.playersHands.get(playerId);
     const status = this.playerStatuses.get(playerId);
-    if (!hand || status !== "PLAYING") return undefined;
+    if (!hand || status !== PlayerStatus.PLAYING) return undefined;
 
     const card = this.deck.draw();
     hand.addCard(card);
 
     if (hand.isBust()) {
-      this.playerStatuses.set(playerId, "BUST");
+      this.playerStatuses.set(playerId, PlayerStatus.BUST);
     } else if (hand.getScore() === 21) {
-      this.playerStatuses.set(playerId, "STAND");
+      this.playerStatuses.set(playerId, PlayerStatus.STAND);
     }
     return card;
   }
 
   public stand(playerId: number) {
-    if (this.state !== "PLAYER_TURN") return;
-    if (this.playerStatuses.get(playerId) === "PLAYING") {
-      this.playerStatuses.set(playerId, "STAND");
+    if (this.state !== GameState.PLAYER_TURN) return;
+    if (this.playerStatuses.get(playerId) === PlayerStatus.PLAYING) {
+      this.playerStatuses.set(playerId, PlayerStatus.STAND);
     }
   }
 
   public playDealerTurn(): void {
-    this.state = "DEALER_TURN";
-    const hasNonBust = Array.from(this.playerStatuses.values()).some(s => s !== "BUST");
+    this.state = GameState.DEALER_TURN;
+    const hasNonBust = Array.from(this.playerStatuses.values()).some(s => s !== PlayerStatus.BUST);
     if (hasNonBust) {
       while (this.dealerHand.getScore() < 17) {
         this.dealerHand.addCard(this.deck.draw());
       }
     }
-    this.state = "RESOLVING";
+    this.state = GameState.RESOLVING;
     this.evaluateWinners();
   }
 
@@ -117,17 +117,17 @@ export class BlackjackGame {
       const status = this.playerStatuses.get(playerId)!;
       const score = hand.getScore();
 
-      if (status === "BUST") { this.playerResults.set(playerId, "LOSE"); continue; }
-      if (status === "BLACKJACK") {
-        this.playerResults.set(playerId, dealerBlackjack ? "DRAW" : "WIN");
+      if (status === PlayerStatus.BUST) { this.playerResults.set(playerId, GameResult.LOSE); continue; }
+      if (status === PlayerStatus.BLACKJACK) {
+        this.playerResults.set(playerId, dealerBlackjack ? GameResult.DRAW : GameResult.WIN);
         continue;
       }
       if (dealerBust || score > dealerScore) {
-        this.playerResults.set(playerId, "WIN");
+        this.playerResults.set(playerId, GameResult.WIN);
       } else if (score < dealerScore) {
-        this.playerResults.set(playerId, "LOSE");
+        this.playerResults.set(playerId, GameResult.LOSE);
       } else {
-        this.playerResults.set(playerId, "DRAW");
+        this.playerResults.set(playerId, GameResult.DRAW);
       }
     }
   }
@@ -137,8 +137,8 @@ export class BlackjackGame {
   public getDealerId() { return this.dealerId; }
   public getResult(playerId: number) { return this.playerResults.get(playerId); }
   public getStatus(playerId: number) { return this.playerStatuses.get(playerId); }
-  public isResolved(): boolean { return this.state === "RESOLVING"; }
+  public isResolved(): boolean { return this.state === GameState.RESOLVING; }
   public areAllPlayersDone(): boolean {
-    return Array.from(this.playerStatuses.values()).every(s => s !== "PLAYING");
+    return Array.from(this.playerStatuses.values()).every(s => s !== PlayerStatus.PLAYING);
   }
 }
